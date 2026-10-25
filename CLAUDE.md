@@ -111,7 +111,9 @@ Widget tests are not required. Do not write them unless asked.
   docs. Code against the version in `pubspec.lock`.
 - Timezone is Asia/Kuala_Lumpur (UTC+8, no DST). Use device local time. Do not
   add a timezone package.
-- iOS cannot be built on Windows. Do not attempt iOS-specific setup, Xcode
-  configuration, CocoaPods work, or signing. Phase 7 is out of scope for now.
+- iOS cannot be built on Windows. The unsigned iPhone build runs on GitHub
+  Actions (`.github/workflows/ios-unsigned.yml`, on every push to `main`);
+  Jack signs and installs it with Sideloadly and his free Apple ID, which
+  expires every 7 days. Signing with a paid account (TestFlight) is on hold.
 - Do not fine-tune spacing or typography against the Android emulator. That pass
   happens on a real iPhone later.

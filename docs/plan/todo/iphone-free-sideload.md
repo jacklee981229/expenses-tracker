@@ -17,9 +17,12 @@ OK先走免费test 7天的路。就照这个开始吧。
 ## Tasks
 
 - [ ] 1. Redesign confirmed, swept, committed; folder made a git repo and
-      pushed to a public GitHub repo (card-redesign D9).
-- [ ] 2. iOS project ready: display name, bundle ID, launch screen colour,
-      deployment target if a package needs a newer one.
+      pushed to a public GitHub repo.
+- [x] 2. iOS project ready: display name, bundle ID, launch screen colour,
+      deployment target if a package needs a newer one. (Display name
+      `Expenses` on both phones; launch colour follows light/dark; bundle ID
+      kept `com.jack.expenseTracker`; target stays 12.0 unless the build says
+      otherwise.)
 - [ ] 3. GitHub Actions workflow builds an unsigned `.ipa` on macOS with
       Flutter 3.32.0 and keeps it as a download.
 - [ ] 4. Jack installs Sideloadly and Apple's iPhone driver on Windows.

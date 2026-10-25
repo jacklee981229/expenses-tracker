@@ -1,0 +1,39 @@
+# Builds an unsigned iPhone app (.ipa) on a GitHub-hosted Mac, because iOS
+# can't be built on Windows. Sideloadly signs and installs it from Windows
+# with a free Apple ID (re-sign every 7 days). Download it from the run's
+# Artifacts section.
+name: iOS unsigned build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the version on Jack's laptop (see docs/PLAN.md section 0).
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.0
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter test
+      - run: flutter build ios --release --no-codesign
+
+      - name: Package as .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr Expenses-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Expenses-unsigned-ipa
+          path: Expenses-unsigned.ipa
+          retention-days: 30
