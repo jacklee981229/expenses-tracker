@@ -13,6 +13,7 @@ import '../../../shared/widgets/pill_chip.dart';
 import '../../../shared/widgets/sheets.dart';
 import '../../settings/settings_screen.dart';
 import '../ledger_providers.dart';
+import '../search_screen.dart';
 import 'category_drawer.dart';
 import 'export_nudge_banner.dart';
 import 'total_card.dart';
@@ -70,6 +71,13 @@ class LedgerHeader extends ConsumerWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              CircleIconButton(
+                icon: Icons.search_rounded,
+                tooltip: AppStrings.search,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SearchScreen()),
+                ),
+              ),
               CircleIconButton(
                 icon: Icons.chevron_left_rounded,
                 tooltip: AppStrings.previous,

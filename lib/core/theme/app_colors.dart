@@ -21,6 +21,8 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.onAccent,
     required this.destructive,
     required this.swipeNeutral,
+    required this.heroUp,
+    required this.heroDown,
     required this.fill,
     required this.chartOther,
     required this.chartShade,
@@ -71,8 +73,13 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onAccent;
   final Color destructive;
 
-  /// Non-destructive swipe actions (Edit, Archive).
+  /// Non-destructive swipe actions (Archive).
   final Color swipeNeutral;
+
+  /// The big total's flash on the violet card: up when spending grows,
+  /// down when it shrinks. Light enough to read on the violet.
+  final Color heroUp;
+  final Color heroDown;
 
   /// Unselected chips, empty share bars and other filled controls.
   final Color fill;
@@ -136,6 +143,8 @@ class AppColors extends ThemeExtension<AppColors> {
     onAccent: Color(0xFFFFFFFF),
     destructive: Color(0xFFD6335A),
     swipeNeutral: Color(0xFF8A84BE),
+    heroUp: Color(0xFFFF6F86),
+    heroDown: Color(0xFF6CF2A8),
     fill: Color(0xFFECEBF6),
     chartOther: Color(0xFFC9C8DA),
     chartShade: Color(0x14000000),
@@ -174,6 +183,8 @@ class AppColors extends ThemeExtension<AppColors> {
     onAccent: Color(0xFFFFFFFF),
     destructive: Color(0xFFE0365C),
     swipeNeutral: Color(0xFF3A3F60),
+    heroUp: Color(0xFFFF6F86),
+    heroDown: Color(0xFF6CF2A8),
     fill: Color(0xFF232741),
     chartOther: Color(0xFF4A4E6A),
     chartShade: Color(0x40000000),
@@ -219,6 +230,8 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? onAccent,
     Color? destructive,
     Color? swipeNeutral,
+    Color? heroUp,
+    Color? heroDown,
     Color? fill,
     Color? chartOther,
     Color? chartShade,
@@ -256,6 +269,8 @@ class AppColors extends ThemeExtension<AppColors> {
       onAccent: onAccent ?? this.onAccent,
       destructive: destructive ?? this.destructive,
       swipeNeutral: swipeNeutral ?? this.swipeNeutral,
+      heroUp: heroUp ?? this.heroUp,
+      heroDown: heroDown ?? this.heroDown,
       fill: fill ?? this.fill,
       chartOther: chartOther ?? this.chartOther,
       chartShade: chartShade ?? this.chartShade,
@@ -299,6 +314,8 @@ class AppColors extends ThemeExtension<AppColors> {
       onAccent: mix(onAccent, other.onAccent),
       destructive: mix(destructive, other.destructive),
       swipeNeutral: mix(swipeNeutral, other.swipeNeutral),
+      heroUp: mix(heroUp, other.heroUp),
+      heroDown: mix(heroDown, other.heroDown),
       fill: mix(fill, other.fill),
       chartOther: mix(chartOther, other.chartOther),
       chartShade: mix(chartShade, other.chartShade),

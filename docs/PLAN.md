@@ -157,6 +157,8 @@ lib/
       money.dart                    # minor-unit <-> display conversion
       date_utils.dart               # period boundaries, local date strings
       icon_registry.dart            # STATIC icon key -> image path map
+      note_utils.dart               # note cleaning, history chip ranking
+      duplicate_check.dart          # the "Save it again?" check
     constants/
       strings.dart                  # all user-facing copy
       category_colors.dart          # the colour palette for categories
@@ -185,6 +187,7 @@ lib/
   features/
     ledger/
       ledger_screen.dart
+      search_screen.dart
       widgets/
         total_card.dart             # violet total card with 7-day bars
         category_drawer.dart        # folded category filter
@@ -448,9 +451,13 @@ reached from the gear button in the ledger header.
   the way the month moved. A `This Month` chip appears when viewing another
   month.
 - The total card: `Spent this month` (or `Spent in Sep 2026`), the total in
-  big figures that roll to their value, a `Today RM45.00` chip, a receipt
-  sticker, and a white pill bar for each of the last seven days ending today
-  (today's glows). It swings in when the ledger opens.
+  big figures that roll to their value, and a receipt sticker. The total
+  turns red and grows while it rolls up (an expense added), green while it
+  rolls down (one deleted), then back to white; a month change only rolls.
+  This month adds a `Today RM45.00` chip and a white pill bar for each of
+  the last seven days ending today (today's glows); any other month shows
+  one bar per week of it instead (`W1` = days 1–7 … `W5` = 29 to the end).
+  It swings in when the ledger opens.
 - The category drawer: one `All categories` pill. Tapping opens tilted tags,
   one per category spent on this month with its total; picking one narrows the
   list, lights the tag in its colour, slides out its name and folds the drawer,
@@ -466,9 +473,17 @@ reached from the gear button in the ledger header.
   category name when there is no note), `12:30 · Food` beneath (just the time
   when the title is already the category), and `-RM12.50`.
 - Rows for `source = recurring` get a small repeat glyph next to the title.
-- Swipe left on a row → Edit and Delete (with confirmation). Tap → edit.
+- Swipe left on a row → two icon buttons: Again (the add sheet as a new
+  expense with its category, note and amount, dated today) and Delete.
+  Tap → edit.
+- Delete has no confirmation: the row tears away and the expense is deleted
+  at once. In its place a dark bar of the row's height reads `Deleted` and
+  `Undo` for 5 s, then folds away; tapping it puts the same row back.
 - A new expense prints into its receipt (the row unrolls, the receipt
   wobbles); a deleted one tears away to the right.
+- The header's search button opens Search: one field matching note,
+  category name or amount across all months, newest first, as the same day
+  receipts, with `N expenses · RMx` above them.
 
 **Empty state:** the receipt picture, "No expenses this month" and a button
 that opens the add sheet.
@@ -519,6 +534,12 @@ Keypad rules:
 - `Save & Add` keeps the sheet open, resets amount and note, keeps the selected
   category and date. It is disabled when editing an expense.
 
+Smart entry (new expenses only):
+- Typing a note used before switches to the active category it was last used
+  with (ignoring case), unless a category tile was tapped in this sheet.
+- Saving the same amount, category and note as an expense saved in the last
+  10 minutes first asks `Save it again?` with `Save Again` and Cancel.
+
 ### 7.4 History chip strip
 
 Sits at the bottom of the amount box, under the note field it fills.
@@ -526,19 +547,12 @@ Horizontally scrollable, single row of frosted chips that slide in one after
 another when the category changes.
 
 **Content:** every distinct note ever used in the currently selected category,
-deduplicated, ordered by most recently used, unlimited length. **Amounts are not
-shown and are never filled by a chip.** This is a description picker, nothing more.
+deduplicated, unlimited length. **Amounts are not shown and are never filled by
+a chip.** This is a description picker, nothing more.
 
-```sql
-SELECT note,
-       MAX(occurred_at) AS last_used
-FROM transactions
-WHERE category_id = ?
-  AND note IS NOT NULL
-  AND TRIM(note) != ''
-GROUP BY note
-ORDER BY last_used DESC;
-```
+**Order:** `rankNotes` in `core/utils/note_utils.dart`. Each use counts
+0.5^(age in days / 30), doubled when its time of day is within 2 hours of now;
+the highest score comes first, ties to the more recent note.
 
 **Chip label:** the note text, exactly as stored. `Mamak`. Nothing else.
 
@@ -795,8 +809,8 @@ clamps correctly in February.
 ### Phase 5 — History chips
 The chip strip on the add sheet, wired to category selection.
 
-*Done when:* selecting a category shows deduplicated note chips ordered by
-recency, tapping one fills the note field and leaves the amount untouched, a
+*Done when:* selecting a category shows deduplicated note chips ranked as in
+7.4, tapping one fills the note field and leaves the amount untouched, a
 category with no notes hides the strip, and a category with 500+ distinct notes
 scrolls smoothly.
 
@@ -890,7 +904,9 @@ Decide when reached, not before:
 
 - Whether the `Others` category should be undeletable
 - Whether the pie chart needs a trend/bar view alongside it
-- Whether to add a search field to the ledger
+- Smart default category (the add sheet opens on the category most used at
+  this time of day): a Settings option, off by default. Needs a settings
+  column, so a `schemaVersion` bump.
 - Whether Flutter 3.32.0 still builds with the Xcode version the chosen iOS route
   needs (TestFlight uploads require a recent Xcode). Check at the start of
   Phase 7; upgrade Flutter only if it does not.

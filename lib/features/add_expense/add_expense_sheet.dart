@@ -11,6 +11,7 @@ import '../../shared/today_provider.dart';
 import '../../shared/widgets/circle_icon_button.dart';
 import '../../shared/widgets/hero_surface.dart';
 import '../../shared/widgets/receipt_card.dart';
+import '../../shared/widgets/sheets.dart';
 import '../categories/categories_providers.dart';
 import '../categories/edit_category_screen.dart';
 import 'add_expense_controller.dart';
@@ -20,8 +21,14 @@ import 'widgets/category_grid.dart';
 import 'widgets/date_chip.dart';
 import 'widgets/history_chip_strip.dart';
 
-/// Opens the full-height add sheet, or the edit sheet for [editing].
-Future<void> showAddExpenseSheet(BuildContext context, {Expense? editing}) {
+/// Opens the full-height add sheet, the edit sheet for [editing], or a new
+/// expense copied from [template] (Again: same category, note and amount,
+/// dated today).
+Future<void> showAddExpenseSheet(
+  BuildContext context, {
+  Expense? editing,
+  Expense? template,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -32,7 +39,7 @@ Future<void> showAddExpenseSheet(BuildContext context, {Expense? editing}) {
       duration: AppMotion.page,
       reverseDuration: AppMotion.normal,
     ),
-    builder: (context) => AddExpenseSheet(editing: editing),
+    builder: (context) => AddExpenseSheet(editing: editing, template: template),
   );
 }
 
@@ -40,9 +47,10 @@ Future<void> showAddExpenseSheet(BuildContext context, {Expense? editing}) {
 /// violet amount box (amount, date, note, and under them the notes used
 /// before in this category), and the keypad, whose word keys save.
 class AddExpenseSheet extends ConsumerStatefulWidget {
-  const AddExpenseSheet({super.key, this.editing});
+  const AddExpenseSheet({super.key, this.editing, this.template});
 
   final Expense? editing;
+  final Expense? template;
 
   @override
   ConsumerState<AddExpenseSheet> createState() => _AddExpenseSheetState();
@@ -50,7 +58,7 @@ class AddExpenseSheet extends ConsumerStatefulWidget {
 
 class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
   late final TextEditingController _note = TextEditingController(
-    text: widget.editing?.note ?? '',
+    text: widget.editing?.note ?? widget.template?.note ?? '',
   );
   final FocusNode _noteFocus = FocusNode();
 
@@ -72,9 +80,16 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     final categories = ref.watch(activeCategoriesProvider).valueOrNull;
     if (categories == null) return const SizedBox.shrink();
 
+    final template = widget.template;
+    // A copied expense keeps its category only while that is still active.
+    final templateCategory =
+        template != null && categories.any((c) => c.id == template.categoryId)
+        ? template.categoryId
+        : null;
     final args = _args ??= (
       editing: widget.editing,
-      defaultCategoryId: categories.firstOrNull?.id,
+      defaultCategoryId: templateCategory ?? categories.firstOrNull?.id,
+      template: template,
     );
     final provider = addExpenseControllerProvider(args);
     final state = ref.watch(provider);
@@ -117,7 +132,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             note: _NoteField(
               controller: _note,
               focusNode: _noteFocus,
-              onChanged: controller.setNote,
+              onChanged: controller.typeNote,
             ),
             history: HistoryChipStrip(
               categoryId: state.categoryId,
@@ -156,6 +171,16 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     bool addAnother = false,
   }) async {
     _noteFocus.unfocus();
+    if (await controller.looksLikeDuplicate()) {
+      if (!mounted) return;
+      final again = await showOptionsSheet<bool>(
+        context,
+        title: AppStrings.duplicateTitle,
+        message: AppStrings.duplicateMessage,
+        options: const [SheetOption(AppStrings.saveAgain, true)],
+      );
+      if (again != true) return;
+    }
     final saved = await controller.save(addAnother: addAnother);
     if (!saved || !mounted) return;
     HapticFeedback.lightImpact();

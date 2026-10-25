@@ -11,9 +11,12 @@ class SwipeAction {
     required this.label,
     required this.color,
     required this.onPressed,
+    this.icon,
   });
 
+  /// Shown when there is no [icon]; otherwise read out by screen readers.
   final String label;
+  final IconData? icon;
   final Color color;
   final VoidCallback onPressed;
 }
@@ -155,17 +158,37 @@ class _ActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.tile),
           ),
           alignment: Alignment.center,
-          child: Text(
-            action.label,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
-            softWrap: false,
-            style: AppTextStyles.subheadline.copyWith(
-              color: context.colors.onAccent,
-            ),
-          ),
+          child: _ActionFace(action),
         ),
       ),
+    );
+  }
+}
+
+/// The inside of an action button: its icon, or its label when it has none.
+class _ActionFace extends StatelessWidget {
+  const _ActionFace(this.action);
+
+  final SwipeAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    final onAccent = context.colors.onAccent;
+    final icon = action.icon;
+    if (icon != null) {
+      return Icon(
+        icon,
+        size: AppSizes.swipeIcon,
+        color: onAccent,
+        semanticLabel: action.label,
+      );
+    }
+    return Text(
+      action.label,
+      maxLines: 1,
+      overflow: TextOverflow.clip,
+      softWrap: false,
+      style: AppTextStyles.subheadline.copyWith(color: onAccent),
     );
   }
 }

@@ -22,7 +22,6 @@ abstract final class AppStrings {
   static const String cancel = 'Cancel';
   static const String save = 'Save';
   static const String done = 'Done';
-  static const String edit = 'Edit';
   static const String delete = 'Delete';
   static const String ok = 'OK';
   static const String dismiss = 'Dismiss';
@@ -46,6 +45,9 @@ abstract final class AppStrings {
     'Sunday',
   ];
 
+  /// A week of the month on the total card's bars: `W1` is days 1–7.
+  static String weekOfMonth(int week) => 'W$week';
+
   // Ledger
   static const String ledgerKicker = 'My ledger';
   static const String spentThisMonth = 'Spent this month';
@@ -62,9 +64,16 @@ abstract final class AppStrings {
   static String exportNudge(int days) =>
       'Back up your data — last export was $days '
       '${days == 1 ? 'day' : 'days'} ago';
-  static const String deleteExpenseTitle = 'Delete this expense?';
-  static const String deleteExpenseMessage = 'This cannot be undone.';
-  static const String deleteExpense = 'Delete Expense';
+  static const String deleted = 'Deleted';
+  static const String undo = 'Undo';
+  static const String again = 'Again';
+  static const String search = 'Search';
+  static const String searchHint = 'Note, category or amount';
+  static const String searchPrompt =
+      'Search every month by note, category or amount.';
+  static const String noSearchResults = 'No expenses match';
+  static String searchResultCount(int count, String total) =>
+      '${count == 1 ? '1 expense' : '$count expenses'} · $total';
   static const String recurringTooltip = 'Fixed monthly expense';
 
   // Add expense sheet
@@ -79,6 +88,11 @@ abstract final class AppStrings {
   static const String keyMinus = '−';
   static const String keyDecimal = '.';
   static String expressionResult(String amount) => '= $amount';
+  static const String duplicateTitle = 'Save it again?';
+  static const String duplicateMessage =
+      'You saved one with the same amount, category and note a few minutes '
+      'ago.';
+  static const String saveAgain = 'Save Again';
   static const String saved = 'Saved';
 
   // Analysis

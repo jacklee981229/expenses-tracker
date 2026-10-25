@@ -14,16 +14,22 @@ OK先走免费test 7天的路。就照这个开始吧。
   installed from Windows with Sideloadly and Jack's own Apple ID. Anything
   that needs the friend's account is on hold.
 
+- D2. Blocked 2026-10-25: Sideloadly fails with "Login failed (-80046)" on
+  Local, Fake and freshly downloaded Anisette. Since about 2026-10-21 Apple's
+  sign-in change breaks free sideloading in AltStore, SideStore and
+  Sideloadly alike; fixes are in progress upstream. Wait for a Sideloadly
+  update rather than third-party workarounds that take the Apple ID password.
+
 ## Tasks
 
-- [ ] 1. Redesign confirmed, swept, committed; folder made a git repo and
+- [x] 1. Redesign confirmed, swept, committed; folder made a git repo and
       pushed to a public GitHub repo.
 - [x] 2. iOS project ready: display name, bundle ID, launch screen colour,
       deployment target if a package needs a newer one. (Display name
       `Expenses` on both phones; launch colour follows light/dark; bundle ID
       kept `com.jack.expenseTracker`; target stays 12.0 unless the build says
       otherwise.)
-- [ ] 3. GitHub Actions workflow builds an unsigned `.ipa` on macOS with
+- [x] 3. GitHub Actions workflow builds an unsigned `.ipa` on macOS with
       Flutter 3.32.0 and keeps it as a download.
 - [ ] 4. Jack installs Sideloadly and Apple's iPhone driver on Windows.
 - [ ] 5. Jack signs and installs the `.ipa` with his Apple ID; Developer Mode

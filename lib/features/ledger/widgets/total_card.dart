@@ -18,8 +18,9 @@ import '../../../shared/widgets/rolling_amount.dart';
 import '../ledger_providers.dart';
 
 /// The month's total on the violet card, leaning a little, with a receipt
-/// sticker, today's spend, and a white pill bar for each of the last seven
-/// days (today's glows). It swings in when the ledger opens.
+/// sticker and white pill bars ([heroBarsProvider]). This month also shows
+/// today's spend. The total flashes red when it grows and green when it
+/// shrinks. It swings in when the ledger opens.
 class TotalCard extends ConsumerWidget {
   const TotalCard({super.key});
 
@@ -29,8 +30,10 @@ class TotalCard extends ConsumerWidget {
     final month = ref.watch(selectedMonthProvider);
     final today = ref.watch(todayProvider);
     final total = ref.watch(monthTotalProvider);
+    // While a month loads, the total jumps without anything being added.
+    final loading = ref.watch(monthExpensesProvider).isLoading;
     final todayTotal = ref.watch(todayTotalProvider).valueOrNull ?? 0;
-    final week = ref.watch(lastSevenDaysProvider).valueOrNull;
+    final bars = ref.watch(heroBarsProvider);
     final isCurrentMonth =
         month.year == today.year && month.month == today.month;
     final onHero = colors.onAccent;
@@ -78,16 +81,19 @@ class TotalCard extends ConsumerWidget {
                           child: RollingAmount(
                             total,
                             style: AppTextStyles.hero.copyWith(color: onHero),
+                            flashScope: (month, loading),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _TodayChip(minor: todayTotal),
-                  if (week != null) ...[
+                  if (isCurrentMonth) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    _TodayChip(minor: todayTotal),
+                  ],
+                  if (bars != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _WeekBars(days: week, today: today),
+                    _Bars(bars: bars),
                   ],
                 ],
               ),
@@ -182,30 +188,29 @@ class _Sticker extends StatelessWidget {
   }
 }
 
-/// One pill per day, scaled to the busiest of the seven, growing up one
-/// after another.
-class _WeekBars extends StatelessWidget {
-  const _WeekBars({required this.days, required this.today});
+/// One pill per day or week, scaled to the biggest, growing up one after
+/// another.
+class _Bars extends StatelessWidget {
+  const _Bars({required this.bars});
 
-  final List<DayTotal> days;
-  final DateTime today;
+  final List<HeroBar> bars;
 
   @override
   Widget build(BuildContext context) {
-    final busiest = days.fold(0, (most, day) => math.max(most, day.totalMinor));
+    final busiest = bars.fold(0, (most, bar) => math.max(most, bar.totalMinor));
     return SizedBox(
       height: AppSizes.heroBarsHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (index, day) in days.indexed)
+          for (final (index, bar) in bars.indexed)
             Expanded(
               child: _Bar(
                 // A layout fraction for the bar's height, not money.
-                fraction: busiest == 0 ? 0 : day.totalMinor / busiest,
-                isToday: dateOnly(day.date) == dateOnly(today),
-                label: AppStrings.weekdays[day.date.weekday - 1][0],
-                semantics: formatWithSymbol(day.totalMinor),
+                fraction: busiest == 0 ? 0 : bar.totalMinor / busiest,
+                isToday: bar.lit,
+                label: bar.label,
+                semantics: formatWithSymbol(bar.totalMinor),
                 delay: staggerDelay(index),
               ),
             ),

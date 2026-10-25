@@ -10,3 +10,6 @@ const int kExportNudgeDays = 14;
 
 /// The `version` field written to, and required in, JSON backups.
 const int kBackupFormatVersion = 1;
+
+/// How long Undo stays offered after deleting an expense.
+const Duration kUndoDuration = Duration(seconds: 5);

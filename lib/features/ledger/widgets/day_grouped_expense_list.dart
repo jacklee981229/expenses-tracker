@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/money.dart';
+import '../../../data/database/daos/transaction_dao.dart';
 import '../../../shared/today_provider.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/receipt_card.dart';
@@ -22,7 +23,8 @@ enum EnterFrom { below, left, right }
 /// the date on top, a row per expense, and the day's total at the torn
 /// bottom. Receipts lean a little, alternating sides, and come in one after
 /// another. An expense added to a day already on screen prints into its
-/// receipt, which gives a small wobble. [header] scrolls in above the days;
+/// receipt, which gives a small wobble. A deleted expense leaves an Undo row
+/// in its place for a few seconds. [header] scrolls in above the days;
 /// [empty] shows under it when there are none. Shared by the ledger and the
 /// analysis category drilldown.
 class DayGroupedExpenseList extends ConsumerStatefulWidget {
@@ -58,18 +60,67 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
   String? _scope;
   DateTime _scopeStart = DateTime.now();
 
+  /// Deleted expenses still offering Undo, by id. Each shows as an Undo row
+  /// once its expense has left [DayGroupedExpenseList.groups].
+  final Map<String, ExpenseWithCategory> _deleted = {};
+
+  /// Ids whose Undo was pressed: their Undo rows go when the expense is back.
+  final Set<String> _undone = {};
+
+  void _delete(ExpenseWithCategory item) {
+    setState(() => _deleted[item.expense.id] = item);
+    ref.read(ledgerActionsProvider).deleteExpense(item.expense.id);
+  }
+
+  void _undo(ExpenseWithCategory item) {
+    _undone.add(item.expense.id);
+    ref.read(ledgerActionsProvider).restoreExpense(item.expense);
+  }
+
+  void _gone(ExpenseWithCategory item) {
+    setState(() => _deleted.remove(item.expense.id));
+  }
+
+  /// [groups] plus an empty receipt for each day whose last expense was just
+  /// deleted, so its Undo row has somewhere to stay.
+  List<DayGroup> _withDeletedDays(List<DayGroup> groups, Set<String> live) {
+    final days = {for (final group in groups) group.localDate};
+    final missing = {
+      for (final item in _deleted.values)
+        if (!live.contains(item.expense.id) &&
+            !days.contains(item.expense.localDate))
+          item.expense.localDate,
+    };
+    if (missing.isEmpty) return groups;
+    return [
+      ...groups,
+      for (final day in missing) DayGroup(localDate: day, items: const []),
+    ]..sort((a, b) => b.localDate.compareTo(a.localDate));
+  }
+
   @override
   Widget build(BuildContext context) {
     final header = widget.header;
     final empty = widget.empty;
-    final groups = widget.groups;
     final today = ref.watch(todayProvider);
-    final lead = header == null ? 0 : 1;
-    final showEmpty = groups.isEmpty && empty != null;
     if (_scope != widget.scope) {
       _scope = widget.scope;
       _scopeStart = DateTime.now();
+      _deleted.clear();
+      _undone.clear();
     }
+    final live = {
+      for (final group in widget.groups)
+        for (final item in group.items) item.expense.id,
+    };
+    // An undone expense is back in the list: its Undo row has done its job.
+    for (final id in _undone.where(live.contains).toList()) {
+      _deleted.remove(id);
+      _undone.remove(id);
+    }
+    final groups = _withDeletedDays(widget.groups, live);
+    final lead = header == null ? 0 : 1;
+    final showEmpty = groups.isEmpty && empty != null;
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: AppSizes.fabClearance),
@@ -123,6 +174,15 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
                   : AppSizes.receiptTilt,
               isToday: dateOnly(group.date) == dateOnly(today),
               printing: printing,
+              deleted: [
+                for (final item in _deleted.values)
+                  if (item.expense.localDate == group.localDate &&
+                      !live.contains(item.expense.id))
+                    item,
+              ],
+              onDelete: _delete,
+              onUndo: _undo,
+              onGone: _gone,
             ),
           ),
         );
@@ -161,6 +221,10 @@ class _DayReceipt extends StatefulWidget {
     required this.tilt,
     required this.isToday,
     required this.printing,
+    required this.deleted,
+    required this.onDelete,
+    required this.onUndo,
+    required this.onGone,
   });
 
   final DayGroup group;
@@ -169,6 +233,12 @@ class _DayReceipt extends StatefulWidget {
 
   /// Ids of rows that just arrived and print in.
   final Set<String> printing;
+
+  /// This day's deleted expenses still offering Undo.
+  final List<ExpenseWithCategory> deleted;
+  final ValueChanged<ExpenseWithCategory> onDelete;
+  final ValueChanged<ExpenseWithCategory> onUndo;
+  final ValueChanged<ExpenseWithCategory> onGone;
 
   @override
   State<_DayReceipt> createState() => _DayReceiptState();
@@ -203,6 +273,15 @@ class _DayReceiptState extends State<_DayReceipt>
   Widget build(BuildContext context) {
     final colors = context.colors;
     final group = widget.group;
+    // Undo rows sit where their expense was, newest first like the rest.
+    final rows =
+        [
+          for (final item in group.items) (item: item, deleted: false),
+          for (final item in widget.deleted) (item: item, deleted: true),
+        ]..sort(
+          (a, b) =>
+              b.item.expense.occurredAt.compareTo(a.item.expense.occurredAt),
+        );
     return AnimatedBuilder(
       animation: _wobble,
       builder: (context, child) {
@@ -242,17 +321,26 @@ class _DayReceiptState extends State<_DayReceipt>
                 ],
               ),
             ),
-            for (final (index, item) in group.items.indexed) ...[
+            for (final (index, row) in rows.indexed) ...[
               if (index > 0)
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
                   child: DashedLine(),
                 ),
-              ExpenseRow(
-                key: ValueKey(item.expense.id),
-                item: item,
-                printIn: widget.printing.contains(item.expense.id),
-              ),
+              if (row.deleted)
+                DeletedExpenseRow(
+                  key: ValueKey('deleted-${row.item.expense.id}'),
+                  item: row.item,
+                  onUndo: () => widget.onUndo(row.item),
+                  onGone: () => widget.onGone(row.item),
+                )
+              else
+                ExpenseRow(
+                  key: ValueKey(row.item.expense.id),
+                  item: row.item,
+                  printIn: widget.printing.contains(row.item.expense.id),
+                  onDelete: widget.onDelete,
+                ),
             ],
             Padding(
               padding: const EdgeInsets.fromLTRB(

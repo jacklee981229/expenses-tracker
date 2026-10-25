@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_info.dart';
+import '../../core/constants/strings.dart';
+import '../../core/utils/money.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
@@ -146,6 +148,50 @@ class DayTotal {
   final int totalMinor;
 }
 
+/// The total card's bars: in this month the seven days ending today (today
+/// lit); in any other month one bar per week of it (days 1–7, 8–14, …), so
+/// the bars describe the month on screen. Null while loading.
+final heroBarsProvider = Provider<List<HeroBar>?>((ref) {
+  final month = ref.watch(selectedMonthProvider);
+  final today = ref.watch(todayProvider);
+  if (month.year == today.year && month.month == today.month) {
+    final days = ref.watch(lastSevenDaysProvider).valueOrNull;
+    if (days == null) return null;
+    return [
+      for (final day in days)
+        HeroBar(
+          AppStrings.weekdays[day.date.weekday - 1][0],
+          day.totalMinor,
+          lit: dateOnly(day.date) == dateOnly(today),
+        ),
+    ];
+  }
+  final items = ref.watch(monthExpensesProvider).valueOrNull;
+  if (items == null) return null;
+  const week = DateTime.daysPerWeek;
+  final weeks = List.filled(
+    (daysInMonth(month.year, month.month) + week - 1) ~/ week,
+    0,
+  );
+  for (final item in items) {
+    final day = parseLocalDate(item.expense.localDate).day;
+    weeks[(day - 1) ~/ week] += item.expense.amountMinor;
+  }
+  return [
+    for (final (index, total) in weeks.indexed)
+      HeroBar(AppStrings.weekOfMonth(index + 1), total),
+  ];
+});
+
+@immutable
+class HeroBar {
+  const HeroBar(this.label, this.totalMinor, {this.lit = false});
+
+  final String label;
+  final int totalMinor;
+  final bool lit;
+}
+
 final todayTotalProvider = StreamProvider<int>((ref) {
   final today = toLocalDateString(ref.watch(todayProvider));
   return ref.watch(transactionDaoProvider).watchTotal(start: today, end: today);
@@ -204,6 +250,9 @@ class LedgerActions {
   final TransactionDao _dao;
 
   Future<void> deleteExpense(String id) => _dao.deleteExpense(id);
+
+  /// Undo for [deleteExpense]: the same row, id and times included.
+  Future<void> restoreExpense(Expense expense) => _dao.restoreExpense(expense);
 }
 
 /// One day of expenses with its subtotal.
@@ -231,4 +280,42 @@ List<DayGroup> groupByDay(List<ExpenseWithCategory> items) {
     for (final entry in byDate.entries)
       DayGroup(localDate: entry.key, items: entry.value),
   ];
+}
+
+/// The text typed on the search page.
+final searchQueryProvider =
+    NotifierProvider.autoDispose<SearchQueryNotifier, String>(
+      SearchQueryNotifier.new,
+    );
+
+class SearchQueryNotifier extends AutoDisposeNotifier<String> {
+  @override
+  String build() => '';
+
+  void set(String query) => state = query;
+}
+
+/// Every expense matching the query, as day groups, newest first; null
+/// while nothing is typed. A query that reads as an amount (`12.5`, `RM8`)
+/// also matches that exact amount.
+final searchResultsProvider = StreamProvider.autoDispose<List<DayGroup>?>((
+  ref,
+) {
+  final query = ref.watch(searchQueryProvider).trim();
+  if (query.isEmpty) return Stream.value(null);
+  return ref
+      .watch(transactionDaoProvider)
+      .watchSearch(query, amountMinor: _amountIn(query))
+      .map(groupByDay);
+});
+
+int? _amountIn(String query) {
+  final text = query.toUpperCase().startsWith(kCurrencySymbol)
+      ? query.substring(kCurrencySymbol.length)
+      : query;
+  try {
+    return parseToMinor(text);
+  } on FormatException {
+    return null;
+  }
 }

@@ -121,6 +121,7 @@ abstract final class AppSizes {
   /// How far a key travels when pressed: its hard shadow's height.
   static const double keyTravel = 3;
   static const double swipeActionWidth = 76;
+  static const double swipeIcon = 24;
 
   static const double sheetHeaderHeight = 52;
   static const double sheetGrabWidth = 42;

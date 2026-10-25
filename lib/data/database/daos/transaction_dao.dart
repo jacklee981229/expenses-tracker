@@ -171,18 +171,102 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     await delete(transactions).go();
   }
 
-  /// Every distinct note used in [categoryId], most recently used first.
-  /// Matching is exact and case-sensitive.
-  Stream<List<String>> watchNoteHistory(String categoryId) {
-    return customSelect(
-      'SELECT note, MAX(occurred_at) AS last_used '
-      'FROM transactions '
-      'WHERE category_id = ? '
-      "AND note IS NOT NULL AND TRIM(note) != '' "
-      'GROUP BY note '
-      'ORDER BY last_used DESC',
-      variables: [Variable.withString(categoryId)],
-      readsFrom: {transactions},
-    ).watch().map((rows) => [for (final row in rows) row.read<String>('note')]);
+  /// Every use of a note in [categoryId], for ranking the history chips.
+  /// Notes are kept exactly as stored, case included.
+  Stream<List<NoteUse>> watchNoteUses(String categoryId) {
+    final query = selectOnly(transactions)
+      ..addColumns([transactions.note, transactions.occurredAt])
+      ..where(
+        transactions.categoryId.equals(categoryId) &
+            transactions.note.isNotNull() &
+            transactions.note.trim().equals('').not(),
+      );
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          (
+            note: row.read(transactions.note)!,
+            at: DateTime.fromMillisecondsSinceEpoch(
+              row.read(transactions.occurredAt)!,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// The active category [note] was most recently used with, ignoring case,
+  /// or null when the note is new.
+  Future<String?> lastCategoryForNote(String note) async {
+    final query =
+        select(transactions).join([
+            innerJoin(
+              categories,
+              categories.id.equalsExp(transactions.categoryId),
+            ),
+          ])
+          ..where(
+            transactions.note.lower().equals(note.toLowerCase()) &
+                categories.isArchived.equals(false),
+          )
+          ..orderBy([OrderingTerm.desc(transactions.occurredAt)])
+          ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row?.readTable(transactions).categoryId;
+  }
+
+  /// Expenses saved at or after [since], for the duplicate warning.
+  Future<List<Expense>> savedSince(DateTime since) {
+    return (select(transactions)..where(
+          (t) => t.createdAt.isBiggerOrEqualValue(since.millisecondsSinceEpoch),
+        ))
+        .get();
+  }
+
+  /// Expenses whose note or category name contains [text] (ignoring case),
+  /// or whose amount is [amountMinor]; newest first.
+  Stream<List<ExpenseWithCategory>> watchSearch(
+    String text, {
+    int? amountMinor,
+  }) {
+    final pattern = '%${_escapeLike(text)}%';
+    final matches =
+        transactions.note.lower().like(
+          pattern.toLowerCase(),
+          escapeChar: r'\',
+        ) |
+        categories.name.lower().like(pattern.toLowerCase(), escapeChar: r'\') |
+        (amountMinor == null
+            ? const Constant(false)
+            : transactions.amountMinor.equals(amountMinor));
+    final query =
+        select(transactions).join([
+            innerJoin(
+              categories,
+              categories.id.equalsExp(transactions.categoryId),
+            ),
+          ])
+          ..where(matches)
+          ..orderBy([
+            OrderingTerm.desc(transactions.localDate),
+            OrderingTerm.desc(transactions.occurredAt),
+          ]);
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          ExpenseWithCategory(
+            row.readTable(transactions),
+            row.readTable(categories),
+          ),
+      ],
+    );
+  }
+
+  /// Puts a deleted expense back exactly as it was (Undo).
+  Future<void> restoreExpense(Expense expense) async {
+    await into(transactions).insert(expense, mode: InsertMode.insertOrIgnore);
   }
 }
+
+/// Makes `%`, `_` and `\` match themselves in a LIKE pattern.
+String _escapeLike(String text) =>
+    text.replaceAllMapped(RegExp(r'[\\%_]'), (match) => '\\${match[0]}');

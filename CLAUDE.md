@@ -33,7 +33,8 @@ Plain dark-grey cards with only a small colour block; flat full-colour cards
 with no depth; every card tilted (the + button, amount box and keypad stay
 upright); 3D-extruded charts (charts are 2D with shading and shadow);
 per-category colours inside the total card's bars; plain line icons for
-categories; a category block that fills the middle of the ledger.
+categories; a category block that fills the middle of the ledger; a mostly
+blank Undo row with a small button (the deleted row becomes a full dark bar).
 
 ## Hard constraints
 
@@ -74,6 +75,8 @@ Unit tests are required for, and only for:
 - `data/services/recurring_generator.dart` — catch-up correctness, idempotency,
   day-of-month clamping
 - `AnalysisDao` aggregation queries against an in-memory database
+- `core/utils/note_utils.dart` — history chip ranking
+- `core/utils/duplicate_check.dart` — the duplicate warning
 
 Widget tests are not required. Do not write them unless asked.
 

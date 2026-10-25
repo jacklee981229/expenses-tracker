@@ -3,14 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/amount_input.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/duplicate_check.dart';
 import '../../core/utils/money.dart';
+import '../../core/utils/note_utils.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../shared/today_provider.dart';
 
-/// The expense being edited (null for a new one), and the category a new
-/// expense starts with.
-typedef AddExpenseArgs = ({Expense? editing, String? defaultCategoryId});
+/// The expense being edited (null for a new one), the category a new
+/// expense starts with, and an expense to copy into a new one (Again).
+typedef AddExpenseArgs = ({
+  Expense? editing,
+  String? defaultCategoryId,
+  Expense? template,
+});
 
 @immutable
 class AddExpenseState {
@@ -22,6 +28,7 @@ class AddExpenseState {
     this.editing,
     this.replaceOnInput = false,
     this.saving = false,
+    this.categoryTapped = false,
   });
 
   /// Keypad expression, e.g. `12.50+3`.
@@ -36,6 +43,10 @@ class AddExpenseState {
   /// When editing, the first digit typed replaces the prefilled amount.
   final bool replaceOnInput;
   final bool saving;
+
+  /// Whether a category was tapped in this sheet; a typed note then no
+  /// longer switches the category.
+  final bool categoryTapped;
 
   bool get isEditing => editing != null;
 
@@ -54,6 +65,7 @@ class AddExpenseState {
     DateTime? date,
     bool? replaceOnInput,
     bool? saving,
+    bool? categoryTapped,
   }) {
     return AddExpenseState(
       expression: expression ?? this.expression,
@@ -63,15 +75,19 @@ class AddExpenseState {
       editing: editing,
       replaceOnInput: replaceOnInput ?? this.replaceOnInput,
       saving: saving ?? this.saving,
+      categoryTapped: categoryTapped ?? this.categoryTapped,
     );
   }
 }
 
-/// Every distinct note used in a category, most recently used first.
+/// Every distinct note used in a category, best first: often and recently
+/// used notes lead, and notes usually used around now get a lift.
 final noteHistoryProvider = StreamProvider.autoDispose
     .family<List<String>, String>(
-      (ref, categoryId) =>
-          ref.watch(transactionDaoProvider).watchNoteHistory(categoryId),
+      (ref, categoryId) => ref
+          .watch(transactionDaoProvider)
+          .watchNoteUses(categoryId)
+          .map((uses) => rankNotes(uses, DateTime.now())),
     );
 
 final addExpenseControllerProvider = NotifierProvider.autoDispose
@@ -91,6 +107,16 @@ class AddExpenseController
         note: editing.note ?? '',
         date: parseLocalDate(editing.localDate),
         editing: editing,
+        replaceOnInput: true,
+      );
+    }
+    final template = arg.template;
+    if (template != null) {
+      return AddExpenseState(
+        expression: formatMinor(template.amountMinor, grouping: false),
+        categoryId: arg.defaultCategoryId,
+        note: template.note ?? '',
+        date: ref.read(todayProvider),
         replaceOnInput: true,
       );
     }
@@ -119,10 +145,59 @@ class AddExpenseController
     state = state.copyWith(expression: change(base), replaceOnInput: false);
   }
 
-  void selectCategory(String id) => state = state.copyWith(categoryId: id);
+  /// A category picked in the sheet ([tapped]) or set for it (a new
+  /// category, a note's last category).
+  void selectCategory(String id, {bool tapped = true}) => state = state
+      .copyWith(categoryId: id, categoryTapped: state.categoryTapped || tapped);
 
   void setNote(String note) {
     if (note != state.note) state = state.copyWith(note: note);
+  }
+
+  /// A note typed by hand: when it was used before, switch to the category
+  /// it was last used with, unless a category was tapped in this sheet or
+  /// an existing expense is being edited.
+  Future<void> typeNote(String note) async {
+    setNote(note);
+    final cleaned = cleanNote(note);
+    if (cleaned == null || state.categoryTapped || state.isEditing) return;
+    final categoryId = await ref
+        .read(transactionDaoProvider)
+        .lastCategoryForNote(cleaned);
+    // The note may have changed while the lookup ran.
+    if (categoryId == null || state.note != note || state.categoryTapped) {
+      return;
+    }
+    if (categoryId != state.categoryId) {
+      selectCategory(categoryId, tapped: false);
+    }
+  }
+
+  /// Whether saving now would repeat an expense saved in the last few
+  /// minutes (same amount, category and note). Never for an edit.
+  Future<bool> looksLikeDuplicate() async {
+    final amount = state.amountMinor;
+    final categoryId = state.categoryId;
+    if (state.isEditing || amount == null || categoryId == null) return false;
+    final now = DateTime.now();
+    final recent = await ref
+        .read(transactionDaoProvider)
+        .savedSince(now.subtract(kDuplicateWindow));
+    return looksLikeDuplicateOf(
+      (amountMinor: amount, categoryId: categoryId, note: state.note),
+      [
+        for (final expense in recent)
+          (
+            key: (
+              amountMinor: expense.amountMinor,
+              categoryId: expense.categoryId,
+              note: expense.note,
+            ),
+            savedAt: DateTime.fromMillisecondsSinceEpoch(expense.createdAt),
+          ),
+      ],
+      now,
+    );
   }
 
   void setDate(DateTime date) => state = state.copyWith(date: dateOnly(date));
