@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/strings.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/insights.dart';
 import '../../core/utils/money.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
@@ -40,30 +41,29 @@ class PeriodSelectionNotifier extends Notifier<PeriodSelection> {
   void setPeriod(AnalysisPeriod period) =>
       state = PeriodSelection(period, state.anchor);
 
-  void previous() => _shift(-1);
+  void previous() => state = shiftPeriod(state, -1);
 
-  void next() => _shift(1);
-
-  void _shift(int step) {
-    final anchor = state.anchor;
-    final shifted = switch (state.period) {
-      AnalysisPeriod.week => DateTime(
-        anchor.year,
-        anchor.month,
-        anchor.day + DateTime.daysPerWeek * step,
-      ),
-      AnalysisPeriod.month => DateTime(anchor.year, anchor.month + step),
-      AnalysisPeriod.year => DateTime(anchor.year + step, anchor.month),
-      AnalysisPeriod.all => anchor,
-    };
-    state = PeriodSelection(state.period, shifted);
-  }
+  void next() => state = shiftPeriod(state, 1);
 }
 
-/// Bounds of the selected period; null for All.
-final periodBoundsProvider = Provider<DateBounds?>((ref) {
-  final selection = ref.watch(periodSelectionProvider);
-  final firstDayOfWeek = ref.watch(firstDayOfWeekProvider);
+/// [selection] moved by [step] periods; All stays put.
+PeriodSelection shiftPeriod(PeriodSelection selection, int step) {
+  final anchor = selection.anchor;
+  final shifted = switch (selection.period) {
+    AnalysisPeriod.week => DateTime(
+      anchor.year,
+      anchor.month,
+      anchor.day + DateTime.daysPerWeek * step,
+    ),
+    AnalysisPeriod.month => DateTime(anchor.year, anchor.month + step),
+    AnalysisPeriod.year => DateTime(anchor.year + step, anchor.month),
+    AnalysisPeriod.all => anchor,
+  };
+  return PeriodSelection(selection.period, shifted);
+}
+
+/// Bounds of [selection]'s period; null for All.
+DateBounds? boundsOf(PeriodSelection selection, int firstDayOfWeek) {
   final (String, String)? bounds = switch (selection.period) {
     AnalysisPeriod.week => weekBounds(
       selection.anchor,
@@ -74,6 +74,24 @@ final periodBoundsProvider = Provider<DateBounds?>((ref) {
     AnalysisPeriod.all => null,
   };
   return bounds == null ? null : (start: bounds.$1, end: bounds.$2);
+}
+
+/// Bounds of the selected period; null for All.
+final periodBoundsProvider = Provider<DateBounds?>(
+  (ref) => boundsOf(
+    ref.watch(periodSelectionProvider),
+    ref.watch(firstDayOfWeekProvider),
+  ),
+);
+
+/// Bounds of the period before the selected one; null for All.
+final previousPeriodBoundsProvider = Provider<DateBounds?>((ref) {
+  final selection = ref.watch(periodSelectionProvider);
+  if (selection.period == AnalysisPeriod.all) return null;
+  return boundsOf(
+    shiftPeriod(selection, -1),
+    ref.watch(firstDayOfWeekProvider),
+  );
 });
 
 /// `1–7 Sep 2026`, `September 2026`, `2026` or `All time`.
@@ -154,6 +172,91 @@ final dailyExpenseProvider = Provider<int>(
     ref.watch(periodActiveDaysProvider).valueOrNull ?? 0,
   ),
 );
+
+/// Spending per category in the period before, limited to the filter;
+/// null for All.
+final previousCategoryTotalsProvider = StreamProvider<List<CategoryTotal>?>((
+  ref,
+) {
+  final bounds = ref.watch(previousPeriodBoundsProvider);
+  if (bounds == null) return Stream.value(null);
+  return ref
+      .watch(analysisDaoProvider)
+      .watchCategoryTotals(
+        start: bounds.start,
+        end: bounds.end,
+        categoryIds: ref.watch(categoryFilterProvider),
+      );
+});
+
+/// The period's day with the most (filtered) spending.
+final biggestDayProvider = StreamProvider<DaySpend?>((ref) {
+  final bounds = ref.watch(periodBoundsProvider);
+  return ref
+      .watch(analysisDaoProvider)
+      .watchBiggestDay(
+        start: bounds?.start,
+        end: bounds?.end,
+        categoryIds: ref.watch(categoryFilterProvider),
+      );
+});
+
+/// The summary's sentences, one per tap; empty while loading or when there
+/// is no spending.
+final insightLoopProvider = Provider<List<Insight>>((ref) {
+  final current = ref.watch(filteredCategoryTotalsProvider);
+  final previous = ref.watch(previousCategoryTotalsProvider);
+  final biggestDay = ref.watch(biggestDayProvider);
+  if (!current.hasValue || !previous.hasValue || !biggestDay.hasValue) {
+    return const [];
+  }
+  final before = previous.value;
+  return insightLoop(
+    current: _spends(current.value!),
+    previous: before == null ? null : _spends(before),
+    biggestDay: biggestDay.value,
+  );
+});
+
+List<CategorySpend> _spends(List<CategoryTotal> totals) => [
+  for (final total in totals)
+    (
+      id: total.category.id,
+      name: total.category.name,
+      totalMinor: total.totalMinor,
+    ),
+];
+
+/// How many months the trend card shows.
+const int kTrendMonths = 6;
+
+typedef MonthSpend = ({DateTime month, int totalMinor});
+
+/// (Filtered) spending in each of the [kTrendMonths] months ending with the
+/// month the selected period ends in, never past this month; oldest first.
+final trendProvider = StreamProvider<List<MonthSpend>>((ref) {
+  final bounds = ref.watch(periodBoundsProvider);
+  final today = ref.watch(todayProvider);
+  final periodEnd = bounds == null ? today : parseLocalDate(bounds.end);
+  final end = periodEnd.isAfter(today) ? today : periodEnd;
+  final months = [
+    for (var back = kTrendMonths - 1; back >= 0; back--)
+      DateTime(end.year, end.month - back),
+  ];
+  return ref
+      .watch(analysisDaoProvider)
+      .watchMonthTotals(
+        start: toLocalDateString(months.first),
+        end: monthBounds(months.last).$2,
+        categoryIds: ref.watch(categoryFilterProvider),
+      )
+      .map(
+        (totals) => [
+          for (final month in months)
+            (month: month, totalMinor: totals[toMonthKey(month)] ?? 0),
+        ],
+      );
+});
 
 int sumTotals(List<CategoryTotal>? totals) =>
     (totals ?? const []).fold(0, (sum, total) => sum + total.totalMinor);

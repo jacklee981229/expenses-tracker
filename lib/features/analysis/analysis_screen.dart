@@ -14,10 +14,13 @@ import '../../shared/widgets/rolling_amount.dart';
 import 'analysis_providers.dart';
 import 'widgets/category_breakdown_list.dart';
 import 'widgets/period_switcher.dart';
+import 'widgets/insight_line.dart';
 import 'widgets/spend_pie_chart.dart';
+import 'widgets/trend_card.dart';
 
-/// The period switcher and filter, a card with the period's spend, daily
-/// spend and the categories donut, then a card per category. Changing the
+/// The period switcher and filter, a one-line summary, a card with the
+/// period's spend, daily spend and the categories donut, the last six
+/// months, then a card per category. Changing the
 /// period or the filter replays the entrance.
 class AnalysisScreen extends ConsumerWidget {
   const AnalysisScreen({super.key});
@@ -42,6 +45,7 @@ class AnalysisScreen extends ConsumerWidget {
           ),
           const PeriodSwitcher(),
           const SizedBox(height: AppSpacing.md),
+          const InsightLine(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Entrance(
@@ -52,6 +56,17 @@ class AnalysisScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
+          if (totals.valueOrNull?.isNotEmpty ?? false) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Entrance(
+                key: ValueKey('trend|$scope'),
+                delay: AppMotion.stagger,
+                child: const TrendCard(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
           ...totals.when(
             data: (totals) => [
               if (totals.isNotEmpty)

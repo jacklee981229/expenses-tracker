@@ -77,6 +77,7 @@ Unit tests are required for, and only for:
 - `AnalysisDao` aggregation queries against an in-memory database
 - `core/utils/note_utils.dart` — history chip ranking
 - `core/utils/duplicate_check.dart` — the duplicate warning
+- `core/utils/insights.dart` — the Analysis summary line
 
 Widget tests are not required. Do not write them unless asked.
 

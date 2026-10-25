@@ -460,8 +460,9 @@ reached from the gear button in the ledger header.
   It swings in when the ledger opens.
 - The category drawer: one `All categories` pill. Tapping opens tilted tags,
   one per category spent on this month with its total; picking one narrows the
-  list, lights the tag in its colour, slides out its name and folds the drawer,
-  leaving the pill showing that category with a × to clear. The filter drops
+  list, lights the tag in its colour and slides out its name; once that
+  settles the drawer folds shut, the other tags fading first and the picked
+  one rising towards the pill, which shows that category with a × to clear. The filter drops
   when the month changes or the category has no spending left.
 
 **Body:**
@@ -580,6 +581,17 @@ placeholder or an empty-state message.
   to the chosen period, and a funnel filter button to its right.
 - Period navigator below it: `‹` `›` around `1–7 Sep 2026`. Hidden for All.
 
+**Summary line:** one sentence in a slim card (the backup banner's shape)
+above the chart card; each tap rolls up to the next and wraps round
+(`insightLoop` in `core/utils/insights.dart`). First the most telling: for
+Week, Month and Year, the category whose spending moved most in ringgit
+against the period before (`Food: 12% more than last month`, `… less than
+last week`, `Travel: new this month, RM45.00`); otherwise, or when nothing
+moved 1%, the biggest day (`Biggest day: 24 Sep, RM72.58`). Then every other
+category spent on, biggest first (`Food: same as last month`, or with
+nothing to compare `Food: RM100.18, 85% of spending`), then the biggest day.
+Hidden when the period has no spending. Follows the filter.
+
 **Filter:** the funnel opens a sheet of category chips (each with its icon),
 multi-select, with `Clear` and `Done`. When any are selected, the funnel turns
 violet, and the totals, chart, and list show only those categories.
@@ -602,6 +614,11 @@ to their values, over the donut.
   (the others dim). Labels do not move.
 - Categories under 3% of the total are merged into a grey "Other" slice, but
   stay as separate cards below.
+
+**Trend card:** `Last 6 months` under the chart card: a pill bar per month
+in the total card's style but the accent colour, ending with the month the
+period ends in (never past this month), which is lit and whose month and
+total sit top right. Follows the filter.
 
 **Category cards:** one raised card per category, sorted by amount, coming in
 staggered: tile · name and amount over a share bar in the category colour that
@@ -903,7 +920,6 @@ the export nudge in section 7.2 is not optional polish. It is the backup strateg
 Decide when reached, not before:
 
 - Whether the `Others` category should be undeletable
-- Whether the pie chart needs a trend/bar view alongside it
 - Smart default category (the add sheet opens on the category most used at
   this time of day): a Settings option, off by default. Needs a settings
   column, so a `schemaVersion` bump.

@@ -9,6 +9,7 @@ import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/transaction_dao.dart';
 import '../../shared/today_provider.dart';
+import '../../shared/widgets/pill_bars.dart';
 import '../settings/settings_providers.dart';
 
 /// First day of the month shown in the ledger.
@@ -151,7 +152,7 @@ class DayTotal {
 /// The total card's bars: in this month the seven days ending today (today
 /// lit); in any other month one bar per week of it (days 1–7, 8–14, …), so
 /// the bars describe the month on screen. Null while loading.
-final heroBarsProvider = Provider<List<HeroBar>?>((ref) {
+final heroBarsProvider = Provider<List<PillBar>?>((ref) {
   final month = ref.watch(selectedMonthProvider);
   final today = ref.watch(todayProvider);
   if (month.year == today.year && month.month == today.month) {
@@ -159,7 +160,7 @@ final heroBarsProvider = Provider<List<HeroBar>?>((ref) {
     if (days == null) return null;
     return [
       for (final day in days)
-        HeroBar(
+        PillBar(
           AppStrings.weekdays[day.date.weekday - 1][0],
           day.totalMinor,
           lit: dateOnly(day.date) == dateOnly(today),
@@ -179,18 +180,9 @@ final heroBarsProvider = Provider<List<HeroBar>?>((ref) {
   }
   return [
     for (final (index, total) in weeks.indexed)
-      HeroBar(AppStrings.weekOfMonth(index + 1), total),
+      PillBar(AppStrings.weekOfMonth(index + 1), total),
   ];
 });
-
-@immutable
-class HeroBar {
-  const HeroBar(this.label, this.totalMinor, {this.lit = false});
-
-  final String label;
-  final int totalMinor;
-  final bool lit;
-}
 
 final todayTotalProvider = StreamProvider<int>((ref) {
   final today = toLocalDateString(ref.watch(todayProvider));

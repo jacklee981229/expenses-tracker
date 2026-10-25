@@ -99,6 +99,32 @@ abstract final class AppStrings {
   static const String analysisKicker = 'Insights';
   static const String spentStat = 'Spent';
   static const String perDayStat = 'Per day';
+  static const String trendTitle = 'Last 6 months';
+
+  /// The summary line's comparison: `Food: 12% more than last month`.
+  static String insightMore(String category, int percent, String period) =>
+      '$category: $percent% more than last $period';
+  static String insightLess(String category, int percent, String period) =>
+      '$category: $percent% less than last $period';
+
+  /// `Travel: new this month, RM45.00`
+  static String insightNew(String category, String amount, String period) =>
+      '$category: new this $period, $amount';
+
+  /// `Food: same as last month`
+  static String insightSame(String category, String period) =>
+      '$category: same as last $period';
+
+  /// With nothing to compare: `Food: RM100.18, 85% of spending`
+  static String insightShare(String category, String amount, int percent) =>
+      '$category: $amount, $percent% of spending';
+
+  /// `Biggest day: 24 Sep, RM72.58`
+  static String insightBiggestDay(String day, String amount) =>
+      'Biggest day: $day, $amount';
+  static const String insightWeek = 'week';
+  static const String insightMonth = 'month';
+  static const String insightYear = 'year';
   static const String periodWeek = 'Week';
   static const String periodMonth = 'Month';
   static const String periodYear = 'Year';

@@ -18,8 +18,9 @@ import '../ledger_providers.dart';
 
 /// The ledger's category filter, folded into one pill until it is needed.
 /// Tapping the pill opens a drawer of glowing category tags (with what each
-/// spent this month); picking one narrows the list to it, lights it up and
-/// folds the drawer away again, leaving the pill showing the category.
+/// spent this month); picking one narrows the list to it and lights it up,
+/// then the drawer folds shut: the other tags fade first and the picked one
+/// rises towards the pill, which now shows the category.
 class CategoryDrawer extends ConsumerStatefulWidget {
   const CategoryDrawer({super.key});
 
@@ -27,22 +28,54 @@ class CategoryDrawer extends ConsumerStatefulWidget {
   ConsumerState<CategoryDrawer> createState() => _CategoryDrawerState();
 }
 
-class _CategoryDrawerState extends ConsumerState<CategoryDrawer> {
+class _CategoryDrawerState extends ConsumerState<CategoryDrawer>
+    with SingleTickerProviderStateMixin {
   bool _open = false;
   Timer? _closeTimer;
+
+  /// 0 shut, 1 open. The tags stay built while it folds, so they can leave
+  /// gradually instead of vanishing at once.
+  late final AnimationController _drawer = AnimationController(
+    vsync: this,
+    duration: AppMotion.page,
+  );
+
+  /// Grows quickly and settles; shutting is the same motion backwards, so
+  /// it also lands softly.
+  late final Animation<double> _height = CurvedAnimation(
+    parent: _drawer,
+    curve: AppMotion.enter,
+    reverseCurve: AppMotion.enter.flipped,
+  );
+
+  /// The tag just picked, which rides the fold up towards the pill.
+  String? _picked;
 
   @override
   void dispose() {
     _closeTimer?.cancel();
+    _drawer.dispose();
     super.dispose();
+  }
+
+  void _setOpen(bool open) {
+    _closeTimer?.cancel();
+    setState(() => _open = open);
+    if (open) {
+      _picked = null;
+      _drawer.forward();
+    } else {
+      _drawer.reverse();
+    }
   }
 
   void _pick(String categoryId) {
     ref.read(ledgerCategoryFilterProvider.notifier).toggle(categoryId);
-    // Let the picked tag light up before the drawer folds away.
+    _picked = categoryId;
+    // Let the picked tag finish lighting up (its pop) before the fold.
     _closeTimer?.cancel();
-    _closeTimer = Timer(AppMotion.normal + AppMotion.instant, () {
-      if (mounted) setState(() => _open = false);
+    _closeTimer = Timer(AppMotion.slow, () {
+      if (mounted) _setOpen(false);
     });
   }
 
@@ -64,7 +97,7 @@ class _CategoryDrawerState extends ConsumerState<CategoryDrawer> {
             _DrawerPill(
               category: selected,
               open: _open,
-              onTap: () => setState(() => _open = !_open),
+              onTap: () => _setOpen(!_open),
             ),
             AnimatedSwitcher(
               duration: AppMotion.normal,
@@ -83,43 +116,72 @@ class _CategoryDrawerState extends ConsumerState<CategoryDrawer> {
             ),
           ],
         ),
-        AnimatedSize(
-          duration: _open ? AppMotion.page : AppMotion.normal,
-          curve: _open ? AppMotion.enter : AppMotion.exit,
-          alignment: Alignment.topLeft,
-          child: _open
-              ? Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.sm,
-                    children: [
-                      for (final (index, total) in totals.indexed)
-                        Entrance(
-                          key: ValueKey(total.category.id),
-                          delay: staggerDelay(index),
-                          offset: Offset.zero,
-                          fromTilt: -12,
-                          fromScale: 0.6,
-                          curve: AppMotion.pop,
-                          child: _CategoryTag(
-                            total: total,
-                            tilt: ((index % 3) - 1) * AppSizes.tagTilt,
-                            selected: total.category.id == filterId,
-                            dimmed:
-                                filterId != null &&
-                                total.category.id != filterId,
-                            onTap: () => _pick(total.category.id),
+        AnimatedBuilder(
+          animation: _height,
+          builder: (context, _) {
+            final open = _drawer.value;
+            if (open == 0) return const SizedBox(width: double.infinity);
+            return ClipRect(
+              child: Align(
+                alignment: Alignment.topLeft,
+                heightFactor: _height.value,
+                child: IgnorePointer(
+                  ignoring: !_open,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.sm),
+                    child: Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final (index, total) in totals.indexed)
+                          _folding(
+                            open: _open ? 1 : open,
+                            picked: total.category.id == _picked,
+                            child: Entrance(
+                              key: ValueKey(total.category.id),
+                              delay: staggerDelay(index),
+                              offset: Offset.zero,
+                              fromTilt: -12,
+                              fromScale: 0.6,
+                              curve: AppMotion.pop,
+                              child: _CategoryTag(
+                                total: total,
+                                tilt: ((index % 3) - 1) * AppSizes.tagTilt,
+                                selected: total.category.id == filterId,
+                                dimmed:
+                                    filterId != null &&
+                                    total.category.id != filterId,
+                                onTap: () => _pick(total.category.id),
+                              ),
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                )
-              : const SizedBox(width: double.infinity),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
+}
+
+/// How a tag leaves while the drawer shuts ([open] falling to 0): the
+/// others fade in the first half, the picked one fades in the second half
+/// as it rises towards the pill. While opening it gets 1: the tags have
+/// their own entrance.
+Widget _folding({
+  required double open,
+  required bool picked,
+  required Widget child,
+}) {
+  final fade = picked ? open * 2 : (open - 0.5) * 2;
+  return Transform.translate(
+    offset: Offset(0, picked ? -(1 - open) * AppSpacing.sm : 0),
+    child: Opacity(opacity: fade.clamp(0.0, 1.0), child: child),
+  );
 }
 
 /// "All categories", or the picked category glowing in its colour.

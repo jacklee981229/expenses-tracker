@@ -162,4 +162,57 @@ void main() {
     await spend(transport, 700, DateTime(2026, 9, 20));
     expect(byCategory(await stream.first), {transport: (1000, 2)});
   });
+
+  test('sums spending per month within inclusive bounds', () async {
+    expect(
+      await db.analysisDao.monthTotals(start: '2026-08-01', end: '2026-10-31'),
+      {'2026-08': 999, '2026-09': 152350, '2026-10': 111},
+    );
+    expect(
+      await db.analysisDao.monthTotals(start: '2026-09-15', end: '2026-10-31'),
+      {'2026-09': 1100, '2026-10': 111},
+    );
+  });
+
+  test('month totals follow the category filter', () async {
+    expect(
+      await db.analysisDao.monthTotals(
+        start: '2026-08-01',
+        end: '2026-10-31',
+        categoryIds: {food},
+      ),
+      {'2026-08': 999, '2026-09': 2050},
+    );
+  });
+
+  test('finds the biggest day, filtered or not', () async {
+    expect(
+      await db.analysisDao.biggestDay(start: '2026-09-01', end: '2026-09-30'),
+      (localDate: '2026-09-05', totalMinor: 150000),
+    );
+    expect(
+      await db.analysisDao.biggestDay(
+        start: '2026-09-01',
+        end: '2026-09-30',
+        categoryIds: {food},
+      ),
+      (localDate: '2026-09-01', totalMinor: 1250),
+    );
+    expect(
+      await db.analysisDao.biggestDay(start: '2026-07-01', end: '2026-07-31'),
+      isNull,
+    );
+  });
+
+  test('the later day wins a tie for the biggest day', () async {
+    await spend(food, 1250, DateTime(2026, 9, 20));
+    expect(
+      await db.analysisDao.biggestDay(
+        start: '2026-09-01',
+        end: '2026-09-30',
+        categoryIds: {food},
+      ),
+      (localDate: '2026-09-20', totalMinor: 1250),
+    );
+  });
 }
