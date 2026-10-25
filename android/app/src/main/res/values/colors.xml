@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launch screen follows the phone's theme; matches
+         AppColors.light.background (values-night: AppColors.dark). -->
+    <color name="app_background">#EEF0F7</color>
+</resources>

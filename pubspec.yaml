@@ -1,0 +1,43 @@
+name: expense_tracker
+description: "Personal expense tracker. Local-only, single-user, RM only."
+publish_to: 'none'
+
+# Keep in sync with lib/core/constants/app_info.dart (shown in Settings > About).
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+# Only the packages listed in docs/PLAN.md section 2. Add with `flutter pub add`.
+dependencies:
+  drift: ^2.31.0
+  file_picker: ^11.0.3
+  # Pinned: 1.1.0+ calls Matrix4.translateByDouble (vector_math 2.2), but
+  # Flutter 3.32 pins vector_math 2.1.4, so newer versions fail to build.
+  fl_chart: 1.0.0
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  intl: ^0.20.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  share_plus: ^12.0.2
+  sqlite3_flutter_libs: ^0.5.42
+  uuid: ^4.6.0
+
+dev_dependencies:
+  build_runner: ^2.15.1
+  drift_dev: ^2.31.0
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  # Fluent Emoji 3D (MIT) and Bricolage Grotesque (OFL); licences beside them.
+  assets:
+    - assets/icons/
+  fonts:
+    - family: Bricolage Grotesque
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque.ttf
