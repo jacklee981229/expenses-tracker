@@ -1,8 +1,8 @@
 # ENVIRONMENT.md
 
 The development environment for this project, as installed on this machine and
-checked on 2026-09-24. This machine is the source of truth: `PLAN.md` and
-`CLAUDE.md` are written against it.
+checked on 2026-09-24. This machine is the source of truth: `CLAUDE.md` is
+written against it.
 
 Nothing here needs installing. Each step records what is installed and gives a
 command to confirm it still works. If any of it changes (a Flutter upgrade, a
@@ -134,7 +134,7 @@ Expect `WHPX(10.0.26200) is installed and usable.`
 |---|---|
 | Device | Pixel 9 |
 | System image | android-37.1 (Android 17, API 37), Google APIs + Play Store, x86_64 |
-| Page size | **16 KB** (see `PLAN.md` section 10, pitfall 11) |
+| Page size | **16 KB** (see `CLAUDE.md`, Traps) |
 | RAM | 2 GB |
 | Graphics | auto |
 | Time zone | UTC (emulator default). The app uses device local time, so this only changes which day a late-evening test entry lands on. |
@@ -215,8 +215,7 @@ CocoaPods. Xcode and CocoaPods can never pass on Windows.
 ## Step 11 — Project folder
 
 The project lives at `C:\repos\Jack\expenses-tracker`. `CLAUDE.md` sits at the
-root, where Claude Code loads it automatically; `PLAN.md` and this file are in
-`docs\`.
+root, where Claude Code loads it automatically; this file is in `docs\`.
 
 The folder name contains a hyphen, which is not a valid Dart package name.
 Always pass `--project-name expense_tracker` to `flutter create`.
@@ -241,7 +240,7 @@ To continue in Claude Code (inside Trae), from the project folder, with
 `Pixel_9` running:
 
 ```
-Read CLAUDE.md and docs/PLAN.md, then <the change you want>.
+Read CLAUDE.md, then <the change you want>.
 ```
 
 ---
@@ -279,7 +278,7 @@ drive or your Downloads folder.
 | App misbehaves but logcat shows no exception | Debug exceptions go to the Dart VM console | Run `flutter run -d emulator-5554` and read its output |
 | `flutter create` fails on project name | Hyphen in the folder name | Pass `--project-name expense_tracker` (Step 11) |
 | A package's documented API does not exist | Pub picked an older release that supports Dart 3.8 | Check the version in `pubspec.lock` and use that version's API. Do not upgrade Flutter. |
-| App fails to start with a `dlopen` error or page-size warning | Native library not 16 KB-aligned | See `PLAN.md` section 10, pitfall 11 |
+| App fails to start with a `dlopen` error or page-size warning | Native library not 16 KB-aligned | See `CLAUDE.md`, Traps |
 
 If `flutter doctor` reports something not covered here, paste its full output into
 Claude Code before letting it start building.

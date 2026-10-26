@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_info.dart';
 import '../../core/constants/strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/receipt_parser.dart';
+import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
+import '../../data/services/receipt_reader.dart';
 import '../../shared/today_provider.dart';
 import '../../shared/widgets/circle_icon_button.dart';
 import '../../shared/widgets/hero_surface.dart';
@@ -23,34 +29,51 @@ import 'widgets/history_chip_strip.dart';
 
 /// Opens the full-height add sheet, the edit sheet for [editing], or a new
 /// expense copied from [template] (Again: same category, note and amount,
-/// dated today).
+/// dated today). A [reading] still running (a screenshot from the Back Tap
+/// shortcut) fills the sheet when it finishes; when it finds no picture the
+/// title says [noPicture].
 Future<void> showAddExpenseSheet(
   BuildContext context, {
   Expense? editing,
   Expense? template,
+  Future<ReceiptReading?>? reading,
+  String? noPicture,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: false,
-    backgroundColor: context.colors.sheetBackground,
     sheetAnimationStyle: const AnimationStyle(
       duration: AppMotion.page,
       reverseDuration: AppMotion.normal,
     ),
-    builder: (context) => AddExpenseSheet(editing: editing, template: template),
+    builder: (context) => AddExpenseSheet(
+      editing: editing,
+      template: template,
+      reading: reading,
+      noPicture: noPicture,
+    ),
   );
 }
 
-/// The entry sheet: a close button and title, the category tiles, the
-/// violet amount box (amount, date, note, and under them the notes used
-/// before in this category), and the keypad, whose word keys save.
+/// The entry sheet: a close button, the title and a scan button (read a
+/// screenshot), the category tiles, the violet amount box (amount, date,
+/// note, and under them the notes used before in this category), and the
+/// keypad, whose word keys save.
 class AddExpenseSheet extends ConsumerStatefulWidget {
-  const AddExpenseSheet({super.key, this.editing, this.template});
+  const AddExpenseSheet({
+    super.key,
+    this.editing,
+    this.template,
+    this.reading,
+    this.noPicture,
+  });
 
   final Expense? editing;
   final Expense? template;
+  final Future<ReceiptReading?>? reading;
+  final String? noPicture;
 
   @override
   ConsumerState<AddExpenseSheet> createState() => _AddExpenseSheetState();
@@ -68,11 +91,64 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
   /// Counts Save & Add presses, so the amount can play its "sent" motion.
   int _sent = 0;
 
+  /// Shown instead of the title while a screenshot is read, and briefly
+  /// after when it found nothing.
+  String? _notice;
+  bool _reading = false;
+  Timer? _noticeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final reading = widget.reading;
+    if (reading != null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _read(reading, whenNone: widget.noPicture),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _noticeTimer?.cancel();
     _note.dispose();
     _noteFocus.dispose();
     super.dispose();
+  }
+
+  /// Reads a screenshot and fills the sheet with what it found. Null from
+  /// [reading] means nothing to read: a cancelled pick, or no picture on
+  /// the clipboard, which shows [whenNone].
+  Future<void> _read(
+    Future<ReceiptReading?> reading, {
+    String? whenNone,
+  }) async {
+    _noticeTimer?.cancel();
+    setState(() {
+      _reading = true;
+      _notice = AppStrings.scanReading;
+    });
+    final result = await readSafely(reading);
+    final args = _args;
+    if (!mounted) return;
+    setState(() => _reading = false);
+    if (result != null && args != null) {
+      final categories = ref.read(activeCategoriesProvider).valueOrNull;
+      final food = categories?.where((c) => c.iconKey == kFoodIconKey);
+      await ref
+          .read(addExpenseControllerProvider(args).notifier)
+          .applyReading(result, deliveryCategoryId: food?.firstOrNull?.id);
+    }
+    if (!mounted) return;
+    final notice = result == null
+        ? whenNone
+        : (result.amountMinor == null ? AppStrings.scanNoAmount : null);
+    setState(() => _notice = notice);
+    if (notice != null) {
+      _noticeTimer = Timer(kScanNoticeDuration, () {
+        if (mounted) setState(() => _notice = null);
+      });
+    }
   }
 
   @override
@@ -90,6 +166,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
       editing: widget.editing,
       defaultCategoryId: templateCategory ?? categories.firstOrNull?.id,
       template: template,
+      sheet: this,
     );
     final provider = addExpenseControllerProvider(args);
     final state = ref.watch(provider);
@@ -105,9 +182,17 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
       child: Column(
         children: [
           _SheetHeader(
-            title: state.isEditing
-                ? AppStrings.editExpense
-                : AppStrings.newExpense,
+            title:
+                _notice ??
+                (state.isEditing
+                    ? AppStrings.editExpense
+                    : AppStrings.newExpense),
+            onScan: state.isEditing || _reading
+                ? null
+                : () {
+                    _noteFocus.unfocus();
+                    _read(ref.read(receiptReaderProvider).pickAndRead());
+                  },
           ),
           Expanded(
             child: CategoryGrid(
@@ -202,9 +287,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
 }
 
 class _SheetHeader extends StatelessWidget {
-  const _SheetHeader({required this.title});
+  const _SheetHeader({required this.title, required this.onScan});
 
   final String title;
+
+  /// Null hides the scan button (editing) or disables it (reading).
+  final VoidCallback? onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +314,25 @@ class _SheetHeader extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Text(
-                title,
-                maxLines: 1,
-                style: AppTextStyles.headline.copyWith(color: colors.label),
+              // Clear of the buttons on both sides; a long notice shrinks.
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.navButton + AppSpacing.sm,
+                ),
+                child: AnimatedSwitcher(
+                  duration: AppMotion.normal,
+                  child: FittedBox(
+                    key: ValueKey(title),
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      style: AppTextStyles.headline.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
+                  ),
+                ),
               ),
               Positioned(
                 left: AppSpacing.xs,
@@ -237,6 +340,15 @@ class _SheetHeader extends StatelessWidget {
                   icon: Icons.close_rounded,
                   tooltip: AppStrings.closeSheet,
                   onPressed: () => Navigator.of(context).pop(),
+                  background: colors.tile,
+                ),
+              ),
+              Positioned(
+                right: AppSpacing.xs,
+                child: CircleIconButton(
+                  icon: Icons.document_scanner_rounded,
+                  tooltip: AppStrings.scanScreenshot,
+                  onPressed: onScan,
                   background: colors.tile,
                 ),
               ),

@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pinned to the version on Jack's laptop (see docs/PLAN.md section 0).
+      # Pinned to the version on Jack's laptop (see CLAUDE.md, Environment).
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.32.0

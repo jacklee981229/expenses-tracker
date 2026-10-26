@@ -6,16 +6,20 @@ import '../../core/utils/date_utils.dart';
 import '../../core/utils/duplicate_check.dart';
 import '../../core/utils/money.dart';
 import '../../core/utils/note_utils.dart';
+import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../shared/today_provider.dart';
 
 /// The expense being edited (null for a new one), the category a new
-/// expense starts with, and an expense to copy into a new one (Again).
+/// expense starts with, an expense to copy into a new one (Again), and the
+/// sheet itself, so two open sheets (the scan link opening one over another)
+/// never share an entry.
 typedef AddExpenseArgs = ({
   Expense? editing,
   String? defaultCategoryId,
   Expense? template,
+  Object sheet,
 });
 
 @immutable
@@ -201,6 +205,31 @@ class AddExpenseController
   }
 
   void setDate(DateTime date) => state = state.copyWith(date: dateOnly(date));
+
+  /// Fills the sheet from a read screenshot: the amount (the next key typed
+  /// replaces it), a date that is not in the future, and the shop as the
+  /// note. A delivery goes to [deliveryCategoryId]; otherwise the shop picks
+  /// its category as a typed note does.
+  Future<void> applyReading(
+    ReceiptReading reading, {
+    String? deliveryCategoryId,
+  }) async {
+    final amount = reading.amountMinor;
+    final date = reading.date;
+    final today = ref.read(todayProvider);
+    state = state.copyWith(
+      expression: amount == null ? null : formatMinor(amount, grouping: false),
+      replaceOnInput: amount == null ? null : true,
+      date: date == null || date.isAfter(today) ? null : dateOnly(date),
+    );
+    final shop = reading.shop;
+    if (reading.delivery && deliveryCategoryId != null) {
+      selectCategory(deliveryCategoryId, tapped: false);
+      if (shop != null) setNote(shop);
+    } else if (shop != null) {
+      await typeNote(shop);
+    }
+  }
 
   /// Saves the expense and returns whether it did. With [addAnother] the
   /// amount and note reset for the next entry; category and date stay.

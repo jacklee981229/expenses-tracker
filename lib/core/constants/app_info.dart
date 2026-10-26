@@ -13,3 +13,14 @@ const int kBackupFormatVersion = 1;
 
 /// How long Undo stays offered after deleting an expense.
 const Duration kUndoDuration = Duration(seconds: 5);
+
+/// How long the add sheet's title shows what reading a screenshot found
+/// (`No amount found`) before going back to `New Expense`.
+const Duration kScanNoticeDuration = Duration(seconds: 3);
+
+/// The path of the `expenses://app/scan` link the Back Tap shortcut opens.
+const String kScanLinkPath = '/scan';
+
+/// A delivery receipt goes to the category with this icon (Food, unless
+/// Jack renamed it).
+const String kFoodIconKey = 'food';

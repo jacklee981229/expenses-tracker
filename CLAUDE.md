@@ -1,17 +1,17 @@
 # CLAUDE.md
 
-Project conventions for this Flutter expense tracker. Read `docs/PLAN.md` for the
-full specification and `docs/ENVIRONMENT.md` for the machine setup. This file
-covers how to work, not what to build.
+Project conventions for this Flutter expense tracker. `docs/ENVIRONMENT.md`
+covers the machine setup. This file covers how to work, not what to build.
 
 ## Ground rules
 
-- **Follow `PLAN.md`.** If something in the spec seems wrong or underspecified,
-  say so and ask. Do not silently substitute a different design.
-- **Do not add packages** beyond the list in `PLAN.md` section 2 without asking.
-- **Do not build out-of-scope features** (`PLAN.md` section 1). No income, no
-  budgets, no sync, no notifications, no receipt photos.
-- Ask before any change that requires a Drift `schemaVersion` bump.
+- **What to build comes from Jack**: what he says in chat, or a plan in
+  `docs/plan/todo/` agreed with him. There is no other spec; read the code
+  for how a feature works now.
+- **Ask before adding a package.** Add it with `flutter pub add <name>` so the
+  resolver picks a version for Dart 3.8; never hand-pin from memory.
+- Ask before any change that requires a Drift `schemaVersion` bump. Any table
+  change needs that bump plus a step in `MigrationStrategy`.
 
 ## Architecture rules
 
@@ -54,6 +54,32 @@ These are correctness issues, not style preferences.
 7. Currency is the hardcoded constant `RM`. There is no currency setting, no
    locale lookup, and no multi-currency handling anywhere.
 
+## Traps
+
+- `fl_chart` is pinned to 1.0.0: 1.1.0 and later call
+  `Matrix4.translateByDouble` (vector_math 2.2), and Flutter 3.32 pins
+  vector_math 2.1.4. The resolver only checks the Dart SDK, so a package can
+  still need a newer Flutter; only a real build shows it.
+- `fl_chart` reports touch section `-1` on touch-exit; guard for it.
+- The `Pixel_9` image uses 16 KB memory pages. Any plugin with native code
+  must be 16 KB-aligned; a `dlopen` crash on start or a page-size warning
+  means a plugin's native library is not.
+- Android lays out the first frame at zero width, and the root shell's
+  `IndexedStack` lays out both tabs. Flutter 3.32's
+  `CupertinoSlidingSegmentedControl` asserts there and leaves a debug build
+  black, so the period switcher is a custom pill; guard any widget that
+  cannot take zero width.
+- Changing the iOS bundle ID (`com.jack.expenseTracker`) makes iOS treat the
+  app as new, with an empty database.
+- ML Kit text recognition needs Android `compileSdk = 36` and iOS 15.5 (set in
+  the committed `ios/Podfile` and the Xcode project). It also sends usage
+  statistics to Google; pictures and their text stay on the phone.
+- A launch through `expenses://app/scan` arrives as the first route: the whole
+  link on Android, so compare `Uri.path`, never the route string.
+- Sheets take their background from `bottomSheetTheme`. Passing a colour read
+  when the sheet opens freezes it: a sheet opened by the scan link at launch
+  then stays light after the dark theme loads.
+
 ## Code style
 
 - `dart format` default (80 columns).
@@ -78,6 +104,7 @@ Unit tests are required for, and only for:
 - `core/utils/note_utils.dart` — history chip ranking
 - `core/utils/duplicate_check.dart` — the duplicate warning
 - `core/utils/insights.dart` — the Analysis summary line
+- `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
 
 Widget tests are not required. Do not write them unless asked.
 
@@ -88,8 +115,7 @@ Widget tests are not required. Do not write them unless asked.
   generated files compile. (build_runner 2.15 ignores the old
   `--delete-conflicting-outputs` flag.)
 - After adding or changing a package, run `flutter build apk --debug`. Analyze
-  and the unit tests do not compile package code (see `docs/PLAN.md`
-  section 2).
+  and the unit tests do not compile package code.
 - Debug-build exceptions print to `flutter run`'s console, not reliably to
   logcat. Run `flutter run -d emulator-5554` when the app misbehaves on the
   emulator without an obvious error.
@@ -104,7 +130,7 @@ Widget tests are not required. Do not write them unless asked.
   Android emulator **`Pixel_9`**, the only AVD. Start it with
   `flutter emulators --launch Pixel_9`; it appears as `emulator-5554`.
 - Use the installed toolchain as it is: **Flutter 3.32.0 / Dart 3.8.0** at
-  `C:\dev\flutter`. See `docs/PLAN.md` section 0 and `docs/ENVIRONMENT.md`.
+  `C:\dev\flutter`. See `docs/ENVIRONMENT.md`.
 - Do not upgrade Flutter, switch channels, install SDKs, modify PATH, or run
   Android Studio installers.
 - `flutter doctor` warnings about the unknown Flutter channel, the Android

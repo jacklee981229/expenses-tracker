@@ -11,6 +11,7 @@ import 'features/add_expense/add_expense_sheet.dart';
 import 'features/analysis/analysis_screen.dart';
 import 'features/ledger/ledger_screen.dart';
 import 'features/settings/settings_providers.dart';
+import 'shared/scan_link.dart';
 import 'shared/today_provider.dart';
 import 'shared/widgets/floating_add_button.dart';
 import 'shared/widgets/floating_tab_bar.dart';
@@ -32,7 +33,12 @@ class ExpenseTrackerApp extends ConsumerWidget {
       themeAnimationDuration: AppMotion.page,
       themeAnimationCurve: AppMotion.enter,
       scrollBehavior: const _BouncingScrollBehavior(),
-      home: const RootShell(),
+      routes: {'/': (_) => const RootShell()},
+      // A launch through the scan link asks for the `/scan` route, which has
+      // no page: the shell opens and reads the clipboard instead.
+      onGenerateInitialRoutes: (_) => [
+        MaterialPageRoute<void>(builder: (_) => const RootShell()),
+      ],
     );
   }
 }
@@ -76,13 +82,29 @@ class _RootShellState extends ConsumerState<RootShell> {
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _onResume);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _catchUp());
+    scanLinkTicks.addListener(_scanClipboard);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _catchUp();
+      if (openedByScanLink) _scanClipboard();
+    });
   }
 
   @override
   void dispose() {
+    scanLinkTicks.removeListener(_scanClipboard);
     _lifecycle.dispose();
     super.dispose();
+  }
+
+  /// The Back Tap shortcut copied a screenshot and opened the scan link:
+  /// show the ledger and an add sheet that fills from the clipboard picture.
+  void _scanClipboard() {
+    setState(() => _tab = _ledgerTab);
+    showAddExpenseSheet(
+      context,
+      reading: ref.read(receiptReaderProvider).readClipboard(),
+      noPicture: AppStrings.scanNoPicture,
+    );
   }
 
   void _onResume() {

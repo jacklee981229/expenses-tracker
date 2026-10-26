@@ -67,6 +67,12 @@ abstract final class AppStrings {
   static const String deleted = 'Deleted';
   static const String undo = 'Undo';
   static const String again = 'Again';
+
+  // Reading a screenshot
+  static const String scanScreenshot = 'Read a screenshot';
+  static const String scanReading = 'Reading…';
+  static const String scanNoAmount = 'No amount found';
+  static const String scanNoPicture = 'No picture on the clipboard';
   static const String search = 'Search';
   static const String searchHint = 'Note, category or amount';
   static const String searchPrompt =

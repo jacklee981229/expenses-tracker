@@ -8,6 +8,7 @@ import 'database/daos/settings_dao.dart';
 import 'database/daos/transaction_dao.dart';
 import 'services/export_service.dart';
 import 'services/import_service.dart';
+import 'services/receipt_reader.dart';
 import 'services/recurring_generator.dart';
 
 /// Overridden in `main()` with the on-device database, and in tests with an
@@ -47,3 +48,5 @@ final exportServiceProvider = Provider<ExportService>(
 final importServiceProvider = Provider<ImportService>(
   (ref) => ImportService(ref.watch(appDatabaseProvider)),
 );
+
+final receiptReaderProvider = Provider<ReceiptReader>((ref) => ReceiptReader());

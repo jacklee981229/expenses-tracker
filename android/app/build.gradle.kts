@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.jack.expense_tracker"
-    compileSdk = flutter.compileSdkVersion
+    // ML Kit text recognition compiles against SDK 36 (Flutter 3.32 defaults to 35).
+    compileSdk = 36
     // The plugins need NDK 27 (installed); Flutter 3.32 defaults to 26.3.
     ndkVersion = "27.0.12077973"
 
