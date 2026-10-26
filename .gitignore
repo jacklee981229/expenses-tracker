@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Jack's receipt screenshots and probes: personal data, never committed.
+/scratch/

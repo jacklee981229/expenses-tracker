@@ -93,6 +93,7 @@ abstract final class AppStrings {
   static const String keyPlus = '+';
   static const String keyMinus = '−';
   static const String keyDecimal = '.';
+  static const String keyPlusMinus = '$keyPlus/$keyMinus';
   static String expressionResult(String amount) => '= $amount';
   static const String duplicateTitle = 'Save it again?';
   static const String duplicateMessage =

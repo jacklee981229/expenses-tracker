@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +10,8 @@ import '../../core/constants/strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
+import '../../core/utils/receipt_parser.dart';
 import '../../data/database/app_database.dart';
 import '../../data/services/receipt_reader.dart';
 import '../../shared/today_provider.dart';
@@ -26,17 +27,18 @@ import 'widgets/amount_keypad.dart';
 import 'widgets/category_grid.dart';
 import 'widgets/date_chip.dart';
 import 'widgets/history_chip_strip.dart';
+import 'widgets/scan_overlay.dart';
 
 /// Opens the full-height add sheet, the edit sheet for [editing], or a new
 /// expense copied from [template] (Again: same category, note and amount,
-/// dated today). A [reading] still running (a screenshot from the Back Tap
-/// shortcut) fills the sheet when it finishes; when it finds no picture the
+/// dated today). A [scan] still starting (a screenshot from the Back Tap
+/// shortcut) fills the sheet when it is read; when it finds no picture the
 /// title says [noPicture].
 Future<void> showAddExpenseSheet(
   BuildContext context, {
   Expense? editing,
   Expense? template,
-  Future<ReceiptReading?>? reading,
+  Future<Future<ReceiptReading>?>? scan,
   String? noPicture,
 }) {
   return showModalBottomSheet<void>(
@@ -51,7 +53,7 @@ Future<void> showAddExpenseSheet(
     builder: (context) => AddExpenseSheet(
       editing: editing,
       template: template,
-      reading: reading,
+      scan: scan,
       noPicture: noPicture,
     ),
   );
@@ -66,13 +68,13 @@ class AddExpenseSheet extends ConsumerStatefulWidget {
     super.key,
     this.editing,
     this.template,
-    this.reading,
+    this.scan,
     this.noPicture,
   });
 
   final Expense? editing;
   final Expense? template;
-  final Future<ReceiptReading?>? reading;
+  final Future<Future<ReceiptReading>?>? scan;
   final String? noPicture;
 
   @override
@@ -94,16 +96,17 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
   /// Shown instead of the title while a screenshot is read, and briefly
   /// after when it found nothing.
   String? _notice;
-  bool _reading = false;
   Timer? _noticeTimer;
+
+  bool _reading = false;
 
   @override
   void initState() {
     super.initState();
-    final reading = widget.reading;
-    if (reading != null) {
+    final scan = widget.scan;
+    if (scan != null) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _read(reading, whenNone: widget.noPicture),
+        (_) => _read(scan, whenNone: widget.noPicture),
       );
     }
   }
@@ -116,23 +119,43 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     super.dispose();
   }
 
-  /// Reads a screenshot and fills the sheet with what it found. Null from
-  /// [reading] means nothing to read: a cancelled pick, or no picture on
-  /// the clipboard, which shows [whenNone].
+  /// Reads a screenshot and fills the sheet with what it found. A null
+  /// [scan] means nothing to read: a cancelled pick, or no picture on the
+  /// clipboard, which shows [whenNone].
   Future<void> _read(
-    Future<ReceiptReading?> reading, {
+    Future<Future<ReceiptReading>?> pending, {
     String? whenNone,
   }) async {
+    Future<ReceiptReading>? reading;
+    try {
+      // readSafely right away, so a failure after the sheet closes is still
+      // handled.
+      final started = await pending;
+      reading = started == null ? null : readSafely(started);
+    } on Exception {
+      // The picker refused (no photo access, already open).
+      reading = null;
+    }
+    if (!mounted) return;
     _noticeTimer?.cancel();
+    if (reading == null) {
+      _showNotice(whenNone);
+      return;
+    }
     setState(() {
       _reading = true;
       _notice = AppStrings.scanReading;
     });
-    final result = await readSafely(reading);
+    final result = await reading;
+    // A Back Tap launch can finish reading before the categories load.
+    if (_args == null && mounted) {
+      await ref.read(activeCategoriesProvider.future);
+      await WidgetsBinding.instance.endOfFrame;
+    }
     final args = _args;
     if (!mounted) return;
     setState(() => _reading = false);
-    if (result != null && args != null) {
+    if (args != null) {
       final categories = ref.read(activeCategoriesProvider).valueOrNull;
       final food = categories?.where((c) => c.iconKey == kFoodIconKey);
       await ref
@@ -140,9 +163,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           .applyReading(result, deliveryCategoryId: food?.firstOrNull?.id);
     }
     if (!mounted) return;
-    final notice = result == null
-        ? whenNone
-        : (result.amountMinor == null ? AppStrings.scanNoAmount : null);
+    _showNotice(result.amountMinor == null ? AppStrings.scanNoAmount : null);
+  }
+
+  /// Shows [notice] in place of the title for a few seconds; null puts the
+  /// title back.
+  void _showNotice(String? notice) {
     setState(() => _notice = notice);
     if (notice != null) {
       _noticeTimer = Timer(kScanNoticeDuration, () {
@@ -187,12 +213,6 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                 (state.isEditing
                     ? AppStrings.editExpense
                     : AppStrings.newExpense),
-            onScan: state.isEditing || _reading
-                ? null
-                : () {
-                    _noteFocus.unfocus();
-                    _read(ref.read(receiptReaderProvider).pickAndRead());
-                  },
           ),
           Expanded(
             child: CategoryGrid(
@@ -203,6 +223,8 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             ),
           ),
           _AmountBox(
+            reading: _reading,
+            overlay: ScanOverlay(reading: _reading),
             amount: AmountDisplay(
               expression: state.expression,
               resultMinor: state.amountMinor,
@@ -230,8 +252,13 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             AmountKeypad(
               onDigit: (digit) => _key(() => controller.digit(digit)),
               onDecimalPoint: () => _key(controller.decimalPoint),
-              onOperator: (symbol) =>
-                  _key(() => controller.applyOperator(symbol)),
+              onPlusMinus: () => _key(controller.toggleOperator),
+              onScan: state.isEditing || _reading
+                  ? null
+                  : () {
+                      _noteFocus.unfocus();
+                      _read(ref.read(receiptReaderProvider).pick());
+                    },
               onBackspace: () => _key(controller.backspace),
               onSaveAndAdd: state.canSave && !state.isEditing
                   ? () => _save(controller, addAnother: true)
@@ -287,12 +314,9 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
 }
 
 class _SheetHeader extends StatelessWidget {
-  const _SheetHeader({required this.title, required this.onScan});
+  const _SheetHeader({required this.title});
 
   final String title;
-
-  /// Null hides the scan button (editing) or disables it (reading).
-  final VoidCallback? onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -343,15 +367,6 @@ class _SheetHeader extends StatelessWidget {
                   background: colors.tile,
                 ),
               ),
-              Positioned(
-                right: AppSpacing.xs,
-                child: CircleIconButton(
-                  icon: Icons.document_scanner_rounded,
-                  tooltip: AppStrings.scanScreenshot,
-                  onPressed: onScan,
-                  background: colors.tile,
-                ),
-              ),
             ],
           ),
         ),
@@ -368,8 +383,14 @@ class _AmountBox extends StatelessWidget {
     required this.date,
     required this.note,
     required this.history,
+    required this.reading,
+    required this.overlay,
   });
 
+  /// While a screenshot is read the amount and note blur under the scan
+  /// light.
+  final bool reading;
+  final Widget overlay;
   final Widget amount;
   final Widget date;
   final Widget note;
@@ -387,6 +408,7 @@ class _AmountBox extends StatelessWidget {
       ),
       child: HeroSurface(
         radius: AppRadius.panel,
+        overlay: overlay,
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md + 2,
           AppSpacing.md,
@@ -396,7 +418,7 @@ class _AmountBox extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            amount,
+            _Blurred(blurred: reading, child: amount),
             const SizedBox(height: AppSpacing.xs),
             DashedLine(color: onHero.withValues(alpha: 0.28)),
             const SizedBox(height: AppSpacing.sm - 2),
@@ -404,13 +426,43 @@ class _AmountBox extends StatelessWidget {
               children: [
                 date,
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(child: note),
+                Expanded(
+                  child: _Blurred(blurred: reading, child: note),
+                ),
               ],
             ),
             history,
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Blurs and fades [child] while [blurred]: what a screenshot is about to
+/// replace.
+class _Blurred extends StatelessWidget {
+  const _Blurred({required this.blurred, required this.child});
+
+  final bool blurred;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: blurred ? 1 : 0),
+      duration: AppMotion.slow,
+      curve: AppMotion.enter,
+      child: child,
+      builder: (context, blur, child) => blur == 0
+          ? child!
+          : ImageFiltered(
+              imageFilter: ImageFilter.blur(
+                sigmaX: AppSizes.scanBlur * blur,
+                sigmaY: AppSizes.scanBlur * blur,
+              ),
+              child: Opacity(opacity: 1 - blur / 2, child: child),
+            ),
     );
   }
 }

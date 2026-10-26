@@ -12,9 +12,13 @@ class HeroSurface extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(AppSpacing.lg),
     this.radius = AppRadius.card,
+    this.overlay,
   });
 
   final Widget child;
+
+  /// Drawn over the whole surface, padding included (the scan light).
+  final Widget? overlay;
   final EdgeInsetsGeometry padding;
   final double radius;
 
@@ -86,6 +90,7 @@ class HeroSurface extends StatelessWidget {
               ),
             ),
             Padding(padding: padding, child: child),
+            if (overlay case final overlay?) Positioned.fill(child: overlay),
           ],
         ),
       ),

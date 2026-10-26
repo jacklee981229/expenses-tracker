@@ -20,6 +20,10 @@ abstract final class AppMotion {
   static const Duration slow = Duration(milliseconds: 320);
   static const Duration page = Duration(milliseconds: 460);
 
+  /// One slow pass of the light over the amount box while a screenshot is
+  /// read. The only looping motion, so it stays out of the five above.
+  static const Duration sweep = Duration(milliseconds: 1200);
+
   /// Gap between items that enter one after another.
   static const Duration stagger = Duration(milliseconds: 50);
 
@@ -118,6 +122,9 @@ abstract final class AppSizes {
   static const double inlineChipHeight = 30;
   static const double keypadKeyHeight = 54;
 
+  /// How much accent washes the scan key's face.
+  static const double keyTint = 0.22;
+
   /// How far a key travels when pressed: its hard shadow's height.
   static const double keyTravel = 3;
   static const double swipeActionWidth = 76;
@@ -142,6 +149,39 @@ abstract final class AppSizes {
   static const double sticker = 56;
   static const double stickerIcon = 32;
   static const double stickerTilt = 14;
+
+  /// The little receipt that prints out of the amount box while a
+  /// screenshot is read, and the slot it comes out of.
+  static const double scanSlotWidth = 74;
+  static const double scanSlotHeight = 7;
+  static const double scanPaperWidth = 62;
+  static const double scanPaperLength = 78;
+  static const double scanPaperRow = 9;
+  static const double scanPaperTooth = 5;
+
+  static const int scanPaperTeeth = 6;
+  static const double scanPaperMargin = 8;
+  static const double scanPaperLine = 3;
+  static const double scanPaperBoldLine = 4;
+  static const double scanPaperDash = 3;
+
+  /// The bold total line's length, as a share of the paper.
+  static const double scanPaperBoldWidth = 0.6;
+  static const double scanPaperElevation = 4;
+
+  /// How the receipt leaves once read: torn off to the right.
+  static const double scanTearTravel = 60;
+  static const double scanTearLift = 4;
+  static const double scanTearTilt = 10;
+
+  /// The scan light: brightest in the middle of its band.
+  static const double scanLightPeak = 0.38;
+  static const double scanLightEdge = 0.26;
+  static const List<double> scanLightStops = [0, 0.42, 0.5, 0.58, 1];
+  static const double scanSweepHeight = 64;
+
+  /// How blurred the amount is while it is read.
+  static const double scanBlur = 4;
 
   /// Receipts lean a little, alternating left and right.
   static const double receiptTilt = 0.6;

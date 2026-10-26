@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'database/app_database.dart';
 import 'database/daos/analysis_dao.dart';
 import 'database/daos/category_dao.dart';
+import 'database/daos/receipt_kind_dao.dart';
 import 'database/daos/recurring_dao.dart';
 import 'database/daos/settings_dao.dart';
 import 'database/daos/transaction_dao.dart';
@@ -35,6 +36,10 @@ final analysisDaoProvider = Provider<AnalysisDao>(
 
 final settingsDaoProvider = Provider<SettingsDao>(
   (ref) => ref.watch(appDatabaseProvider).settingsDao,
+);
+
+final receiptKindDaoProvider = Provider<ReceiptKindDao>(
+  (ref) => ref.watch(appDatabaseProvider).receiptKindDao,
 );
 
 final recurringGeneratorProvider = Provider<RecurringGenerator>(

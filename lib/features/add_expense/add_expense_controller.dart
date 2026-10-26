@@ -6,6 +6,7 @@ import '../../core/utils/date_utils.dart';
 import '../../core/utils/duplicate_check.dart';
 import '../../core/utils/money.dart';
 import '../../core/utils/note_utils.dart';
+import '../../core/utils/receipt_kinds.dart';
 import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
@@ -101,6 +102,10 @@ final addExpenseControllerProvider = NotifierProvider.autoDispose
 
 class AddExpenseController
     extends AutoDisposeFamilyNotifier<AddExpenseState, AddExpenseArgs> {
+  /// The last screenshot read into this sheet, until it is saved: its page
+  /// labels and shop, so the saved note can name its kind of page.
+  ({Set<String> labels, String? shop})? _scanned;
+
   @override
   AddExpenseState build(AddExpenseArgs arg) {
     final editing = arg.editing;
@@ -137,10 +142,7 @@ class AddExpenseController
 
   void decimalPoint() => _edit(appendDecimalPoint, replaces: true);
 
-  void applyOperator(String symbol) => _edit(
-    (expression) => appendOperator(expression, symbol),
-    replaces: false,
-  );
+  void toggleOperator() => _edit(appendPlusMinus, replaces: false);
 
   void backspace() => _edit(removeLastCharacter, replaces: false);
 
@@ -206,10 +208,13 @@ class AddExpenseController
 
   void setDate(DateTime date) => state = state.copyWith(date: dateOnly(date));
 
-  /// Fills the sheet from a read screenshot: the amount (the next key typed
-  /// replaces it), a date that is not in the future, and the shop as the
-  /// note. A delivery goes to [deliveryCategoryId]; otherwise the shop picks
-  /// its category as a typed note does.
+  /// Fills the sheet from a read screenshot, replacing what was there: the
+  /// amount (the next key typed replaces it), the date (today when none was
+  /// found or it is in the future) and the shop as the note; what was not
+  /// found is cleared. A kind of page Jack named before puts its name in
+  /// front (`Food App - Kedai Ali`, or the name alone without a shop). A
+  /// delivery goes to [deliveryCategoryId]; otherwise the note picks its
+  /// category as a typed note does.
   Future<void> applyReading(
     ReceiptReading reading, {
     String? deliveryCategoryId,
@@ -218,16 +223,24 @@ class AddExpenseController
     final date = reading.date;
     final today = ref.read(todayProvider);
     state = state.copyWith(
-      expression: amount == null ? null : formatMinor(amount, grouping: false),
-      replaceOnInput: amount == null ? null : true,
-      date: date == null || date.isAfter(today) ? null : dateOnly(date),
+      expression: amount == null ? '' : formatMinor(amount, grouping: false),
+      replaceOnInput: amount != null,
+      date: date == null || date.isAfter(today) ? today : dateOnly(date),
     );
     final shop = reading.shop;
+    _scanned = (labels: reading.labels, shop: shop);
+    final kinds = await ref.read(receiptKindDaoProvider).getAll();
+    final note = receiptNote(
+      shop: shop,
+      kindName: matchKind(reading.labels, kinds)?.name,
+    );
     if (reading.delivery && deliveryCategoryId != null) {
       selectCategory(deliveryCategoryId, tapped: false);
-      if (shop != null) setNote(shop);
-    } else if (shop != null) {
-      await typeNote(shop);
+      setNote(note ?? '');
+    } else if (note != null) {
+      await typeNote(note);
+    } else {
+      setNote('');
     }
   }
 
@@ -258,11 +271,28 @@ class AddExpenseController
           note: state.note,
         );
       }
+      await _rememberKind();
     } finally {
       state = state.copyWith(saving: false);
     }
     if (addAnother) state = state.copyWith(expression: '', note: '');
     return true;
+  }
+
+  /// After saving a read screenshot, names its kind of page from the note,
+  /// so the next screenshot like it fills that name in. A failure only
+  /// loses the name; the expense is already saved.
+  Future<void> _rememberKind() async {
+    final scanned = _scanned;
+    _scanned = null;
+    if (scanned == null) return;
+    final name = learnedKindName(note: state.note, shop: scanned.shop);
+    if (name == null) return;
+    try {
+      await ref.read(receiptKindDaoProvider).remember(scanned.labels, name);
+    } on Exception {
+      // Nothing to tell Jack: the next scan simply is not named.
+    }
   }
 
   /// The chosen day at the current time of day. An edit keeps its original

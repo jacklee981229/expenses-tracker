@@ -102,7 +102,7 @@ class _RootShellState extends ConsumerState<RootShell> {
     setState(() => _tab = _ledgerTab);
     showAddExpenseSheet(
       context,
-      reading: ref.read(receiptReaderProvider).readClipboard(),
+      scan: ref.read(receiptReaderProvider).clipboard(),
       noPicture: AppStrings.scanNoPicture,
     );
   }

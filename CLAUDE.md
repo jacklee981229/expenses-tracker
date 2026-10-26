@@ -25,7 +25,8 @@ covers the machine setup. This file covers how to work, not what to build.
 - All colours, spacing, radii and motion come from `core/theme/`. No
   hardcoded hex, durations or magic numbers in widgets. Animations use only
   the five `AppMotion` durations (80/140/220/320/460 ms) and the
-  `AppSprings`.
+  `AppSprings`; the looping scan motions (the light and the receipt's
+  feed) use `AppMotion.sweep`.
 
 ## Looks we don't use
 
@@ -105,6 +106,7 @@ Unit tests are required for, and only for:
 - `core/utils/duplicate_check.dart` — the duplicate warning
 - `core/utils/insights.dart` — the Analysis summary line
 - `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
+- `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
 
 Widget tests are not required. Do not write them unless asked.
 

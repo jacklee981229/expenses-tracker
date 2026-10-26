@@ -134,4 +134,81 @@ void main() {
     expect(reading.delivery, isFalse);
     expect(parseReceipt(const []).amountMinor, isNull);
   });
+
+  // Shaped like what text recognition read from Jack's real screenshots
+  // (positions and sizes kept), with the names, address and numbers made up.
+  ReadLine at(String text, double top, double bottom, double left) =>
+      (text: text, top: top, bottom: bottom, left: left);
+
+  test('a delivery order scrolled past the shop: total, date, delivery', () {
+    final reading = parseReceipt([
+      at('13:56', 68, 108, 173),
+      at('KEDAI IVIAKAN - IVI JALAN CUNTUH', 326, 350, 62),
+      at('A-1-2, Jalan Contoh 3, 12345 Bandar Contoh', 383, 423, 61),
+      at('Deliver to', 540, 574, 115),
+      at('Apartment Contoh, Jalan Dua, Bandar Contoh', 609, 649, 62),
+      at('Ali Ahmad - (+60) 12-345 6789', 774, 810, 63),
+      at('1 HOUR', 1117, 1228, 184),
+      at('1x 12.Set A Nasi Lemak Ayam RM48.10', 1437, 1477, 213),
+      at('Item Subtotal (1 item)', 1849, 1888, 64),
+      at('RM48.10', 1851, 1882, 1056),
+      at('Food Discount Voucher', 1961, 1988, 63),
+      at('-RM12.00', 1959, 1990, 1069),
+      at('Paid', 2131, 2164, 875),
+      at('RM36.10', 2135, 2171, 1037),
+      at('Order ID', 2622, 2649, 62),
+      at('1234567890123456789 COPY', 2622, 2649, 697),
+      at('Order Time', 2697, 2726, 61),
+      at('26 Oct 2026 13:55', 2700, 2727, 912),
+    ]);
+    expect(reading.amountMinor, 3610);
+    expect(reading.date, DateTime(2026, 10, 26));
+    expect(reading.delivery, isTrue);
+    expect(reading.shop, isNull);
+  });
+
+  test('an e-wallet transfer with an ad: the big amount, not the ad', () {
+    final reading = parseReceipt([
+      at('13:57', 67, 107, 98),
+      at('RM 0.01', 513, 585, 480),
+      at('Transferred', 660, 697, 514),
+      at('Receiver', 797, 834, 64),
+      at('ALI BIN AHMAD', 794, 838, 904),
+      at('Remark', 917, 953, 64),
+      at('Fund Transfer', 916, 953, 917),
+      at('Date & Time', 1035, 1072, 64),
+      at('26/10/2026 13:56:56', 1034, 1076, 759),
+      at('1 0CT -31 DEC 2026', 1420, 1448, 158),
+      at('RM150', 1596, 1659, 988),
+      at('Ad Limited-Time Offer! Enjoy Up to RM150 Rebate.', 1871, 1898, 49),
+      at('Done', 2555, 2593, 780),
+    ]);
+    expect(reading.amountMinor, 1);
+    expect(reading.shop, 'ALI BIN AHMAD');
+    expect(reading.date, DateTime(2026, 10, 26));
+    expect(reading.delivery, isFalse);
+  });
+
+  test('a bigger ad amount lower down does not beat the paid amount', () {
+    final reading = parseReceipt([
+      at('Payment Successful', 200, 240, 300),
+      at('RM 5.00', 300, 360, 400),
+      at('Receiver', 400, 440, 60),
+      at('Date & Time', 460, 500, 60),
+      at('Fund Transfer', 520, 560, 60),
+      at('RM150', 900, 966, 700),
+    ]);
+    expect(reading.amountMinor, 500);
+  });
+
+  test('the shop is not one of the page labels', () {
+    final reading = parseReceipt([
+      at('Receiver', 400, 440, 60),
+      at('ALI BIN AHMAD', 400, 440, 700),
+      at('Remark', 460, 500, 60),
+    ]);
+    expect(reading.shop, 'ALI BIN AHMAD');
+    expect(reading.labels, isNot(contains('ali bin ahmad')));
+    expect(reading.labels, containsAll(['receiver', 'remark']));
+  });
 }

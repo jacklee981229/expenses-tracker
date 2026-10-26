@@ -2,6 +2,9 @@
 
 ## Spec (Jack, 2026-10-26)
 
+Product names in Jack's quotes are replaced with [brackets]: the repo is
+public.
+
 我感觉不需要face id unlock吧。我就记账，没必要藏。
 倒是，那个iphone背后tap两下就记账，这种功能怎么实现
 ---
@@ -49,6 +52,52 @@ receipts) plus Back Tap as a way to trigger it, using the clipboard route
   the traps that still hold moved to CLAUDE.md, and there is no out-of-scope
   list any more.
 
+## Loading animation (Jack, 2026-10-26)
+
+然后那个load着receipt上的data的时候能不能给个符合主题的loading animation？
+---
+先做ABC原型给我看
+---
+B+C吧。开工！
+---
+erm这样看C就不好看了。我觉得你改成A+B吧。
+
+- D8. Prototypes A (print a receipt), B (scan light), C (screenshot card):
+  https://claude.ai/artifact/LQUKkMsWWsNHs8RoiAituo (private). Jack first
+  picked B+C, then on the emulator found the screenshot card ugly and
+  switched to A+B: a little receipt prints out of a slot at the top right
+  of the amount box and keeps feeding, one soft light sweeps the box, the
+  amount blurs; when read, the light fades and the receipt tears off to the
+  right. Must keep: slow, soft sweep; the receipt and tear match the
+  ledger's print-in and tear-away.
+
+## Feedback after testing (Jack, 2026-10-26)
+
+有个bug，如果已经有description了他就不会改。但是他应该description和amount都跟着改才对。所以那个blur effect不止作用于amount，也要作用在description。
+---
+另外，把+和-变成同一个button，就是 +/-，按一次是+，按第二次是-。类似[某记账 app]。
+然后，把scan的button从上面移来下面原本-button的地方。然后换个颜色。
+
+- D9. A scan replaces the amount, the note and the date with what it
+  found; anything not found is cleared (the date goes back to today). The
+  note blurs with the amount while reading.
+- D10. One +/− key where + was: a plus, pressed again straight after it
+  becomes a minus (and back). The scan key moves to where − was, with a
+  face washed in the accent; the header loses its scan button.
+
+## Naming the page (Jack, 2026-10-26)
+
+哦 我现在才发现到原来是我的那个食物screenshot没有description。他能不能识别这是[外卖 app]呢？能的话就填[外卖 app]就好了
+---
+如果扫到店家名就 [外卖 app] - 店家名 更好。但是因为我给的screenshot是店家名cut了一半。。。所以没
+
+- D11. Recognising an app by name would put a trademark in the public repo,
+  so Jack chose "记住我填的": each read keeps the page's printed labels;
+  after a save, the note names that kind of page (the whole note without a
+  shop, the part before ` - Shop` with one). The next screenshot of the
+  same kind fills `Name - Shop`, or the name alone. Names live only in the
+  phone's database: a new `receipt_kinds` table, schemaVersion 2.
+
 ## Tasks
 
 - [x] 1. Packages added, iOS minimum 15.5, photo-access text in Info.plist;
@@ -68,3 +117,13 @@ receipts) plus Back Tap as a way to trigger it, using the clipboard route
       after Jack confirms.
 - [ ] 6. On the iPhone, once it can be installed: Jack makes the Back Tap
       Shortcut (steps in the report) and tries it.
+- [x] 7. Loading animation A+B (D8). Verify: burst screenshots on the
+      emulator show the receipt printing and feeding, the moving light, the
+      blur, and the receipt tearing off.
+- [x] 8. Rescan replaces amount and note; the note blurs too (D9). Verify:
+      scan a transfer, then a receipt without a shop: the note clears.
+- [x] 9. +/− key and the scan key in the keypad (D10). Verify: unit test
+      for the key; emulator 12 +/− +/− 2 shows RM12 − 2 = 10.00.
+- [x] 10. Named kinds of receipt page (D11). Verify: unit tests for matching
+      and naming, DAO tests; emulator: upgrade keeps all 9 expenses, typing
+      the app's name once makes the next scan of that page fill it.

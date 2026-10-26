@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,24 +10,27 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/utils/receipt_parser.dart';
 
 /// Reads an expense from a screenshot: the text is recognised on the phone
-/// (no internet) and [parseReceipt] picks out the amount, shop and date.
-/// The picture is never kept.
+/// and [parseReceipt] picks out the amount, shop and date.
 class ReceiptReader {
-  /// Lets Jack pick a screenshot from Photos and reads it; null when he
-  /// cancels.
-  Future<ReceiptReading?> pickAndRead() async {
+  /// Lets Jack pick a screenshot from Photos; once picked, its reading is
+  /// running. Null when he cancels. The picture is never kept.
+  Future<Future<ReceiptReading>?> pick() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked == null) return null;
-    return _read(picked.path);
+    return _readFile(picked.path);
   }
 
-  /// Reads the picture on the clipboard (the Back Tap shortcut puts a
-  /// screenshot there); null when the clipboard holds no picture.
-  Future<ReceiptReading?> readClipboard() async {
+  /// Starts reading the picture on the clipboard (the Back Tap shortcut puts
+  /// a screenshot there); null when the clipboard holds no picture.
+  Future<Future<ReceiptReading>?> clipboard() async {
     final bytes = await Pasteboard.image;
     if (bytes == null || bytes.isEmpty) return null;
-    // Text recognition reads files, so the picture passes through a
-    // temporary one that is deleted straight after.
+    return _readBytes(bytes);
+  }
+
+  // Text recognition reads files, so clipboard bytes pass through a
+  // temporary one that is deleted straight after.
+  Future<ReceiptReading> _readBytes(Uint8List bytes) async {
     final directory = await getTemporaryDirectory();
     final file = File(
       p.join(
@@ -36,13 +40,13 @@ class ReceiptReader {
     );
     await file.writeAsBytes(bytes);
     try {
-      return await _read(file.path);
+      return await _readFile(file.path);
     } finally {
       await file.delete();
     }
   }
 
-  Future<ReceiptReading> _read(String path) async {
+  Future<ReceiptReading> _readFile(String path) async {
     final recognizer = TextRecognizer();
     try {
       final text = await recognizer.processImage(InputImage.fromFilePath(path));
@@ -64,10 +68,16 @@ class ReceiptReader {
 
 /// Turns a reading error (a picture that cannot be opened, the recogniser
 /// failing) into "found nothing", which the sheet already explains.
-Future<ReceiptReading?> readSafely(Future<ReceiptReading?> reading) async {
+Future<ReceiptReading> readSafely(Future<ReceiptReading> reading) async {
   try {
     return await reading;
   } on Exception {
-    return (amountMinor: null, shop: null, date: null, delivery: false);
+    return (
+      amountMinor: null,
+      shop: null,
+      date: null,
+      delivery: false,
+      labels: const <String>{},
+    );
   }
 }

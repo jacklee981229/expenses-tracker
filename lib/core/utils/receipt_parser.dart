@@ -5,11 +5,15 @@ import 'money.dart';
 typedef ReadLine = ({String text, double top, double bottom, double left});
 
 /// What a receipt screenshot gave: any of it may be missing.
+///
+/// [labels] are the page's printed words (`order details`, `item
+/// subtotal`), which tell one kind of receipt page from another.
 typedef ReceiptReading = ({
   int? amountMinor,
   String? shop,
   DateTime? date,
   bool delivery,
+  Set<String> labels,
 });
 
 // `RM14.60`, `RM 1,234.50`, `-RM7.00`; the minus marks a discount.
@@ -29,18 +33,27 @@ final RegExp _totalLabel = RegExp(
 // Labels whose next line is the shop.
 final RegExp _shopLabel = RegExp(
   r'^(take from|from|merchant|merchant name|store|shop|restaurant|'
-  r'paid to|pay to|recipient|recipient name|beneficiary name)\s*:?\s*$',
+  r'paid to|pay to|receiver|recipient|recipient name|beneficiary name)'
+  r'\s*:?\s*$',
   caseSensitive: false,
 );
 
 // The same labels with the shop after them on one line: `Merchant: Kedai`.
 final RegExp _shopInline = RegExp(
-  r'^(merchant|merchant name|paid to|pay to|recipient|recipient name|'
-  r'beneficiary name|store|shop|restaurant)\s*:\s*(.+)$',
+  r'^(merchant|merchant name|paid to|pay to|receiver|recipient|'
+  r'recipient name|beneficiary name|store|shop|restaurant)\s*:\s*(.+)$',
   caseSensitive: false,
 );
 
-final RegExp _deliveryFee = RegExp(r'\bdelivery fee\b', caseSensitive: false);
+// A delivery order: its fee line, or the `Deliver to` address heading.
+final RegExp _delivery = RegExp(
+  r'\b(delivery fee|deliver to)\b',
+  caseSensitive: false,
+);
+
+/// An amount set this many times taller than the page's usual text is the
+/// big figure payment screens print what you paid in.
+const double _bigAmount = 1.4;
 
 const List<String> _months = [
   'jan',
@@ -74,8 +87,11 @@ final RegExp _isoDate = RegExp(r'\b(\d{4})-(\d{2})-(\d{2})\b');
 /// the date, and whether it was a delivery (it has a delivery fee).
 ///
 /// The amount is the one beside a total label (the lowest such, since a
-/// final total sits under subtotals); without a label, the lowest amount
-/// that is not a discount, which is where order screens put what you paid.
+/// final total sits under subtotals). Without a label, it is the topmost
+/// big amount standing alone on its line, as payment screens print what you
+/// paid large near the top (an ad's big figure comes lower). Failing both,
+/// the lowest amount that is not a discount, as order screens put what you
+/// paid last.
 /// The shop is the line under (or after) a label such as `Take from` or
 /// `Paid to`.
 ReceiptReading parseReceipt(List<ReadLine> lines) {
@@ -84,23 +100,73 @@ ReceiptReading parseReceipt(List<ReadLine> lines) {
     amountMinor: _amount(sorted),
     shop: _shop(sorted),
     date: _date(sorted),
-    delivery: sorted.any((line) => _deliveryFee.hasMatch(line.text)),
+    delivery: sorted.any((line) => _delivery.hasMatch(line.text)),
+    labels: _labels(sorted),
   );
 }
 
+/// The page's printed labels, leaving out the shop, which changes from one
+/// receipt to the next.
+Set<String> _labels(List<ReadLine> lines) {
+  final shop = _shop(lines);
+  final shopLabel = shop == null ? null : _label(shop);
+  return {
+    for (final line in lines)
+      if (_label(line.text) case final label? when label != shopLabel) label,
+  };
+}
+
+/// The most words a line can have and still be a label, not a sentence.
+const int _labelMaxWords = 5;
+
+/// [text] as a label (lower case, letters only, brackets dropped since they
+/// hold counts: `Item Subtotal (1 item)` -> `item subtotal`), or null for
+/// amounts, dates and long lines.
+String? _label(String text) {
+  if (_money.hasMatch(text) || _dateIn(text) != null) return null;
+  final words = text
+      .toLowerCase()
+      .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+      .replaceAll(RegExp('[^a-z]+'), ' ')
+      .trim()
+      .split(' ')
+      .where((word) => word.length > 1)
+      .toList();
+  if (words.isEmpty || words.length > _labelMaxWords) return null;
+  return words.join(' ');
+}
+
 int? _amount(List<ReadLine> lines) {
+  final usual = _usualHeight(lines);
   int? labelled;
   int? lowest;
+  int? big;
   for (final line in lines) {
     final own = _paid(line.text);
     if (own != null) lowest = own;
+    if (own != null &&
+        big == null &&
+        _alone(line.text) &&
+        line.bottom - line.top >= usual * _bigAmount) {
+      big = own;
+    }
     if (!_totalLabel.hasMatch(line.text)) continue;
     // The amount is on the label's line, or on the same row to its right.
     final beside = own ?? _rowAmount(lines, line);
     if (beside != null) labelled = beside;
   }
-  return labelled ?? lowest;
+  return labelled ?? big ?? lowest;
 }
+
+/// The median line height: the page's usual text size.
+double _usualHeight(List<ReadLine> lines) {
+  if (lines.isEmpty) return 0;
+  final heights = [for (final line in lines) line.bottom - line.top]..sort();
+  return heights[heights.length ~/ 2];
+}
+
+/// Whether [text] is nothing but an amount (`RM 12.40`).
+bool _alone(String text) => text.replaceAll(_money, '').trim().isEmpty;
 
 /// An amount paid in [text]: the last one that is not a discount.
 int? _paid(String text) {

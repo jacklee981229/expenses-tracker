@@ -58,6 +58,13 @@ String appendOperator(String expression, String symbol) {
   return base + symbol;
 }
 
+/// The single +/− key: adds a plus; pressed again straight after, the plus
+/// turns into a minus, and the minus back into a plus.
+String appendPlusMinus(String expression) {
+  final last = expression.isEmpty ? '' : expression[expression.length - 1];
+  return appendOperator(expression, last == kPlus ? kMinus : kPlus);
+}
+
 String removeLastCharacter(String expression) => expression.isEmpty
     ? expression
     : expression.substring(0, expression.length - 1);

@@ -4,22 +4,24 @@ import '../../../core/constants/strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../core/utils/amount_input.dart';
 
 /// The numeric keypad:
 ///
-///     1 2 3 +
-///     4 5 6 −
+///     1 2 3 +/−
+///     4 5 6 Scan
 ///     7 8 9 Save & Add
 ///     . 0 ⌫ Save
 ///
-/// Keys stand on a hard shadow and press down onto it like real keys.
+/// Keys stand on a hard shadow and press down onto it like real keys. The
+/// scan key (read a screenshot) is tinted with the accent so it reads as a
+/// different kind of key.
 class AmountKeypad extends StatelessWidget {
   const AmountKeypad({
     super.key,
     required this.onDigit,
     required this.onDecimalPoint,
-    required this.onOperator,
+    required this.onPlusMinus,
+    required this.onScan,
     required this.onBackspace,
     required this.onSaveAndAdd,
     required this.onSave,
@@ -27,7 +29,10 @@ class AmountKeypad extends StatelessWidget {
 
   final ValueChanged<String> onDigit;
   final VoidCallback onDecimalPoint;
-  final ValueChanged<String> onOperator;
+  final VoidCallback onPlusMinus;
+
+  /// Null while editing or while a screenshot is being read.
+  final VoidCallback? onScan;
   final VoidCallback onBackspace;
 
   /// Null while there is nothing valid to save, and when editing.
@@ -75,8 +80,8 @@ class AmountKeypad extends StatelessWidget {
               digit(2),
               digit(3),
               _Key(
-                onTap: () => onOperator(kPlus),
-                child: const _Label(AppStrings.keyPlus, muted: true),
+                onTap: onPlusMinus,
+                child: const _Label(AppStrings.keyPlusMinus, muted: true),
               ),
             ]),
             row([
@@ -84,8 +89,13 @@ class AmountKeypad extends StatelessWidget {
               digit(5),
               digit(6),
               _Key(
-                onTap: () => onOperator(kMinus),
-                child: const _Label(AppStrings.keyMinus, muted: true),
+                onTap: onScan,
+                tinted: true,
+                child: Icon(
+                  Icons.document_scanner_rounded,
+                  color: colors.accent,
+                  semanticLabel: AppStrings.scanScreenshot,
+                ),
               ),
             ]),
             row([
@@ -138,13 +148,21 @@ class AmountKeypad extends StatelessWidget {
 /// A key on its hard shadow; pressing moves it down onto the shadow.
 /// Without [onTap] it is dimmed and ignores taps.
 class _Key extends StatefulWidget {
-  const _Key({required this.onTap, required this.child, this.accent = false});
+  const _Key({
+    required this.onTap,
+    required this.child,
+    this.accent = false,
+    this.tinted = false,
+  });
 
   final VoidCallback? onTap;
   final Widget child;
 
   /// The violet gradient Save key.
   final bool accent;
+
+  /// A face washed with the accent (the scan key).
+  final bool tinted;
 
   @override
   State<_Key> createState() => _KeyState();
@@ -178,7 +196,11 @@ class _KeyState extends State<_Key> {
             height: AppSizes.keypadKeyHeight,
             margin: EdgeInsets.only(top: _down ? AppSizes.keyTravel : 0),
             decoration: BoxDecoration(
-              color: widget.accent ? null : colors.keyFace,
+              color: widget.accent
+                  ? null
+                  : widget.tinted
+                  ? Color.lerp(colors.keyFace, colors.accent, AppSizes.keyTint)
+                  : colors.keyFace,
               gradient: widget.accent
                   ? LinearGradient(
                       begin: Alignment.topLeft,
