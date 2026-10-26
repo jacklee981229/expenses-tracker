@@ -27,11 +27,14 @@ OK先走免费test 7天的路。就照这个开始吧。
 - [x] 2. iOS project ready: display name, bundle ID, launch screen colour,
       deployment target if a package needs a newer one. (Display name
       `Expenses` on both phones; launch colour follows light/dark; bundle ID
-      kept `com.jack.expenseTracker`; target stays 12.0 unless the build says
-      otherwise.)
+      kept `com.jack.expenseTracker`; target 15.5, which text recognition
+      needs.)
 - [x] 3. GitHub Actions workflow builds an unsigned `.ipa` on macOS with
       Flutter 3.32.0 and keeps it as a download.
 - [ ] 4. Jack installs Sideloadly and Apple's iPhone driver on Windows.
 - [ ] 5. Jack signs and installs the `.ipa` with his Apple ID; Developer Mode
       on, profile trusted; app opens on the iPhone.
 - [ ] 6. Re-sign routine every 7 days, with an Export JSON backup first.
+- [ ] 7. On the iPhone, check what the emulator can't: the Bricolage
+      Grotesque font and the 3D category icons render, and the launch screen
+      shows no white flash in either theme.
