@@ -44,7 +44,7 @@ class InsetRow extends StatelessWidget {
     final trailing = this.trailing;
 
     return Pressable(
-      color: backgroundColor ?? colors.surface,
+      color: backgroundColor ?? Colors.transparent,
       onTap: onTap,
       pressedScale: onTap == null ? 1 : 0.98,
       child: ConstrainedBox(

@@ -6,8 +6,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import 'app_card.dart';
 
-/// A paper receipt: rounded top corners, a torn zigzag bottom edge, the
-/// card shadows, and a slight lean of [tilt] degrees.
+/// A glass receipt: rounded top corners, a torn zigzag bottom edge, and a
+/// slight lean of [tilt] degrees.
 class ReceiptCard extends StatelessWidget {
   const ReceiptCard({super.key, required this.child, this.tilt = 0});
 
@@ -22,9 +22,8 @@ class ReceiptCard extends StatelessWidget {
       angle: tilt * math.pi / 180,
       child: DecoratedBox(
         decoration: ShapeDecoration(
-          color: colors.surface,
+          gradient: glassGradient(colors),
           shape: shape,
-          shadows: cardShadows(colors),
         ),
         child: ClipPath(
           clipper: const ShapeBorderClipper(shape: shape),

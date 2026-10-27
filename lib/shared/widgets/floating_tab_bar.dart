@@ -150,7 +150,7 @@ class _TabButton extends StatelessWidget {
               duration: AppMotion.normal,
               style: AppTextStyles.subheadline.copyWith(
                 fontWeight: FontWeight.w700,
-                color: selected ? colors.onAccent : colors.labelSecondary,
+                color: selected ? colors.label : colors.labelSecondary,
               ),
               child: Text(tab.label, maxLines: 1),
             ),

@@ -5,7 +5,6 @@ import '../../../core/constants/strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/pressable.dart';
 import '../analysis_providers.dart';
@@ -121,8 +120,7 @@ class _Segments extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.navButton,
         borderRadius: BorderRadius.circular(AppRadius.tile),
-        border: colors.isDark ? Border.all(color: colors.cardEdge) : null,
-        boxShadow: cardShadows(colors).sublist(1),
+        border: Border.all(color: colors.glassEdge),
       ),
       padding: const EdgeInsets.all(inset),
       child: LayoutBuilder(
@@ -140,19 +138,12 @@ class _Segments extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppRadius.control + 1),
+                    // The same pill as the tab bar's.
                     gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [colors.heroGlowA, colors.accentDeep],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [colors.tabIndicator, colors.tabIndicatorEnd],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.accentDeep.withValues(alpha: 0.6),
-                        offset: const Offset(0, 6),
-                        blurRadius: 14,
-                        spreadRadius: -6,
-                      ),
-                    ],
                   ),
                 ),
               ),
@@ -171,7 +162,7 @@ class _Segments extends StatelessWidget {
                               duration: AppMotion.normal,
                               style: AppTextStyles.callout.copyWith(
                                 color: index == selected
-                                    ? colors.onAccent
+                                    ? colors.label
                                     : colors.labelSecondary,
                               ),
                               child: Text(label),

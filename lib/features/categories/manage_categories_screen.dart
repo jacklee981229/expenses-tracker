@@ -134,46 +134,48 @@ class _ActiveRow extends ConsumerWidget {
         top: isFirst ? corner : Radius.zero,
         bottom: isLast ? corner : Radius.zero,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SwipeActionRow(
-            actions: [
-              SwipeAction(
-                label: AppStrings.archive,
-                color: colors.swipeNeutral,
-                onPressed: () =>
-                    ref.read(categoryActionsProvider).archive(category.id),
-              ),
-            ],
-            child: InsetRow(
-              leading: CategoryAvatar.of(category),
-              title: category.name,
-              onTap: onTap,
-              trailing: ReorderableDragStartListener(
-                index: index,
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  child: Icon(
-                    Icons.drag_indicator_rounded,
-                    size: AppSizes.inlineIcon + 4,
-                    color: colors.labelTertiary,
+      // Each row paints its own slice of the glass card, so a dragged row
+      // keeps its ground.
+      child: ColoredBox(
+        color: colors.surface,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SwipeActionRow(
+              actions: [
+                SwipeAction(
+                  label: AppStrings.archive,
+                  color: colors.swipeNeutral,
+                  onPressed: () =>
+                      ref.read(categoryActionsProvider).archive(category.id),
+                ),
+              ],
+              child: InsetRow(
+                leading: CategoryAvatar.of(category),
+                title: category.name,
+                onTap: onTap,
+                trailing: ReorderableDragStartListener(
+                  index: index,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    child: Icon(
+                      Icons.drag_indicator_rounded,
+                      size: AppSizes.inlineIcon + 4,
+                      color: colors.labelTertiary,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (!isLast)
-            ColoredBox(
-              color: colors.surface,
-              child: Divider(
+            if (!isLast)
+              Divider(
                 height: hairline,
                 thickness: hairline,
                 indent: AppSpacing.md,
                 color: colors.separator,
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -3,24 +3,28 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/category_colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/icon_registry.dart';
+import '../../../data/database/app_database.dart';
 import '../../../shared/today_provider.dart';
 import '../../../shared/widgets/category_avatar.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/hero_surface.dart';
+import '../../../shared/widgets/max_lines_wrap.dart';
 import '../../../shared/widgets/pill_bars.dart';
 import '../../../shared/widgets/rolling_amount.dart';
 import '../ledger_providers.dart';
 
-/// The month's total on the violet card, leaning a little, with a receipt
-/// sticker and white pill bars ([heroBarsProvider]). This month also shows
-/// today's spend. The total flashes red when it grows and green when it
-/// shrinks. It swings in when the ledger opens.
+/// The month's total on the hero glass, leaning a little, with a receipt
+/// sticker, the month's top three categories ([monthLegendProvider]) and
+/// pill bars ([heroBarsProvider]). This month also shows today's spend. The
+/// total flashes when it grows or shrinks. It swings in when the ledger
+/// opens.
 class TotalCard extends ConsumerWidget {
   const TotalCard({super.key});
 
@@ -36,7 +40,8 @@ class TotalCard extends ConsumerWidget {
     final bars = ref.watch(heroBarsProvider);
     final isCurrentMonth =
         month.year == today.year && month.month == today.month;
-    final onHero = colors.onAccent;
+    final legend = ref.watch(monthLegendProvider);
+    final onHero = colors.onHero;
 
     return Entrance(
       offset: const Offset(0, 36),
@@ -71,7 +76,7 @@ class TotalCard extends ConsumerWidget {
                               ? AppStrings.spentThisMonth
                               : AppStrings.spentIn(formatMonthShort(month)),
                           style: AppTextStyles.callout.copyWith(
-                            color: onHero.withValues(alpha: 0.88),
+                            color: colors.onHeroSecondary,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
@@ -87,13 +92,28 @@ class TotalCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  if (isCurrentMonth) ...[
+                  if (isCurrentMonth || legend.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    _TodayChip(minor: todayTotal),
+                    // Two rows at most, so the card keeps its height: the
+                    // smaller categories drop out first.
+                    MaxLinesWrap(
+                      maxLines: AppSizes.heroChipLines,
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        if (isCurrentMonth) _TodayChip(minor: todayTotal),
+                        for (final (category, percent) in legend)
+                          _LegendChip(category: category, percent: percent),
+                      ],
+                    ),
                   ],
                   if (bars != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    PillBars(bars: bars, color: onHero, labelColor: onHero),
+                    PillBars(
+                      bars: bars,
+                      color: onHero,
+                      labelColor: colors.onHeroSecondary,
+                    ),
                   ],
                 ],
               ),
@@ -117,7 +137,8 @@ class _TodayChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onHero = context.colors.onAccent;
+    final colors = context.colors;
+    final onHero = colors.onHero;
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xs,
@@ -126,7 +147,7 @@ class _TodayChip extends StatelessWidget {
         AppSpacing.xxs + 1,
       ),
       decoration: BoxDecoration(
-        color: onHero.withValues(alpha: 0.2),
+        color: colors.heroChip,
         borderRadius: BorderRadius.circular(AppSizes.chipHeight),
       ),
       child: Row(
@@ -142,6 +163,61 @@ class _TodayChip extends StatelessWidget {
           RollingAmount(
             minor,
             style: AppTextStyles.chipFigure.copyWith(color: onHero),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One of the month's top categories: its colour, name and share.
+class _LegendChip extends StatelessWidget {
+  const _LegendChip({required this.category, required this.percent});
+
+  final ExpenseCategory category;
+  final int percent;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final dot = colorFromHex(category.colorHex);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.xxs,
+        AppSpacing.sm - 2,
+        AppSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: colors.heroChip,
+        borderRadius: BorderRadius.circular(AppSizes.chipHeight),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: AppSizes.legendDot,
+            height: AppSizes.legendDot,
+            decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: AppSpacing.xxs + 2),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppSizes.legendNameMaxWidth,
+            ),
+            child: Text(
+              category.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption1.copyWith(
+                color: colors.onHeroSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xxs),
+          Text(
+            AppStrings.shareOfMonth(percent),
+            style: AppTextStyles.chipFigure.copyWith(color: colors.onHero),
           ),
         ],
       ),
@@ -174,7 +250,7 @@ class _Sticker extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: colors.accentDeep.withValues(alpha: 0.5),
+                color: colors.shadow,
                 offset: const Offset(0, 10),
                 blurRadius: 18,
                 spreadRadius: -8,

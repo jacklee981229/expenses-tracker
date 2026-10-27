@@ -35,7 +35,7 @@ class HistoryChipStrip extends ConsumerWidget {
         : ref.watch(noteHistoryProvider(categoryId)).valueOrNull ??
               const <String>[];
     final colors = context.colors;
-    final onHero = colors.onAccent;
+    final onHero = colors.onHero;
 
     return AnimatedSize(
       duration: AppMotion.slow,
@@ -67,10 +67,10 @@ class HistoryChipStrip extends ConsumerWidget {
                         child: PillChip(
                           label: text,
                           selected: selected,
-                          color: onHero.withValues(alpha: 0.18),
+                          color: colors.heroChip,
                           labelColor: onHero,
                           selectedColor: onHero,
-                          selectedLabelColor: colors.accentDeep,
+                          selectedLabelColor: colors.boxBase,
                           onTap: () => onSelected(selected ? '' : text),
                         ),
                       ),

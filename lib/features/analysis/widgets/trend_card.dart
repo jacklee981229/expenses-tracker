@@ -11,8 +11,8 @@ import '../../../shared/widgets/pill_bars.dart';
 import '../../../shared/widgets/rolling_amount.dart';
 import '../analysis_providers.dart';
 
-/// `Last 6 months`: a pill bar per month, in the total card's style but in
-/// the accent colour, ending with the month the period ends in (lit), whose
+/// `Last 6 months`: a pill bar per month, neutral like the total card's,
+/// ending with the month the period ends in (lit), whose
 /// month and total sit top right. Follows the category filter.
 class TrendCard extends ConsumerWidget {
   const TrendCard({super.key});
@@ -58,7 +58,7 @@ class TrendCard extends ConsumerWidget {
                   lit: identical(month, last),
                 ),
             ],
-            color: colors.accent,
+            color: colors.label,
             labelColor: colors.labelSecondary,
           ),
         ],

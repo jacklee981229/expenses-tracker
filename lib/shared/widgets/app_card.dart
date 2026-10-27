@@ -4,8 +4,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 
-/// The two shadows every card wears: a thin hard edge just below it, then a
-/// wide soft shadow, so cards sit up off the page instead of lying flat.
+/// The two shadows small solid controls wear: a thin hard edge just below,
+/// then a wide soft shadow, so they sit up off the page.
 List<BoxShadow> cardShadows(AppColors colors) => [
   BoxShadow(color: colors.cardEdge, offset: const Offset(0, 2)),
   BoxShadow(
@@ -16,17 +16,28 @@ List<BoxShadow> cardShadows(AppColors colors) => [
   ),
 ];
 
+/// The glass under text: the translucent tint, a little lighter at the top.
+LinearGradient glassGradient(AppColors colors) => LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  stops: const [0, 0.3],
+  colors: [colors.surfaceTop, colors.surface],
+);
+
+/// A glass card inside a 1px edge. No shadow: under glass it would show
+/// through and darken the text's ground.
 BoxDecoration cardDecoration(
   AppColors colors, {
   double radius = AppRadius.card,
   Color? color,
 }) => BoxDecoration(
-  color: color ?? colors.surface,
+  color: color,
+  gradient: color == null ? glassGradient(colors) : null,
   borderRadius: BorderRadius.circular(radius),
-  boxShadow: cardShadows(colors),
+  border: Border.all(color: colors.glassEdge),
 );
 
-/// A raised card with an optional bold heading above its content.
+/// A glass card with an optional bold heading above its content.
 class AppCard extends StatelessWidget {
   const AppCard({super.key, required this.child, this.title, this.padding});
 

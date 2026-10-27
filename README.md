@@ -1,8 +1,8 @@
 # Expense Tracker
 
 A personal expense tracker for one person. Flutter only: data stays on the
-phone in SQLite (`expenses.sqlite`), and amounts are RM. Card style, light
-and dark themes, 3D category icons.
+phone in SQLite (`expenses.sqlite`), and amounts are RM. Glass cards over
+the month's own colours, in light and dark, with 3D category icons.
 
 - `CLAUDE.md`: how to work on the code (rules, conventions, testing)
 - `docs/ENVIRONMENT.md`: the Windows machine setup and emulator

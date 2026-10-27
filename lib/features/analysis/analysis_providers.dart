@@ -9,6 +9,7 @@ import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/analysis_dao.dart';
 import '../../shared/today_provider.dart';
+import '../../shared/widgets/colour_field.dart';
 import '../categories/categories_providers.dart';
 import '../ledger/ledger_providers.dart';
 import '../settings/settings_providers.dart';
@@ -131,6 +132,15 @@ final periodCategoryTotalsProvider = StreamProvider<List<CategoryTotal>>((ref) {
       .watch(analysisDaoProvider)
       .watchCategoryTotals(start: bounds?.start, end: bounds?.end);
 });
+
+/// The colour field behind Analysis: the period on screen's top categories.
+final analysisFieldProvider = Provider<List<FieldSpot>>(
+  (ref) => fieldSpots([
+    for (final total
+        in ref.watch(periodCategoryTotalsProvider).valueOrNull ?? const [])
+      (total.category, total.totalMinor),
+  ]),
+);
 
 /// Spending per category in the period, limited to the filter.
 final filteredCategoryTotalsProvider = StreamProvider<List<CategoryTotal>>((

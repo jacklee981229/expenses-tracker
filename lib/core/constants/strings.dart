@@ -122,6 +122,10 @@ abstract final class AppStrings {
   static String insightSame(String category, String period) =>
       '$category: same as last $period';
 
+  /// A legend chip on the total card: `70%` beside the category's name, or
+  /// `<1%` for a share that rounds to nothing.
+  static String shareOfMonth(int percent) => percent < 1 ? '<1%' : '$percent%';
+
   /// With nothing to compare: `Food: RM100.18, 85% of spending`
   static String insightShare(String category, String amount, int percent) =>
       '$category: $amount, $percent% of spending';

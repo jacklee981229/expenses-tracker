@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_info.dart';
 import '../../core/constants/strings.dart';
+import '../../core/constants/category_colors.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -223,6 +224,12 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             ),
           ),
           _AmountBox(
+            categoryColor: switch (categories
+                .where((c) => c.id == state.categoryId)
+                .firstOrNull) {
+              final category? => colorFromHex(category.colorHex),
+              null => null,
+            },
             reading: _reading,
             overlay: ScanOverlay(reading: _reading),
             amount: AmountDisplay(
@@ -385,7 +392,11 @@ class _AmountBox extends StatelessWidget {
     required this.history,
     required this.reading,
     required this.overlay,
+    this.categoryColor,
   });
+
+  /// The chosen category's colour, which tints the box.
+  final Color? categoryColor;
 
   /// While a screenshot is read the amount and note blur under the scan
   /// light.
@@ -398,7 +409,7 @@ class _AmountBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onHero = context.colors.onAccent;
+    final onHero = context.colors.onHero;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.sm + 2,
@@ -408,6 +419,10 @@ class _AmountBox extends StatelessWidget {
       ),
       child: HeroSurface(
         radius: AppRadius.panel,
+        color: switch (categoryColor) {
+          final color? => context.colors.box(color),
+          null => null,
+        },
         overlay: overlay,
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md + 2,
@@ -480,7 +495,8 @@ class _NoteField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onHero = context.colors.onAccent;
+    final colors = context.colors;
+    final onHero = colors.onHero;
     return TextField(
       controller: controller,
       focusNode: focusNode,
@@ -494,7 +510,7 @@ class _NoteField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: AppStrings.notePlaceholder,
         hintStyle: AppTextStyles.callout.copyWith(
-          color: onHero.withValues(alpha: 0.62),
+          color: colors.onHeroSecondary,
         ),
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),

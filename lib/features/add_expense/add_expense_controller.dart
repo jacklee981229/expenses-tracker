@@ -10,6 +10,7 @@ import '../../core/utils/receipt_kinds.dart';
 import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
+import '../../shared/field_pulse_provider.dart';
 import '../../shared/today_provider.dart';
 
 /// The expense being edited (null for a new one), the category a new
@@ -262,6 +263,7 @@ class AddExpenseController
           occurredAt: _occurredAt(),
           note: state.note,
         );
+        ref.read(fieldPulseProvider.notifier).pulse(categoryId);
       } else {
         await dao.updateExpense(
           id: editing.id,

@@ -343,19 +343,17 @@ class _FieldRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: context.colors.surface,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: AppSizes.rowMinHeight),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Row(
-            children: [
-              Text(label, style: AppTextStyles.body),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: child),
-            ],
-          ),
+    // Sits on its group's glass, so it adds no tint of its own.
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: AppSizes.rowMinHeight),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: Row(
+          children: [
+            Text(label, style: AppTextStyles.body),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(child: child),
+          ],
         ),
       ),
     );

@@ -30,7 +30,8 @@ class DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final onHero = context.colors.onAccent;
+    final colors = context.colors;
+    final onHero = colors.onHero;
     final label = date == today
         ? AppStrings.today
         : date == _yesterday
@@ -52,7 +53,7 @@ class DateChip extends StatelessWidget {
             0,
           ),
           decoration: BoxDecoration(
-            color: onHero.withValues(alpha: 0.2),
+            color: colors.heroChip,
             borderRadius: BorderRadius.circular(AppRadius.control),
           ),
           child: Row(

@@ -63,7 +63,8 @@ class _AmountDisplayState extends State<AmountDisplay>
 
   @override
   Widget build(BuildContext context) {
-    final onHero = context.colors.onAccent;
+    final colors = context.colors;
+    final onHero = colors.onHero;
     final result = widget.resultMinor;
     final expression = widget.expression;
     final typed = expression.isEmpty
@@ -111,7 +112,7 @@ class _AmountDisplayState extends State<AmountDisplay>
                   child: Text(
                     AppStrings.expressionResult(formatMinor(result)),
                     style: AppTextStyles.chipFigure.copyWith(
-                      color: onHero.withValues(alpha: 0.8),
+                      color: colors.onHeroSecondary,
                     ),
                   ),
                 )

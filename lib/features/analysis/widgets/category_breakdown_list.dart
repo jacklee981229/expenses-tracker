@@ -187,7 +187,7 @@ class _BreakdownCard extends StatelessWidget {
                       vertical: AppSpacing.xxs - 1,
                     ),
                     decoration: BoxDecoration(
-                      color: colors.accent,
+                      color: colors.fill,
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                     child: Text(
@@ -197,7 +197,7 @@ class _BreakdownCard extends StatelessWidget {
                         trimZeros: true,
                       ),
                       style: AppTextStyles.caption2.copyWith(
-                        color: colors.onAccent,
+                        color: colors.label,
                       ),
                     ),
                   ),

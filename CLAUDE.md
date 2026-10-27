@@ -26,7 +26,38 @@ covers the machine setup. This file covers how to work, not what to build.
   hardcoded hex, durations or magic numbers in widgets. Animations use only
   the five `AppMotion` durations (80/140/220/320/460 ms) and the
   `AppSprings`; the looping scan motions (the light and the receipt's
-  feed) use `AppMotion.sweep`.
+  feed) use `AppMotion.sweep`, the colour field's change `AppMotion.flow`
+  and its drift `AppMotion.drift`.
+
+## Theme: this month's colours
+
+One theme with a light and a dark version (Settings › Appearance picks one
+or follows the phone).
+
+- Ground: a plain page with four soft colour blobs spread evenly over it,
+  in fixed places, easing off a little under the list.
+- Colour logic: the blobs are the month on screen's top four categories,
+  in each category's own colour; a month with fewer fills the gaps with the
+  theme's violet, sky, pink and indigo. All four blobs share one base size;
+  a category's share only nudges its blob (at most 15% either way), so it
+  is hardly noticed. A bright colour is dimmed on the dark ground until
+  page text at its centre keeps 4.5:1 (the small section labels 3:1).
+  Category colour also marks the icon tiles, the total card's legend chips
+  (two rows at most, with Today) and the amount box while recording.
+  Everything else is neutral glass, the Analysis bars included.
+- Type: Bricolage Grotesque; the month's total is the one hero.
+- Shapes and material: glass, meaning a translucent tint, a 1px edge and a
+  lighter top. The total card's glass is thinner than the glass under
+  other text. Every text stays at least 4.5:1 (big figures 3:1) with any
+  category colour behind it at full strength; `test/theme_contrast_test.dart`
+  checks it. Day receipts keep the dashes, the torn edge and the slight
+  alternating tilt; categories keep the Fluent 3D icons.
+- Motion: the blobs drift slowly; on a month switch they change colour and
+  size over `AppMotion.flow`; saving an expense swells its category's blob
+  once. Reduce-motion stops the drift.
+- Elements: C (gradient with glass) first, then B (colours that mean
+  something) and D (one hero).
+- Signature: the glass shows your month, quietly.
 
 ## Looks we don't use
 
@@ -107,6 +138,8 @@ Unit tests are required for, and only for:
 - `core/utils/insights.dart` — the Analysis summary line
 - `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
+- `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
+- the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.
 

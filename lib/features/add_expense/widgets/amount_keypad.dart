@@ -133,7 +133,7 @@ class AmountKeypad extends StatelessWidget {
                 child: Text(
                   AppStrings.save,
                   style: AppTextStyles.headline.copyWith(
-                    color: colors.onAccent,
+                    color: colors.onPrimary,
                   ),
                 ),
               ),
@@ -179,7 +179,7 @@ class _KeyState extends State<_Key> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final enabled = widget.onTap != null;
-    final shadow = widget.accent ? colors.accentDeep : colors.keyShadow;
+    final shadow = colors.keyShadow;
     return Opacity(
       opacity: enabled ? 1 : AppSizes.disabledOpacity,
       child: GestureDetector(
@@ -197,17 +197,10 @@ class _KeyState extends State<_Key> {
             margin: EdgeInsets.only(top: _down ? AppSizes.keyTravel : 0),
             decoration: BoxDecoration(
               color: widget.accent
-                  ? null
+                  ? colors.primary
                   : widget.tinted
                   ? Color.lerp(colors.keyFace, colors.accent, AppSizes.keyTint)
                   : colors.keyFace,
-              gradient: widget.accent
-                  ? LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [colors.heroGlowA, colors.accentDeep],
-                    )
-                  : null,
               borderRadius: BorderRadius.circular(AppRadius.tile),
               boxShadow: [
                 BoxShadow(

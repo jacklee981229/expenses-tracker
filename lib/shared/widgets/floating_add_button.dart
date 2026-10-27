@@ -35,18 +35,14 @@ class FloatingAddButton extends StatelessWidget {
             height: AppSizes.fab,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadius.fab),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [colors.heroGlowA, colors.accentDeep],
-              ),
+              color: colors.primary,
               boxShadow: [
                 BoxShadow(
-                  color: colors.accentDeep.withValues(alpha: 0.9),
+                  color: colors.keyShadow,
                   offset: const Offset(0, AppSizes.keyTravel),
                 ),
                 BoxShadow(
-                  color: colors.accentDeep.withValues(alpha: 0.55),
+                  color: colors.shadow,
                   offset: const Offset(0, 16),
                   blurRadius: 26,
                   spreadRadius: -8,
@@ -56,7 +52,7 @@ class FloatingAddButton extends StatelessWidget {
             child: Icon(
               Icons.add_rounded,
               size: AppSizes.fabIcon,
-              color: colors.onAccent,
+              color: colors.onPrimary,
             ),
           ),
         ),

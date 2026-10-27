@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_info.dart';
 import '../../core/constants/strings.dart';
 import '../../core/utils/money.dart';
+import '../../core/utils/month_palette.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/transaction_dao.dart';
 import '../../shared/today_provider.dart';
+import '../../shared/widgets/colour_field.dart';
 import '../../shared/widgets/pill_bars.dart';
 import '../settings/settings_providers.dart';
 
@@ -102,6 +104,28 @@ final monthCategoryTotalsProvider = Provider<List<LedgerCategoryTotal>>((ref) {
   return byId.values.toList()
     ..sort((a, b) => b.totalMinor.compareTo(a.totalMinor));
 });
+
+/// The total card's legend: the month's top three categories with their
+/// whole-percent share of its spending.
+final monthLegendProvider = Provider<List<(ExpenseCategory, int)>>((ref) {
+  final totals = ref.watch(monthCategoryTotalsProvider);
+  final byId = {for (final total in totals) total.category.id: total.category};
+  return [
+    for (final (id, percent) in topShares([
+      for (final total in totals) (total.category.id, total.totalMinor),
+    ]))
+      (byId[id]!, percent),
+  ];
+});
+
+/// The colour field behind the ledger (and pages pushed from it): the
+/// month on screen's top categories.
+final ledgerFieldProvider = Provider<List<FieldSpot>>(
+  (ref) => fieldSpots([
+    for (final total in ref.watch(monthCategoryTotalsProvider))
+      (total.category, total.totalMinor),
+  ]),
+);
 
 @immutable
 class LedgerCategoryTotal {

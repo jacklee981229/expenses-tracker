@@ -34,11 +34,10 @@ class _CategoryDrawerState extends ConsumerState<CategoryDrawer>
   Timer? _closeTimer;
 
   /// 0 shut, 1 open. The tags stay built while it folds, so they can leave
-  /// gradually instead of vanishing at once.
-  late final AnimationController _drawer = AnimationController(
-    vsync: this,
-    duration: AppMotion.page,
-  );
+  /// gradually instead of vanishing at once. Made in initState, not lazily:
+  /// a drawer never opened would otherwise make it in dispose, where the
+  /// ticker can no longer look up the tree.
+  late final AnimationController _drawer;
 
   /// Grows quickly and settles; shutting is the same motion backwards, so
   /// it also lands softly.
@@ -50,6 +49,12 @@ class _CategoryDrawerState extends ConsumerState<CategoryDrawer>
 
   /// The tag just picked, which rides the fold up towards the pill.
   String? _picked;
+
+  @override
+  void initState() {
+    super.initState();
+    _drawer = AnimationController(vsync: this, duration: AppMotion.page);
+  }
 
   @override
   void dispose() {

@@ -8,14 +8,16 @@ import 'core/theme/app_theme.dart';
 import 'core/utils/icon_registry.dart';
 import 'data/data_providers.dart';
 import 'features/add_expense/add_expense_sheet.dart';
+import 'features/analysis/analysis_providers.dart';
 import 'features/analysis/analysis_screen.dart';
+import 'features/ledger/ledger_providers.dart';
 import 'features/ledger/ledger_screen.dart';
 import 'features/settings/settings_providers.dart';
 import 'shared/scan_link.dart';
 import 'shared/today_provider.dart';
 import 'shared/widgets/floating_add_button.dart';
 import 'shared/widgets/floating_tab_bar.dart';
-import 'shared/widgets/glow_background.dart';
+import 'shared/widgets/colour_field.dart';
 
 /// Light and dark themes; Settings › Appearance picks one or follows the
 /// phone, and switching cross-fades every colour.
@@ -59,8 +61,8 @@ class _BouncingScrollBehavior extends MaterialScrollBehavior {
   ) => child;
 }
 
-/// Two tabs, Ledger and Analysis, over the drifting glow background, with
-/// the tab bar and the + button floating above them.
+/// Two tabs, Ledger and Analysis, over the colour field of the month or
+/// period on screen, with the tab bar and the + button floating above them.
 class RootShell extends ConsumerStatefulWidget {
   const RootShell({super.key});
 
@@ -123,7 +125,10 @@ class _RootShellState extends ConsumerState<RootShell> {
       value: AppTheme.overlayStyle(Theme.of(context).brightness),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: GlowBackground(
+        body: ColourField(
+          spots: ref.watch(
+            _tab == _ledgerTab ? ledgerFieldProvider : analysisFieldProvider,
+          ),
           child: Stack(
             children: [
               Positioned.fill(

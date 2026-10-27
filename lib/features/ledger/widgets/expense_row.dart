@@ -93,7 +93,7 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
         ),
       ],
       child: Pressable(
-        color: colors.surface,
+        color: Colors.transparent,
         pressedScale: 0.97,
         onTap: () => showAddExpenseSheet(context, editing: expense),
         child: _RowContent(widget.item),

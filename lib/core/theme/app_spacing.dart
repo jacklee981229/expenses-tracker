@@ -21,8 +21,16 @@ abstract final class AppMotion {
   static const Duration page = Duration(milliseconds: 460);
 
   /// One slow pass of the light over the amount box while a screenshot is
-  /// read. The only looping motion, so it stays out of the five above.
+  /// read. A looping motion, so it stays out of the five above.
   static const Duration sweep = Duration(milliseconds: 1200);
+
+  /// The colour field taking on another month's colours, or one blob
+  /// swelling after a save: slow enough to read as the page breathing.
+  static const Duration flow = Duration(milliseconds: 1200);
+
+  /// One way of the colour field's drift; it then drifts back. Slow on
+  /// purpose: alive, never busy.
+  static const Duration drift = Duration(seconds: 20);
 
   /// Gap between items that enter one after another.
   static const Duration stagger = Duration(milliseconds: 50);
@@ -202,6 +210,14 @@ abstract final class AppSizes {
   static const double pressScale = 0.95;
 
   static const double labelIcon = 16;
+
+  /// The total card's legend chips: the category's colour dot, and how
+  /// wide its name may run before it is cut.
+  static const double legendDot = 8;
+
+  /// Rows of chips (Today and the legend) the total card shows at most.
+  static const int heroChipLines = 2;
+  static const double legendNameMaxWidth = 110;
   static const double inlineIcon = 18;
   static const double repeatGlyph = 14;
   static const double bannerIcon = 20;
