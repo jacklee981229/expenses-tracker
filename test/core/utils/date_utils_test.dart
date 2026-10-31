@@ -118,6 +118,38 @@ void main() {
     expect(calendarDaysBetween(DateTime(2026, 9, 1), DateTime(2026, 9, 1)), 0);
   });
 
+  group('daysSoFar', () {
+    final today = DateTime(2026, 11, 1, 0, 47);
+
+    test('counts this month from the 1st to today', () {
+      expect(daysSoFar('2026-11-01', '2026-11-30', today), 1);
+      expect(
+        daysSoFar('2026-11-01', '2026-11-30', DateTime(2026, 11, 15, 23)),
+        15,
+      );
+    });
+
+    test('counts every day of a past month', () {
+      expect(daysSoFar('2026-10-01', '2026-10-31', today), 31);
+      expect(daysSoFar('2026-02-01', '2026-02-28', today), 28);
+    });
+
+    test('counts a week or year so far', () {
+      expect(daysSoFar('2026-10-26', '2026-11-01', today), 7);
+      expect(daysSoFar('2026-10-28', '2026-11-03', DateTime(2026, 10, 29)), 2);
+      expect(daysSoFar('2026-01-01', '2026-12-31', today), 305);
+      expect(daysSoFar('2025-01-01', '2025-12-31', today), 365);
+    });
+
+    test('counts nothing for a future period', () {
+      expect(daysSoFar('2026-12-01', '2026-12-31', today), 0);
+    });
+
+    test('counts all time from the first expense to today', () {
+      expect(daysSoFar('2026-09-15', '2026-11-01', today), 48);
+    });
+  });
+
   test('formatDateRange shortens same-month and same-year ranges', () {
     expect(formatDateRange('2026-09-01', '2026-09-07'), '1–7 Sep 2026');
     expect(formatDateRange('2026-09-28', '2026-10-04'), '28 Sep – 4 Oct 2026');

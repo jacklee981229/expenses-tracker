@@ -39,10 +39,7 @@ class AnalysisScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.only(bottom: AppSizes.fabClearance),
         children: [
-          const LargeTitle(
-            Text(AppStrings.tabAnalysis),
-            kicker: AppStrings.analysisKicker,
-          ),
+          const LargeTitle(Text(AppStrings.tabAnalysis)),
           const PeriodSwitcher(),
           const SizedBox(height: AppSpacing.md),
           const InsightLine(),

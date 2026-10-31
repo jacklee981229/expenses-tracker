@@ -113,6 +113,8 @@ class TotalCard extends ConsumerWidget {
                       bars: bars,
                       color: onHero,
                       labelColor: colors.onHeroSecondary,
+                      height: AppSizes.heroWeekBarsHeight,
+                      barWidthFactor: AppSizes.heroWeekBarWidthFactor,
                     ),
                   ],
                 ],

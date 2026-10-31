@@ -100,6 +100,16 @@ int calendarDaysBetween(DateTime from, DateTime to) {
   ).difference(DateTime.utc(start.year, start.month, start.day)).inDays;
 }
 
+/// Calendar days of the inclusive period [start]–[end] up to and including
+/// [today]: all of a past period, none of a future one.
+int daysSoFar(String start, String end, DateTime today) {
+  final from = parseLocalDate(start);
+  final periodEnd = parseLocalDate(end);
+  final day = dateOnly(today);
+  final last = day.isBefore(periodEnd) ? day : periodEnd;
+  return last.isBefore(from) ? 0 : calendarDaysBetween(from, last) + 1;
+}
+
 // Display formats (English only).
 
 /// The stamp on top of a day's receipt: `SUN · 25 OCT`.

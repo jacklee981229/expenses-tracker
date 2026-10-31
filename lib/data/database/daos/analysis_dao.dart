@@ -44,36 +44,20 @@ class AnalysisDao extends DatabaseAccessor<AppDatabase>
     Set<String> categoryIds = const {},
   }) async => _toTotals(await _query(start, end, categoryIds).get());
 
-  /// Distinct days with at least one expense, for the daily expense
-  /// (the period total divided by the days you actually spent).
-  Stream<int> watchActiveDays({
-    String? start,
-    String? end,
-    Set<String> categoryIds = const {},
-  }) => _activeDays(start, end, categoryIds).watchSingle().map(_readDays);
+  /// The earliest expense's `YYYY-MM-DD`, where All's daily expense starts
+  /// counting days; null with no expenses.
+  Stream<String?> watchFirstDate() =>
+      _firstDate().watchSingle().map(_readFirst);
 
-  Future<int> activeDays({
-    String? start,
-    String? end,
-    Set<String> categoryIds = const {},
-  }) async => _readDays(await _activeDays(start, end, categoryIds).getSingle());
+  Future<String?> firstDate() async =>
+      _readFirst(await _firstDate().getSingle());
 
-  late final Expression<int> _days = transactions.localDate.count(
-    distinct: true,
-  );
+  late final Expression<String> _first = transactions.localDate.min();
 
-  JoinedSelectStatement<HasResultSet, dynamic> _activeDays(
-    String? start,
-    String? end,
-    Set<String> categoryIds,
-  ) {
-    final query = selectOnly(transactions)..addColumns([_days]);
-    final filter = _filter(start, end, categoryIds);
-    if (filter != null) query.where(filter);
-    return query;
-  }
+  JoinedSelectStatement<HasResultSet, dynamic> _firstDate() =>
+      selectOnly(transactions)..addColumns([_first]);
 
-  int _readDays(TypedResult row) => row.read(_days) ?? 0;
+  String? _readFirst(TypedResult row) => row.read(_first);
 
   /// Spending per month (`YYYY-MM`) between inclusive local dates, limited
   /// to [categoryIds] when that is not empty. Months with nothing are absent.

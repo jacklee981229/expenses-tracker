@@ -20,13 +20,6 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 36)],
   );
 
-  /// The small grey line above a large title: "My ledger", "Insights".
-  static const TextStyle kicker = TextStyle(
-    fontFamily: family,
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    fontVariations: [FontVariation('wght', 600), FontVariation('opsz', 13)],
-  );
   static const TextStyle title2 = TextStyle(
     fontFamily: family,
     fontSize: 22,

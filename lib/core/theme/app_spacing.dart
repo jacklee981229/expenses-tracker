@@ -152,6 +152,14 @@ abstract final class AppSizes {
   /// The total card: big figure, sticker, and the last-seven-days bars.
   static const double heroTilt = -1.4;
   static const double heroBarsHeight = 92;
+
+  /// The total card's week bars, kept low so a mostly empty week doesn't
+  /// fill the card under the total.
+  static const double heroWeekBarsHeight = 64;
+
+  /// Narrower than [heroBarWidthFactor], so a full bar in the lower row is
+  /// still a pill, not a circle.
+  static const double heroWeekBarWidthFactor = 0.42;
   static const double heroBarWidthFactor = 0.7;
   static const double heroBarMinFactor = 0.06;
   static const double sticker = 56;

@@ -83,7 +83,7 @@ class _PickerPopup extends StatelessWidget {
     // A Material, not a plain box: Cupertino popups provide no default text
     // style, which the shortcut chips need.
     return Material(
-      color: context.colors.surfaceElevated,
+      color: context.colors.sheetBackground,
       child: SafeArea(
         top: false,
         child: Column(

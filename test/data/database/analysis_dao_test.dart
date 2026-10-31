@@ -121,34 +121,16 @@ void main() {
     expect([for (final t in totals) t.category.id], [first, second]);
   });
 
-  test('counts the distinct days that have expenses', () async {
-    // September has expenses on the 1st, 5th, 15th and 30th.
-    expect(
-      await db.analysisDao.activeDays(start: '2026-09-01', end: '2026-09-30'),
-      4,
-    );
-    await spend(food, 100, DateTime(2026, 9, 15, 20));
-    expect(
-      await db.analysisDao.activeDays(start: '2026-09-01', end: '2026-09-30'),
-      4,
-      reason: 'a second expense on the 15th is the same day',
-    );
+  test('finds the earliest expense date', () async {
+    expect(await db.analysisDao.firstDate(), '2026-08-31');
+    await spend(rent, 100, DateTime(2025, 12, 31, 23, 59));
+    expect(await db.analysisDao.firstDate(), '2025-12-31');
   });
 
-  test('limits the day count to the filter and to all time', () async {
-    expect(
-      await db.analysisDao.activeDays(
-        start: '2026-09-01',
-        end: '2026-09-30',
-        categoryIds: {food},
-      ),
-      2,
-    );
-    expect(await db.analysisDao.activeDays(), 6);
-    expect(
-      await db.analysisDao.activeDays(start: '2026-07-01', end: '2026-07-31'),
-      0,
-    );
+  test('has no first date without expenses', () async {
+    final empty = AppDatabase(NativeDatabase.memory());
+    addTearDown(empty.close);
+    expect(await empty.analysisDao.firstDate(), isNull);
   });
 
   test('emits fresh totals when expenses change', () async {

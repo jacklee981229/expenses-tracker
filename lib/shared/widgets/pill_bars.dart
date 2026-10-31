@@ -27,17 +27,25 @@ class PillBars extends StatelessWidget {
     required this.bars,
     required this.color,
     required this.labelColor,
+    this.height = AppSizes.heroBarsHeight,
+    this.barWidthFactor = AppSizes.heroBarWidthFactor,
   });
 
   final List<PillBar> bars;
   final Color color;
   final Color labelColor;
 
+  /// The whole row, labels included.
+  final double height;
+
+  /// Each bar's width as a share of its slot.
+  final double barWidthFactor;
+
   @override
   Widget build(BuildContext context) {
     final biggest = bars.fold(0, (most, bar) => math.max(most, bar.totalMinor));
     return SizedBox(
-      height: AppSizes.heroBarsHeight,
+      height: height,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -50,6 +58,7 @@ class PillBars extends StatelessWidget {
                 label: bar.label,
                 semantics: formatWithSymbol(bar.totalMinor),
                 delay: staggerDelay(index),
+                widthFactor: barWidthFactor,
                 color: color,
                 labelColor: labelColor,
               ),
@@ -67,6 +76,7 @@ class _Bar extends StatelessWidget {
     required this.label,
     required this.semantics,
     required this.delay,
+    required this.widthFactor,
     required this.color,
     required this.labelColor,
   });
@@ -76,6 +86,7 @@ class _Bar extends StatelessWidget {
   final String label;
   final String semantics;
   final Duration delay;
+  final double widthFactor;
   final Color color;
   final Color labelColor;
 
@@ -99,7 +110,7 @@ class _Bar extends StatelessWidget {
                   child: _GrowUp(
                     delay: delay,
                     child: Container(
-                      width: constraints.maxWidth * AppSizes.heroBarWidthFactor,
+                      width: constraints.maxWidth * widthFactor,
                       height: height,
                       decoration: BoxDecoration(
                         color: fill,

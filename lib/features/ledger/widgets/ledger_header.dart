@@ -67,7 +67,6 @@ class LedgerHeader extends ConsumerWidget {
               child: Text(formatMonthShort(month), key: ValueKey(month)),
             ),
           ),
-          kicker: AppStrings.ledgerKicker,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

@@ -162,24 +162,27 @@ final filteredTotalProvider = Provider<int>(
   (ref) => sumTotals(ref.watch(filteredCategoryTotalsProvider).valueOrNull),
 );
 
-/// Days in the period with at least one (filtered) expense.
-final periodActiveDaysProvider = StreamProvider<int>((ref) {
+/// The first expense's date, where All's days start.
+final firstExpenseDateProvider = StreamProvider<String?>(
+  (ref) => ref.watch(analysisDaoProvider).watchFirstDate(),
+);
+
+/// Calendar days of the period so far; All runs from the first expense.
+/// The filter never changes it, so a category's per day compares fairly.
+final periodDaysSoFarProvider = Provider<int>((ref) {
+  final today = ref.watch(todayProvider);
   final bounds = ref.watch(periodBoundsProvider);
-  final filter = ref.watch(categoryFilterProvider);
-  return ref
-      .watch(analysisDaoProvider)
-      .watchActiveDays(
-        start: bounds?.start,
-        end: bounds?.end,
-        categoryIds: filter,
-      );
+  if (bounds != null) return daysSoFar(bounds.start, bounds.end, today);
+  final first = ref.watch(firstExpenseDateProvider).valueOrNull;
+  return first == null ? 0 : daysSoFar(first, toLocalDateString(today), today);
 });
 
-/// The daily expense: the period total over the days with spending.
+/// The daily expense: the period total over its calendar days so far, not
+/// only the days with spending, which read as a far bigger daily figure.
 final dailyExpenseProvider = Provider<int>(
   (ref) => averageMinor(
     ref.watch(filteredTotalProvider),
-    ref.watch(periodActiveDaysProvider).valueOrNull ?? 0,
+    ref.watch(periodDaysSoFarProvider),
   ),
 );
 

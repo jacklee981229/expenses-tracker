@@ -22,10 +22,10 @@ const double _elbowRadius = _ringEdge + AppSizes.pieLabelReach;
 
 /// Spending per category as a donut, largest first: the bigger slices have
 /// their share and name outside the ring on a leader line in the slice's
-/// colour, and the hole is a raised disc reading "Expense" over the period
-/// total. Slices are shaded light to dark and the ring casts a soft shadow,
-/// so it reads as solid rather than flat. It swings in when shown; tapping a
-/// slice pushes it out and highlights its category below.
+/// colour, and the hole is a raised disc. Slices are shaded light to dark
+/// and the ring casts a soft shadow, so it reads as solid rather than flat.
+/// It swings in when shown; tapping a slice pushes it out, names it and its
+/// amount on the disc, and highlights its category below.
 class SpendPieChart extends ConsumerWidget {
   const SpendPieChart({super.key});
 
@@ -108,7 +108,13 @@ class SpendPieChart extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      IgnorePointer(child: _CentreTotal(total: total)),
+                      IgnorePointer(
+                        child: _CentreDisc(
+                          slice: touched != null && touched < slices.length
+                              ? slices[touched]
+                              : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -188,15 +194,17 @@ class _RingShadowPainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// "Expense" over the period total, sized to the hole.
-class _CentreTotal extends StatelessWidget {
-  const _CentreTotal({required this.total});
+/// The disc in the hole: empty, since the card's Spent is the one total,
+/// until a slice is tapped; then that slice's name over its amount.
+class _CentreDisc extends StatelessWidget {
+  const _CentreDisc({required this.slice});
 
-  final int total;
+  final PieSlice? slice;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final slice = this.slice;
     return Container(
       width: (AppSizes.pieCenterRadius - AppSpacing.xxs) * 2,
       height: (AppSizes.pieCenterRadius - AppSpacing.xxs) * 2,
@@ -213,25 +221,40 @@ class _CentreTotal extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            AppStrings.expenseStat,
-            style: AppTextStyles.footnote.copyWith(
-              color: colors.labelSecondary,
-            ),
-          ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              formatWithSymbol(total),
-              maxLines: 1,
-              style: AppTextStyles.chartCentre.copyWith(color: colors.label),
-            ),
-          ),
-        ],
+      child: AnimatedSwitcher(
+        duration: AppMotion.normal,
+        reverseDuration: AppMotion.quick,
+        switchInCurve: AppMotion.enter,
+        switchOutCurve: AppMotion.exit,
+        child: slice == null
+            ? const SizedBox.shrink()
+            : Column(
+                key: ValueKey(slice.categoryIds),
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    slice.isOther
+                        ? AppStrings.otherSlice
+                        : slice.category!.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.footnote.copyWith(
+                      color: colors.labelSecondary,
+                    ),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      formatWithSymbol(slice.totalMinor),
+                      maxLines: 1,
+                      style: AppTextStyles.chartCentre.copyWith(
+                        color: colors.label,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

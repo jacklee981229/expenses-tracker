@@ -72,8 +72,8 @@ class AppColors extends ThemeExtension<AppColors> {
   /// Controls on a card: inputs, inner tiles.
   final Color surfaceElevated;
 
-  /// The add sheet and other modal sheets: nearly solid, so the page's text
-  /// never shows through.
+  /// The add sheet and other modal sheets: solid, since even 3% see-through
+  /// let the ledger's text ghost through the tiles and keys.
   final Color sheetBackground;
 
   /// Hairlines and the dashes on a receipt.
@@ -175,7 +175,7 @@ class AppColors extends ThemeExtension<AppColors> {
     surfaceTop: Color(0xEBFFFFFF),
     glassEdge: Color(0x1217172B),
     surfaceElevated: Color(0x0D17172B),
-    sheetBackground: Color(0xFAFAF9FD),
+    sheetBackground: Color(0xFFFAF9FD),
     separator: Color(0x2617172B),
     label: Color(0xFF17172B),
     labelSecondary: Color(0xFF5A5A74),
@@ -221,7 +221,7 @@ class AppColors extends ThemeExtension<AppColors> {
     surfaceTop: Color(0xBD221F45),
     glassEdge: Color(0x1AFFFFFF),
     surfaceElevated: Color(0x14FFFFFF),
-    sheetBackground: Color(0xF7100E22),
+    sheetBackground: Color(0xFF100E22),
     separator: Color(0x29FFFFFF),
     label: Color(0xFFFFFFFF),
     labelSecondary: Color(0xA8FFFFFF),

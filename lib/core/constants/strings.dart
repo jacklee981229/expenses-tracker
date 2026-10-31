@@ -49,7 +49,6 @@ abstract final class AppStrings {
   static String weekOfMonth(int week) => 'W$week';
 
   // Ledger
-  static const String ledgerKicker = 'My ledger';
   static const String spentThisMonth = 'Spent this month';
   static String spentIn(String month) => 'Spent in $month';
   static const String receiptTotal = 'TOTAL';
@@ -103,7 +102,6 @@ abstract final class AppStrings {
   static const String saved = 'Saved';
 
   // Analysis
-  static const String analysisKicker = 'Insights';
   static const String spentStat = 'Spent';
   static const String perDayStat = 'Per day';
   static const String trendTitle = 'Last 6 months';
@@ -141,7 +139,6 @@ abstract final class AppStrings {
   static const String periodYear = 'Year';
   static const String periodAll = 'All';
   static const String allTime = 'All time';
-  static const String expenseStat = 'Expense';
   static const String filter = 'Filter';
   static const String filterCategories = 'Filter Categories';
   static const String filterHint =
