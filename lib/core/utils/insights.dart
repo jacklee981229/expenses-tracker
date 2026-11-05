@@ -121,12 +121,18 @@ Insight _compare(
   Map<String, CategorySpend> before,
 ) {
   final nowMinor = now[spend.id]?.totalMinor ?? 0;
-  final was = before[spend.id]?.totalMinor ?? 0;
-  if (was == 0) return NewCategory(spend.name, nowMinor);
-  final change = nowMinor - was;
-  final percent = (change.abs() * 100 / was).round();
-  if (percent == 0) return SameAsBefore(spend.name);
-  return CategoryChange(spend.name, percent, up: change > 0);
+  final change = changePercent(nowMinor, before[spend.id]?.totalMinor ?? 0);
+  if (change == null) return NewCategory(spend.name, nowMinor);
+  if (change == 0) return SameAsBefore(spend.name);
+  return CategoryChange(spend.name, change.abs(), up: change > 0);
+}
+
+/// [now] against [was] in whole percent, signed (+ more, - less); null when
+/// [was] is zero, so there is nothing to compare with.
+int? changePercent(int now, int was) {
+  if (was == 0) return null;
+  final percent = ((now - was).abs() * 100 / was).round();
+  return now < was ? -percent : percent;
 }
 
 int _sum(List<CategorySpend> spends) =>

@@ -135,8 +135,54 @@ abstract final class AppStrings {
   static String insightBiggestDay(String day, String amount) =>
       'Biggest day: $day, $amount';
   static const String insightWeek = 'week';
+
   static const String insightMonth = 'month';
   static const String insightYear = 'year';
+
+  // The report sheet. `{}` marks where a figure goes, in order.
+  static const String report = 'Report';
+
+  /// The sheet's subtitle: the period, and how many categories the filter
+  /// keeps when it is on.
+  static String reportPeriod(String period, int categories) =>
+      switch (categories) {
+        0 => period,
+        1 => '$period · 1 category',
+        _ => '$period · $categories categories',
+      };
+  static const String reportSpent = 'SPENT';
+  static const String reportByCategory = 'BY CATEGORY';
+  static const String reportFixed = 'FIXED AND EVERYDAY';
+  static const String reportHighlights = 'HIGHLIGHTS';
+  static const String reportMostOften = 'MOST OFTEN';
+  static String reportMore(int percent) => '$percent% more';
+  static String reportLess(int percent) => '$percent% less';
+  static const String reportVsLast = "{} than last {}'s {}.";
+  static const String reportSameAsLast = 'Same as last {}.';
+  static const String reportPerDay = '{} a day.';
+  static const String reportPerDayVs = "{} a day, {} than last {}'s {}.";
+  static const String reportPerDaySame = '{} a day, same as last {}.';
+  static const String reportCategory = '{} took {}, {}.';
+  static const String reportCategoryVs = '{} took {}, {}, {}.';
+  static const String reportCategorySame = '{} took {}, {}, same.';
+  static const String reportCategoryNew = '{} took {}, {}, new.';
+  static const String reportFixedSplit =
+      'Fixed expenses were {} ({}); everyday spending {}.';
+  static const String reportNoFixed =
+      'No fixed expenses: all of it was everyday.';
+  static const String reportBiggestDay = 'Your biggest day was {}, {}.';
+  static const String reportBiggestExpense =
+      'The biggest expense was {} in {}, {}.';
+  static const String reportBiggestExpenseNoNote =
+      'The biggest expense was {} in {}.';
+  static const String reportCounts = '{}, and {}.';
+  static const String reportCountsEveryDay = '{}, with spending every day.';
+  static String reportExpenses(int count) =>
+      count == 1 ? '1 expense' : '$count expenses';
+  static String reportNoSpendDays(int days) =>
+      days == 1 ? '1 day with no spending' : '$days days with no spending';
+  static const String reportNote = '{} {}, {}.';
+  static String reportTimes(int count) => '$count times';
   static const String periodWeek = 'Week';
   static const String periodMonth = 'Month';
   static const String periodYear = 'Year';

@@ -214,7 +214,21 @@ abstract final class AppSizes {
 
   /// Receipts lean a little, alternating left and right.
   static const double receiptTilt = 0.6;
+
+  /// The report sheet: its tallest share of the screen, and the colour
+  /// square before each category's line (its top lines it up with the text).
+  static const double reportMaxHeight = 0.9;
+  static const double reportDot = 10;
+  static const double reportDotTop = 7;
+  static const double reportIcon = 26;
   static const double receiptTooth = 14;
+
+  /// The light behind a receipt a total card bar brought up.
+  static const double receiptLightBlur = 30;
+  static const double receiptLightSpread = 6;
+
+  /// How far the light shows beyond the receipt's edge.
+  static const double receiptLightReach = receiptLightSpread + receiptLightBlur;
   static const double dashLength = 5;
   static const double dashGap = 4;
   static const double dashThickness = 1.5;

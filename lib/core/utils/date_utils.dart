@@ -126,6 +126,10 @@ String formatChipDate(DateTime date, DateTime today) => date.year == today.year
 /// `24 Sep`
 String formatDayMonth(DateTime date) => DateFormat('d MMM').format(date);
 
+/// `Fri 14 Nov`
+String formatWeekdayDayMonth(DateTime date) =>
+    DateFormat('EEE d MMM').format(date);
+
 /// `Sep`
 String formatMonthAbbrev(DateTime date) => DateFormat('MMM').format(date);
 

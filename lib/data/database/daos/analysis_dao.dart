@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../app_database.dart';
 import '../tables/categories_table.dart';
 import '../tables/transactions_table.dart';
+import 'transaction_dao.dart' show ExpenseWithCategory;
 
 part 'analysis_dao.g.dart';
 
@@ -188,6 +189,49 @@ class AnalysisDao extends DatabaseAccessor<AppDatabase>
           localDate: row.read(transactions.localDate)!,
           totalMinor: row.read(_total) ?? 0,
         );
+
+  /// Every expense with its category between inclusive local dates (both
+  /// null = all time), limited to [categoryIds] when that is not empty;
+  /// newest first. The report's figures are worked out from these.
+  Stream<List<ExpenseWithCategory>> watchExpenses({
+    String? start,
+    String? end,
+    Set<String> categoryIds = const {},
+  }) => _expenses(start, end, categoryIds).watch().map(_toExpenses);
+
+  Future<List<ExpenseWithCategory>> expenses({
+    String? start,
+    String? end,
+    Set<String> categoryIds = const {},
+  }) async => _toExpenses(await _expenses(start, end, categoryIds).get());
+
+  JoinedSelectStatement<HasResultSet, dynamic> _expenses(
+    String? start,
+    String? end,
+    Set<String> categoryIds,
+  ) {
+    final query =
+        select(transactions).join([
+          innerJoin(
+            categories,
+            categories.id.equalsExp(transactions.categoryId),
+          ),
+        ])..orderBy([
+          OrderingTerm.desc(transactions.localDate),
+          OrderingTerm.desc(transactions.occurredAt),
+        ]);
+    final filter = _filter(start, end, categoryIds);
+    if (filter != null) query.where(filter);
+    return query;
+  }
+
+  List<ExpenseWithCategory> _toExpenses(List<TypedResult> rows) => [
+    for (final row in rows)
+      ExpenseWithCategory(
+        row.readTable(transactions),
+        row.readTable(categories),
+      ),
+  ];
 
   JoinedSelectStatement<HasResultSet, dynamic> _query(
     String? start,

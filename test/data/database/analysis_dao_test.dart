@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:expense_tracker/data/database/app_database.dart';
 import 'package:expense_tracker/data/database/daos/analysis_dao.dart';
+import 'package:expense_tracker/data/database/daos/transaction_dao.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -255,5 +256,28 @@ void main() {
       ),
       (localDate: '2026-09-20', totalMinor: 1250),
     );
+  });
+
+  test('lists the expenses in bounds, newest first, filtered or not', () async {
+    List<(int, String)> amounts(List<ExpenseWithCategory> rows) => [
+      for (final row in rows) (row.expense.amountMinor, row.category.id),
+    ];
+    expect(
+      amounts(
+        await db.analysisDao.expenses(start: '2026-09-01', end: '2026-09-30'),
+      ),
+      [(800, food), (300, transport), (150000, rent), (1250, food)],
+    );
+    expect(
+      amounts(
+        await db.analysisDao.expenses(
+          start: '2026-09-01',
+          end: '2026-09-30',
+          categoryIds: {food, transport},
+        ),
+      ),
+      [(800, food), (300, transport), (1250, food)],
+    );
+    expect(await db.analysisDao.expenses(), hasLength(6));
   });
 }

@@ -148,6 +148,18 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Marks [id] as made by fixed expense [ruleId] (Set as Fixed Expense):
+  /// it then counts and shows as fixed, like the ones the rule generates.
+  Future<void> markFixed(String id, String ruleId) async {
+    await (update(transactions)..where((t) => t.id.equals(id))).write(
+      TransactionsCompanion(
+        source: const Value(TransactionSource.recurring),
+        recurringRuleId: Value(ruleId),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   Future<void> deleteExpense(String id) async {
     await (delete(transactions)..where((t) => t.id.equals(id))).go();
   }

@@ -109,6 +109,25 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 11)],
   );
 
+  /// A sentence of the report: body size, with room between lines.
+  static const TextStyle reportLine = TextStyle(
+    fontFamily: family,
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    fontVariations: [FontVariation('wght', 500), FontVariation('opsz', 16)],
+  );
+
+  /// A name or figure inside a report sentence.
+  static const TextStyle reportStrong = TextStyle(
+    fontFamily: family,
+    fontSize: 16,
+    fontWeight: FontWeight.w800,
+    height: 1.4,
+    fontFeatures: _tabular,
+    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 16)],
+  );
+
   /// The day's total beside the stamp.
   static const TextStyle stampFigure = TextStyle(
     fontFamily: family,

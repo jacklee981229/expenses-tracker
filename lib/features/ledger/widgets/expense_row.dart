@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 
 import '../../../core/constants/app_info.dart';
 import '../../../core/constants/strings.dart';
@@ -57,6 +58,33 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
     duration: AppMotion.normal,
   );
 
+  /// The fixed mark's size: it pops in when the row turns fixed on screen
+  /// (Set as Fixed Expense), not when a fixed row first scrolls in.
+  late final AnimationController _fixedMark = AnimationController(
+    vsync: this,
+    lowerBound: 0,
+    upperBound: double.infinity,
+    value: 1,
+  );
+
+  bool _isFixed(ExpenseRow row) =>
+      row.item.expense.source == TransactionSource.recurring;
+
+  @override
+  void didUpdateWidget(ExpenseRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_isFixed(widget) && !_isFixed(oldWidget)) {
+      _fixedMark.value = 0;
+      // Waits for the fixed expense form to slide away, as rows printing in
+      // wait for the add sheet.
+      Future<void>.delayed(AppMotion.page, () {
+        if (mounted) {
+          _fixedMark.animateWith(SpringSimulation(AppSprings.check, 0, 1, 0));
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +100,7 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
   void dispose() {
     _print.dispose();
     _tear.dispose();
+    _fixedMark.dispose();
     super.dispose();
   }
 
@@ -100,7 +129,7 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
         pressedScale: 0.97,
         onTap: () => showAddExpenseSheet(context, editing: expense),
         onLongPress: _showMenu,
-        child: _RowContent(widget.item),
+        child: _RowContent(widget.item, fixedMark: _fixedMark),
       ),
     );
 
@@ -152,6 +181,7 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
       case _RowAction.again:
         await showAddExpenseSheet(context, template: expense);
       case _RowAction.fixed:
+        // Saving links this expense, so its fixed mark pops in.
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => EditRecurringScreen(template: expense),
@@ -172,9 +202,12 @@ enum _RowAction { again, fixed, delete }
 
 /// The row's icon, title, detail line and amount.
 class _RowContent extends StatelessWidget {
-  const _RowContent(this.item);
+  const _RowContent(this.item, {this.fixedMark});
 
   final ExpenseWithCategory item;
+
+  /// The fixed mark's size, when it can pop in.
+  final Animation<double>? fixedMark;
 
   @override
   Widget build(BuildContext context) {
@@ -213,11 +246,14 @@ class _RowContent extends StatelessWidget {
                     ),
                     if (isRecurring) ...[
                       const SizedBox(width: AppSpacing.xxs),
-                      Icon(
-                        Icons.repeat_rounded,
-                        size: AppSizes.repeatGlyph,
-                        color: colors.labelSecondary,
-                        semanticLabel: AppStrings.recurringTooltip,
+                      ScaleTransition(
+                        scale: fixedMark ?? kAlwaysCompleteAnimation,
+                        child: Icon(
+                          Icons.repeat_rounded,
+                          size: AppSizes.repeatGlyph,
+                          color: colors.labelSecondary,
+                          semanticLabel: AppStrings.recurringTooltip,
+                        ),
                       ),
                     ],
                   ],

@@ -68,7 +68,10 @@ upright); 3D-extruded charts; pie with 3D shading and a dropped shadow
 (charts are 2D, and glow softly in their own colours);
 per-category colours inside the total card's bars; plain line icons for
 categories; a category block that fills the middle of the ledger; a mostly
-blank Undo row with a small button (the deleted row becomes a full dark bar).
+blank Undo row with a small button (the deleted row becomes a full dark bar);
+a receipt that brightens itself when picked out (it is lit from behind
+instead); a toast floating over the + button (a change shows on the row
+itself, like the fixed mark popping in).
 
 ## Hard constraints
 
@@ -136,6 +139,7 @@ Unit tests are required for, and only for:
 - `core/utils/note_utils.dart` — history chip ranking
 - `core/utils/duplicate_check.dart` — the duplicate warning
 - `core/utils/insights.dart` — the Analysis summary line
+- `core/utils/report.dart` — the Analysis report's figures
 - `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares

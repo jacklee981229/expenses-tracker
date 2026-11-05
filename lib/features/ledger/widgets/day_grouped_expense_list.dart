@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/strings.dart';
@@ -15,6 +17,7 @@ import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/receipt_card.dart';
 import '../ledger_providers.dart';
 import 'expense_row.dart';
+import 'receipt_lamp.dart';
 
 /// Where receipts come in from when they first appear.
 enum EnterFrom { below, left, right }
@@ -26,7 +29,7 @@ enum EnterFrom { below, left, right }
 /// receipt, which gives a small wobble. A deleted expense leaves an Undo row
 /// in its place for a few seconds. [header] scrolls in above the days;
 /// [empty] shows under it when there are none. A new [jump] brings that
-/// day's receipt to the top. Shared by the ledger and the analysis category
+/// day's receipt to the top, then lights up the receipts it names. Shared by the ledger and the analysis category
 /// drilldown.
 class DayGroupedExpenseList extends ConsumerStatefulWidget {
   const DayGroupedExpenseList({
@@ -82,19 +85,24 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
   /// The days as last built, Undo-only days included.
   List<DayGroup> _shown = const [];
 
+  /// Receipts lighting up after a jump, and which lighting it is, so a
+  /// receipt that builds while it runs (scrolled to) lights too.
+  Set<String> _lit = const {};
+  int _lightRun = 0;
+  Timer? _lightEnd;
+
   @override
   void didUpdateWidget(DayGroupedExpenseList oldWidget) {
     super.didUpdateWidget(oldWidget);
     final jump = widget.jump;
     if (jump != null && !identical(jump, oldWidget.jump)) {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _jumpTo(jump.localDate),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) => _jumpTo(jump));
     }
   }
 
   @override
   void dispose() {
+    _lightEnd?.cancel();
     _scroll.dispose();
     super.dispose();
   }
@@ -102,15 +110,26 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
   /// The list is lazy, so an unbuilt receipt has no position yet: jump to
   /// an estimate from the heights seen so far, let it build, and once it
   /// exists, settle on it (as far as the list allows near the end).
-  void _jumpTo(String localDate, {int tries = 0}) {
+  void _jumpTo(LedgerJump jump, {int tries = 0}) {
     if (!mounted || !_scroll.hasClients) return;
-    final target = _dayKeys[localDate]?.currentContext;
+    final localDate = jump.localDate;
+    final target = _dayKeys[localDate]?.currentContext?.findRenderObject();
     if (target != null) {
-      Scrollable.ensureVisible(
-        target,
-        duration: AppMotion.slow,
-        curve: AppMotion.enter,
-      );
+      // Stops short of the top by the light's reach, so the halo above the
+      // receipt shows whole instead of being cut off by the list's edge.
+      final position = _scroll.position;
+      final reveal =
+          RenderAbstractViewport.of(
+            target,
+          ).getOffsetToReveal(target, 0).offset -
+          AppSizes.receiptLightReach;
+      _scroll
+          .animateTo(
+            reveal.clamp(position.minScrollExtent, position.maxScrollExtent),
+            duration: AppMotion.slow,
+            curve: AppMotion.enter,
+          )
+          .then((_) => _light(jump.light));
       return;
     }
     final index = _shown.indexWhere((group) => group.localDate == localDate);
@@ -129,12 +148,24 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
     }
     _scroll.jumpTo(math.min(offset, _scroll.position.maxScrollExtent));
     WidgetsBinding.instance
-      ..addPostFrameCallback((_) => _jumpTo(localDate, tries: tries + 1))
+      ..addPostFrameCallback((_) => _jumpTo(jump, tries: tries + 1))
       ..scheduleFrame();
   }
 
   /// Estimates before giving up; each one builds more receipts to measure.
   static const int _jumpTries = 6;
+
+  void _light(Set<String> days) {
+    if (!mounted) return;
+    setState(() {
+      _lit = days;
+      _lightRun++;
+    });
+    _lightEnd?.cancel();
+    _lightEnd = Timer(_DayReceiptState.lightLength, () {
+      if (mounted) setState(() => _lit = const {});
+    });
+  }
 
   void _delete(ExpenseWithCategory item) {
     setState(() => _deleted[item.expense.id] = item);
@@ -252,6 +283,7 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
                   ? -AppSizes.receiptTilt
                   : AppSizes.receiptTilt,
               isToday: dateOnly(group.date) == dateOnly(today),
+              lightRun: _lit.contains(group.localDate) ? _lightRun : null,
               printing: printing,
               deleted: [
                 for (final item in _deleted.values)
@@ -299,6 +331,7 @@ class _DayReceipt extends StatefulWidget {
     required this.group,
     required this.tilt,
     required this.isToday,
+    this.lightRun,
     required this.printing,
     required this.deleted,
     required this.onDelete,
@@ -309,6 +342,9 @@ class _DayReceipt extends StatefulWidget {
   final DayGroup group;
   final double tilt;
   final bool isToday;
+
+  /// Set while a jump lights this receipt; each new value lights it once.
+  final int? lightRun;
 
   /// Ids of rows that just arrived and print in.
   final Set<String> printing;
@@ -324,27 +360,62 @@ class _DayReceipt extends StatefulWidget {
 }
 
 class _DayReceiptState extends State<_DayReceipt>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  /// The light rises, holds and fades.
+  static final Duration lightLength =
+      AppMotion.slow + AppMotion.page + AppMotion.page;
+
+  static final Animatable<double> _lightLevel = TweenSequence([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 0.0,
+        end: 1.0,
+      ).chain(CurveTween(curve: AppMotion.enter)),
+      weight: AppMotion.slow.inMilliseconds.toDouble(),
+    ),
+    TweenSequenceItem(
+      tween: ConstantTween(1.0),
+      weight: AppMotion.page.inMilliseconds.toDouble(),
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: 0.0,
+      ).chain(CurveTween(curve: AppMotion.exit)),
+      weight: AppMotion.page.inMilliseconds.toDouble(),
+    ),
+  ]);
+
   late final AnimationController _wobble = AnimationController(
     vsync: this,
     duration: AppMotion.page,
+  );
+
+  late final AnimationController _lamp = AnimationController(
+    vsync: this,
+    duration: lightLength,
   );
 
   @override
   void initState() {
     super.initState();
     if (widget.printing.isNotEmpty) _wobble.forward(from: 0);
+    if (widget.lightRun != null) _lamp.forward(from: 0);
   }
 
   @override
   void didUpdateWidget(_DayReceipt oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.printing.isNotEmpty) _wobble.forward(from: 0);
+    if (widget.lightRun != null && widget.lightRun != oldWidget.lightRun) {
+      _lamp.forward(from: 0);
+    }
   }
 
   @override
   void dispose() {
     _wobble.dispose();
+    _lamp.dispose();
     super.dispose();
   }
 
@@ -374,65 +445,69 @@ class _DayReceiptState extends State<_DayReceipt>
           child: Transform.scale(scale: 1 + (1 - t) * t * 0.08, child: child),
         );
       },
-      child: ReceiptCard(
+      child: ReceiptLamp(
+        level: _lamp.drive(_lightLevel),
         tilt: widget.tilt,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // The total sits where a row's amount does, so the right
-            // padding matches the rows'.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md + 2,
-                AppSpacing.sm,
-                AppSpacing.md - 2,
-                AppSpacing.xxs - 2,
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    formatReceiptStamp(group.date),
-                    style: AppTextStyles.stamp.copyWith(
-                      color: colors.sectionLabel,
+        child: ReceiptCard(
+          tilt: widget.tilt,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // The total sits where a row's amount does, so the right
+              // padding matches the rows'.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md + 2,
+                  AppSpacing.sm,
+                  AppSpacing.md - 2,
+                  AppSpacing.xxs - 2,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      formatReceiptStamp(group.date),
+                      style: AppTextStyles.stamp.copyWith(
+                        color: colors.sectionLabel,
+                      ),
                     ),
-                  ),
-                  if (widget.isToday) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    const _TodayBadge(),
+                    if (widget.isToday) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      const _TodayBadge(),
+                    ],
+                    const Spacer(),
+                    Text(
+                      formatWithSymbol(group.totalMinor),
+                      style: AppTextStyles.stampFigure.copyWith(
+                        color: colors.sectionLabel,
+                      ),
+                    ),
                   ],
-                  const Spacer(),
-                  Text(
-                    formatWithSymbol(group.totalMinor),
-                    style: AppTextStyles.stampFigure.copyWith(
-                      color: colors.sectionLabel,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            for (final (index, row) in rows.indexed) ...[
-              if (index > 0)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
-                  child: DashedLine(),
-                ),
-              if (row.deleted)
-                DeletedExpenseRow(
-                  key: ValueKey('deleted-${row.item.expense.id}'),
-                  item: row.item,
-                  onUndo: () => widget.onUndo(row.item),
-                  onGone: () => widget.onGone(row.item),
-                )
-              else
-                ExpenseRow(
-                  key: ValueKey(row.item.expense.id),
-                  item: row.item,
-                  printIn: widget.printing.contains(row.item.expense.id),
-                  onDelete: widget.onDelete,
-                ),
+              for (final (index, row) in rows.indexed) ...[
+                if (index > 0)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                    child: DashedLine(),
+                  ),
+                if (row.deleted)
+                  DeletedExpenseRow(
+                    key: ValueKey('deleted-${row.item.expense.id}'),
+                    item: row.item,
+                    onUndo: () => widget.onUndo(row.item),
+                    onGone: () => widget.onGone(row.item),
+                  )
+                else
+                  ExpenseRow(
+                    key: ValueKey(row.item.expense.id),
+                    item: row.item,
+                    printIn: widget.printing.contains(row.item.expense.id),
+                    onDelete: widget.onDelete,
+                  ),
+              ],
+              const SizedBox(height: AppSpacing.xxs),
             ],
-            const SizedBox(height: AppSpacing.xxs),
-          ],
+          ),
         ),
       ),
     );

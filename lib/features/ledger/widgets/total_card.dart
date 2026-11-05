@@ -25,8 +25,8 @@ import '../ledger_providers.dart';
 /// sticker, the month's top three categories ([monthLegendProvider]) and
 /// pill bars ([heroBarsProvider]). This month also shows today's spend. The
 /// total flashes when it grows or shrinks. It swings in when the ledger
-/// opens. Tapping the sticker folds it down to the total alone, and opens
-/// it again.
+/// opens. Tapping the sticker folds it down to its label and the total,
+/// and opens it again.
 class TotalCard extends ConsumerWidget {
   const TotalCard({super.key});
 
@@ -74,19 +74,15 @@ class TotalCard extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _Fold(
-                          folded: folded,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSpacing.sm,
-                            ),
-                            child: Text(
-                              isCurrentMonth
-                                  ? AppStrings.spentThisMonth
-                                  : AppStrings.spentIn(formatMonthShort(month)),
-                              style: AppTextStyles.callout.copyWith(
-                                color: colors.onHeroSecondary,
-                              ),
+                        // Folded too: the label says what the figure is.
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            isCurrentMonth
+                                ? AppStrings.spentThisMonth
+                                : AppStrings.spentIn(formatMonthShort(month)),
+                            style: AppTextStyles.callout.copyWith(
+                              color: colors.onHeroSecondary,
                             ),
                           ),
                         ),
@@ -135,13 +131,13 @@ class TotalCard extends ConsumerWidget {
                             barWidthFactor: AppSizes.heroWeekBarWidthFactor,
                             onTap: (index) {
                               final targets = ref.read(heroBarTargetsProvider);
-                              final day = index < targets.length
+                              final target = index < targets.length
                                   ? targets[index]
                                   : null;
-                              if (day != null) {
+                              if (target != null) {
                                 ref
                                     .read(ledgerJumpProvider.notifier)
-                                    .jumpTo(day);
+                                    .jumpTo(target);
                               }
                             },
                           ),

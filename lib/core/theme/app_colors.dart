@@ -40,6 +40,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.boxBase,
     required this.boxMix,
     required this.barCap,
+    required this.receiptLight,
     required this.fill,
     required this.chartOther,
     required this.chartGlow,
@@ -127,6 +128,11 @@ class AppColors extends ThemeExtension<AppColors> {
   /// goes on beyond the top" reads at a glance.
   final Color barCap;
 
+  /// The light behind a receipt a total card bar has just brought up:
+  /// white would not show on the light ground, so there it is a stronger
+  /// violet.
+  final Color receiptLight;
+
   /// Unselected chips, empty share bars and other filled controls.
   final Color fill;
 
@@ -208,6 +214,7 @@ class AppColors extends ThemeExtension<AppColors> {
     boxBase: Color(0xFFFFFFFF),
     boxMix: 0.32,
     barCap: Color(0xFFD8323F),
+    receiptLight: Color(0xB35A4BE8),
     fill: Color(0x1417172B),
     chartOther: Color(0xFFC9C8DA),
     chartGlow: 0.6,
@@ -258,6 +265,7 @@ class AppColors extends ThemeExtension<AppColors> {
     boxMix: 0.45,
     // Redder than Food's E9695B, so a capped bar isn't read as Food.
     barCap: Color(0xFFEF4458),
+    receiptLight: Color(0xB3FFFFFF),
     fill: Color(0x1FFFFFFF),
     chartOther: Color(0xFF5A5878),
     chartGlow: 0.7,
@@ -342,6 +350,7 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? boxBase,
     double? boxMix,
     Color? barCap,
+    Color? receiptLight,
     Color? fill,
     Color? chartOther,
     double? chartGlow,
@@ -389,6 +398,7 @@ class AppColors extends ThemeExtension<AppColors> {
       boxBase: boxBase ?? this.boxBase,
       boxMix: boxMix ?? this.boxMix,
       barCap: barCap ?? this.barCap,
+      receiptLight: receiptLight ?? this.receiptLight,
       fill: fill ?? this.fill,
       chartOther: chartOther ?? this.chartOther,
       chartGlow: chartGlow ?? this.chartGlow,
@@ -443,6 +453,7 @@ class AppColors extends ThemeExtension<AppColors> {
       boxBase: mix(boxBase, other.boxBase),
       boxMix: mixD(boxMix, other.boxMix),
       barCap: mix(barCap, other.barCap),
+      receiptLight: mix(receiptLight, other.receiptLight),
       fill: mix(fill, other.fill),
       chartOther: mix(chartOther, other.chartOther),
       chartGlow: mixD(chartGlow, other.chartGlow),

@@ -5,9 +5,11 @@ import '../../core/constants/strings.dart';
 import '../../core/utils/date_utils.dart';
 import '../../core/utils/insights.dart';
 import '../../core/utils/money.dart';
+import '../../core/utils/report.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/analysis_dao.dart';
+import '../../data/database/tables/transactions_table.dart';
 import '../../shared/today_provider.dart';
 import '../../shared/widgets/colour_field.dart';
 import '../categories/categories_providers.dart';
@@ -228,6 +230,55 @@ final insightLoopProvider = Provider<List<Insight>>((ref) {
     current: _spends(current.value!),
     previous: before == null ? null : _spends(before),
     biggestDay: biggestDay.value,
+  );
+});
+
+/// The period's expenses, following the filter, for the report.
+final periodExpensesProvider = StreamProvider.autoDispose((ref) {
+  final bounds = ref.watch(periodBoundsProvider);
+  return ref
+      .watch(analysisDaoProvider)
+      .watchExpenses(
+        start: bounds?.start,
+        end: bounds?.end,
+        categoryIds: ref.watch(categoryFilterProvider),
+      );
+});
+
+/// The report sheet's figures; null while loading or with nothing spent.
+/// Both stop watching once the sheet closes.
+final reportProvider = Provider.autoDispose<Report?>((ref) {
+  final expenses = ref.watch(periodExpensesProvider).valueOrNull;
+  final previous = ref.watch(previousCategoryTotalsProvider);
+  if (expenses == null || !previous.hasValue) return null;
+  // All counts its days from the first expense: wait for it, or the per
+  // day shows RM0.00 for a moment.
+  if (ref.watch(periodBoundsProvider) == null &&
+      !ref.watch(firstExpenseDateProvider).hasValue) {
+    return null;
+  }
+  final before = ref.watch(previousPeriodBoundsProvider);
+  return buildReport(
+    current: [
+      for (final item in expenses)
+        (
+          categoryId: item.category.id,
+          categoryName: item.category.name,
+          amountMinor: item.expense.amountMinor,
+          localDate: item.expense.localDate,
+          note: item.expense.note,
+          fixed: item.expense.source == TransactionSource.recurring,
+        ),
+    ],
+    previous: previous.value == null ? null : _spends(previous.value!),
+    daysSoFar: ref.watch(periodDaysSoFarProvider),
+    previousDays: before == null
+        ? 0
+        : calendarDaysBetween(
+                parseLocalDate(before.start),
+                parseLocalDate(before.end),
+              ) +
+              1,
   );
 });
 

@@ -220,12 +220,13 @@ final heroBarsProvider = Provider<List<PillBar>?>((ref) {
   ];
 });
 
-/// Where tapping each total card bar takes the ledger: the `localDate` of
-/// the day to bring up, or null when the bar does nothing. This month's
-/// bars go to their day; another month's go to the earliest day of that
-/// week. Only days the ledger shows count (fixed ones too, not those the
-/// category filter hides), and only days of the month on screen.
-final heroBarTargetsProvider = Provider<List<String?>>((ref) {
+/// Where tapping each total card bar takes the ledger, or null when the
+/// bar does nothing. This month's bars go to their day; another month's to
+/// the newest day of that week, so the week's other receipts sit below it
+/// on screen (the list is newest first) and light up with it. Only days the
+/// ledger shows count (fixed ones too, not those the category filter
+/// hides), and only days of the month on screen.
+final heroBarTargetsProvider = Provider<List<LedgerJump?>>((ref) {
   final month = ref.watch(selectedMonthProvider);
   final today = ref.watch(todayProvider);
   final groups = ref.watch(monthDayGroupsProvider).valueOrNull ?? const [];
@@ -234,30 +235,36 @@ final heroBarTargetsProvider = Provider<List<String?>>((ref) {
     final days = ref.watch(thisWeekProvider).valueOrNull ?? const [];
     return [
       for (final day in days)
-        shown.contains(toLocalDateString(day.date))
-            ? toLocalDateString(day.date)
-            : null,
+        if (shown.contains(toLocalDateString(day.date)))
+          LedgerJump(toLocalDateString(day.date))
+        else
+          null,
     ];
   }
   const week = DateTime.daysPerWeek;
-  final weeks = List<String?>.filled(
+  final weeks = List.generate(
     (daysInMonth(month.year, month.month) + week - 1) ~/ week,
-    null,
+    (_) => <String>[],
   );
-  // Groups are newest first, so the last one seen in a week is its earliest.
+  // Groups are newest first, so each week's list starts with its newest.
   for (final date in shown) {
-    weeks[(parseLocalDate(date).day - 1) ~/ week] = date;
+    weeks[(parseLocalDate(date).day - 1) ~/ week].add(date);
   }
-  return weeks;
+  return [
+    for (final days in weeks)
+      days.isEmpty ? null : LedgerJump(days.first, light: days.toSet()),
+  ];
 });
 
-/// A request to bring a day's receipt to the top of the ledger. A new
-/// object each time, so tapping the same bar twice scrolls twice.
-@immutable
+/// A request to bring a day's receipt to the top of the ledger, then light
+/// up the receipts of [light] (just that day unless given). Built fresh for
+/// each tap, so tapping the same bar twice scrolls and lights twice.
 class LedgerJump {
-  const LedgerJump(this.localDate);
+  LedgerJump(this.localDate, {Set<String>? light})
+    : light = light ?? {localDate};
 
   final String localDate;
+  final Set<String> light;
 }
 
 final ledgerJumpProvider = NotifierProvider<LedgerJumpNotifier, LedgerJump?>(
@@ -268,7 +275,9 @@ class LedgerJumpNotifier extends Notifier<LedgerJump?> {
   @override
   LedgerJump? build() => null;
 
-  void jumpTo(String localDate) => state = LedgerJump(localDate);
+  /// Copies [target], so the same bar's jump counts as new each time.
+  void jumpTo(LedgerJump target) =>
+      state = LedgerJump(target.localDate, light: target.light);
 }
 
 final todayTotalProvider = StreamProvider<int>((ref) {

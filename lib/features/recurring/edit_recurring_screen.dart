@@ -327,6 +327,7 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
         .read(recurringActionsProvider)
         .save(
           existing: widget.existing,
+          template: widget.template,
           amountMinor: amount,
           categoryId: categoryId,
           note: _note.text,
