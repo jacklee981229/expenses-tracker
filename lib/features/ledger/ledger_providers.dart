@@ -294,6 +294,19 @@ class ExportNudgeDismissedNotifier extends Notifier<bool> {
   void dismiss() => state = true;
 }
 
+/// Whether the total card is folded down to the month's total. In memory:
+/// remembering it across restarts would need a database change.
+final totalCardFoldedProvider = NotifierProvider<TotalCardFoldedNotifier, bool>(
+  TotalCardFoldedNotifier.new,
+);
+
+class TotalCardFoldedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+}
+
 @immutable
 class ExportNudge {
   const ExportNudge(this.daysSinceExport);

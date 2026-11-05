@@ -148,8 +148,7 @@ class _TabButton extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs - 2),
             AnimatedDefaultTextStyle(
               duration: AppMotion.normal,
-              style: AppTextStyles.subheadline.copyWith(
-                fontWeight: FontWeight.w700,
+              style: AppTextStyles.tabLabel.copyWith(
                 color: selected ? colors.label : colors.labelSecondary,
               ),
               child: Text(tab.label, maxLines: 1),

@@ -83,6 +83,14 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 15)],
   );
 
+  /// A tab's name in the floating tab bar.
+  static const TextStyle tabLabel = TextStyle(
+    fontFamily: family,
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 13)],
+  );
+
   /// The title of an expense or category row.
   static const TextStyle rowTitle = TextStyle(
     fontFamily: family,
@@ -91,13 +99,23 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 15.5)],
   );
 
-  /// The stamp on top of a receipt: `SUN · 25 OCT`, and `TOTAL`.
+  /// The stamp on top of a receipt, `SUN · 25 OCT`: small and light, so
+  /// the expenses under it lead.
   static const TextStyle stamp = TextStyle(
     fontFamily: family,
-    fontSize: 12,
-    fontWeight: FontWeight.w800,
-    letterSpacing: 1.8,
-    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 12)],
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.5,
+    fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 11)],
+  );
+
+  /// The day's total beside the stamp.
+  static const TextStyle stampFigure = TextStyle(
+    fontFamily: family,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w700,
+    fontFeatures: _tabular,
+    fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 12.5)],
   );
 
   /// Money in lists: tabular figures so columns of numbers line up.
@@ -116,16 +134,6 @@ abstract final class AppTextStyles {
     fontWeight: FontWeight.w800,
     fontFeatures: _tabular,
     fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 13.5)],
-  );
-
-  /// A receipt's total.
-  static const TextStyle receiptTotal = TextStyle(
-    fontFamily: family,
-    fontSize: 18,
-    fontWeight: FontWeight.w800,
-    letterSpacing: -0.3,
-    fontFeatures: _tabular,
-    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 18)],
   );
 
   /// Values in the analysis stat tiles.

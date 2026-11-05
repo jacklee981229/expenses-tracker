@@ -16,7 +16,7 @@ flutter run -d emulator-5554
 
 iPhone: every push to `main` builds an unsigned `.ipa` on GitHub Actions
 (the run's Artifacts). Install it with Sideloadly and a free Apple ID; it
-must be re-signed every 7 days, so export a JSON backup first.
+must be re-signed every 7 days, so tap Export Backup first.
 
 Back Tap logging on the iPhone (set up once):
 

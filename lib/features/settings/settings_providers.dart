@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -80,7 +79,8 @@ class BackupActions {
   /// counts as done (the sheet was not dismissed), which is then recorded.
   Future<bool> exportCsv() async => _share(await _exporter.writeCsvFile());
 
-  Future<bool> exportJson() async => _share(await _exporter.writeJsonFile());
+  Future<bool> exportBackup() async =>
+      _share(await _exporter.writeBackupFile());
 
   Future<bool> _share(File file) async {
     final result = await SharePlus.instance.share(
@@ -91,28 +91,20 @@ class BackupActions {
     return true;
   }
 
-  /// Lets the user pick a JSON backup and validates it; null if they
-  /// cancel. Throws [InvalidBackupException] or
-  /// [UnsupportedBackupVersionException] for a bad file.
+  /// Lets the user pick a backup and validates it; null if they cancel.
+  /// Throws [InvalidBackupException] or [UnsupportedBackupVersionException]
+  /// for a bad file. Any file can be picked: Android often greys out a
+  /// `.gz` that came through Drive or a chat app, and `parse` checks the
+  /// contents anyway.
   Future<BackupData?> pickBackup() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['json'],
-      withData: true,
-    );
+    final result = await FilePicker.pickFiles(withData: true);
     final file = result?.files.singleOrNull;
     if (file == null) return null;
     final bytes = file.bytes;
     final path = file.path;
-    final String text;
-    if (bytes != null) {
-      text = utf8.decode(bytes);
-    } else if (path != null) {
-      text = await File(path).readAsString();
-    } else {
-      throw const InvalidBackupException();
-    }
-    return _importer.parse(text);
+    if (bytes != null) return _importer.parse(bytes);
+    if (path != null) return _importer.parse(await File(path).readAsBytes());
+    throw const InvalidBackupException();
   }
 
   /// Imports all-or-nothing, then generates any fixed expenses now due.

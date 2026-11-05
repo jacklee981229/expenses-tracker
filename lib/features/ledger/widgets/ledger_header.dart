@@ -39,6 +39,7 @@ class LedgerHeader extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LargeTitle(
+          bottomGap: AppSpacing.xs,
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => _pickMonth(context, month, months),
@@ -126,13 +127,13 @@ class LedgerHeader extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2),
           child: TotalCard(),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.sm),
         const ExportNudgeBanner(),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: CategoryDrawer(),
         ),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.xxs),
       ],
     );
   }

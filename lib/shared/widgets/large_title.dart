@@ -7,22 +7,30 @@ import '../../core/theme/app_text_styles.dart';
 /// A page header: a large bold title, with optional actions on the right,
 /// level with the title's baseline.
 class LargeTitle extends StatelessWidget {
-  const LargeTitle(this.title, {super.key, this.trailing});
+  const LargeTitle(
+    this.title, {
+    super.key,
+    this.trailing,
+    this.bottomGap = AppSpacing.md,
+  });
 
   /// The title itself; a widget so it can animate (the ledger's month).
   final Widget title;
   final Widget? trailing;
+
+  /// Space under the title; the ledger keeps it tighter.
+  final double bottomGap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final trailing = this.trailing;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.lg,
         AppSpacing.xs,
         AppSpacing.md,
-        AppSpacing.md,
+        bottomGap,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,

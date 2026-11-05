@@ -34,6 +34,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.onHero,
     required this.onHeroSecondary,
     required this.heroChip,
+    required this.noteChip,
     required this.heroUp,
     required this.heroDown,
     required this.boxBase,
@@ -106,8 +107,12 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onHero;
   final Color onHeroSecondary;
 
-  /// Chips on the total card and the amount box (Today, legend, history).
+  /// Chips on the total card and the amount box (Today, legend).
   final Color heroChip;
+
+  /// The amount box's note chips: fainter than [heroChip], so they hint
+  /// rather than compete with the amount.
+  final Color noteChip;
 
   /// The big total's flash: up when spending grows, down when it shrinks.
   final Color heroUp;
@@ -197,6 +202,7 @@ class AppColors extends ThemeExtension<AppColors> {
     onHero: Color(0xFF17172B),
     onHeroSecondary: Color(0xFF45455E),
     heroChip: Color(0xB3FFFFFF),
+    noteChip: Color(0x66FFFFFF),
     heroUp: Color(0xFFC92A50),
     heroDown: Color(0xFF12855A),
     boxBase: Color(0xFFFFFFFF),
@@ -245,6 +251,7 @@ class AppColors extends ThemeExtension<AppColors> {
     onHeroSecondary: Color(0xFFFFFFFF),
     // Dark, not white: a lighter chip would cost the text on amber.
     heroChip: Color(0x40100E24),
+    noteChip: Color(0x24100E24),
     heroUp: Color(0xFFFF8FA3),
     heroDown: Color(0xFF7CF2B0),
     boxBase: Color(0xFF14162C),
@@ -329,6 +336,7 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? onHero,
     Color? onHeroSecondary,
     Color? heroChip,
+    Color? noteChip,
     Color? heroUp,
     Color? heroDown,
     Color? boxBase,
@@ -375,6 +383,7 @@ class AppColors extends ThemeExtension<AppColors> {
       onHero: onHero ?? this.onHero,
       onHeroSecondary: onHeroSecondary ?? this.onHeroSecondary,
       heroChip: heroChip ?? this.heroChip,
+      noteChip: noteChip ?? this.noteChip,
       heroUp: heroUp ?? this.heroUp,
       heroDown: heroDown ?? this.heroDown,
       boxBase: boxBase ?? this.boxBase,
@@ -428,6 +437,7 @@ class AppColors extends ThemeExtension<AppColors> {
       onHero: mix(onHero, other.onHero),
       onHeroSecondary: mix(onHeroSecondary, other.onHeroSecondary),
       heroChip: mix(heroChip, other.heroChip),
+      noteChip: mix(noteChip, other.noteChip),
       heroUp: mix(heroUp, other.heroUp),
       heroDown: mix(heroDown, other.heroDown),
       boxBase: mix(boxBase, other.boxBase),

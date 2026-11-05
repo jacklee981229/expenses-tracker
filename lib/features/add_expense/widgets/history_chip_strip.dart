@@ -41,12 +41,14 @@ class HistoryChipStrip extends ConsumerWidget {
       duration: AppMotion.slow,
       curve: AppMotion.enter,
       alignment: Alignment.topCenter,
+      // Lets the chips' soft shadow show below the strip.
+      clipBehavior: Clip.none,
       child: notes.isEmpty
           ? const SizedBox(width: double.infinity)
           : Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm - 2),
+              padding: const EdgeInsets.only(top: AppSizes.noteChipGap),
               child: SizedBox(
-                height: AppSizes.chipHeight,
+                height: AppSizes.noteChipHeight,
                 // Lazy, so a category with hundreds of notes still scrolls
                 // smoothly.
                 child: ListView.builder(
@@ -67,8 +69,9 @@ class HistoryChipStrip extends ConsumerWidget {
                         child: PillChip(
                           label: text,
                           selected: selected,
-                          color: colors.heroChip,
-                          labelColor: onHero,
+                          small: true,
+                          color: colors.noteChip,
+                          labelColor: colors.onHeroSecondary,
                           selectedColor: onHero,
                           selectedLabelColor: colors.boxBase,
                           onTap: () => onSelected(selected ? '' : text),

@@ -9,8 +9,8 @@ import '../../core/utils/date_utils.dart';
 import '../../core/utils/money.dart';
 import '../database/app_database.dart';
 
-/// Builds export files. CSV is for spreadsheets; JSON is the full-fidelity
-/// backup that Import reads back.
+/// Builds export files. CSV is for spreadsheets; the gzipped JSON is the
+/// full-fidelity backup that Import reads back.
 class ExportService {
   ExportService(this._db, {DateTime Function()? clock})
     : _clock = clock ?? DateTime.now;
@@ -71,20 +71,24 @@ class ExportService {
     };
   }
 
-  Future<File> writeCsvFile() async => _write('csv', await buildCsv());
+  /// The backup file's bytes: compact JSON, gzipped. gzip comes with
+  /// `dart:io`, so it costs no package or app size, and cuts the file to
+  /// about a seventh.
+  Future<List<int>> buildBackupBytes() async =>
+      gzip.encode(utf8.encode(jsonEncode(await buildJson())));
 
-  Future<File> writeJsonFile() async => _write(
-    'json',
-    const JsonEncoder.withIndent('  ').convert(await buildJson()),
-  );
+  Future<File> writeCsvFile() async =>
+      (await _file('csv')).writeAsString(await buildCsv(), flush: true);
 
-  /// Writes to the temporary directory, named `expenses-YYYY-MM-DD.ext`.
-  Future<File> _write(String extension, String contents) async {
+  Future<File> writeBackupFile() async => (await _file(
+    'json.gz',
+  )).writeAsBytes(await buildBackupBytes(), flush: true);
+
+  /// In the temporary directory, named `expenses-YYYY-MM-DD.ext`.
+  Future<File> _file(String extension) async {
     final directory = await getTemporaryDirectory();
     final name = 'expenses-${toLocalDateString(_clock())}.$extension';
-    return File(
-      p.join(directory.path, name),
-    ).writeAsString(contents, flush: true);
+    return File(p.join(directory.path, name));
   }
 }
 

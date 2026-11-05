@@ -45,7 +45,9 @@ class AnalysisScreen extends ConsumerWidget {
     return SafeArea(
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.only(bottom: AppSizes.fabClearance),
+        padding: EdgeInsets.only(
+          bottom: AppSizes.fabClearance + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           const LargeTitle(Text(AppStrings.tabAnalysis)),
           const PeriodSwitcher(),

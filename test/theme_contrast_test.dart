@@ -103,6 +103,11 @@ void main() {
         (b) => Color.alphaBlend(c.heroChip, c.box(b)),
         heroTexts,
       );
+      check(
+        'amount box note chip',
+        (b) => Color.alphaBlend(c.noteChip, c.box(b)),
+        heroTexts,
+      );
     });
   }
 }

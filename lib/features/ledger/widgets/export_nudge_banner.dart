@@ -27,7 +27,7 @@ class ExportNudgeBanner extends ConsumerWidget {
         AppSpacing.md,
         0,
         AppSpacing.md,
-        AppSpacing.md,
+        AppSpacing.sm,
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

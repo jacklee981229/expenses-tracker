@@ -82,15 +82,15 @@ class SettingsScreen extends ConsumerWidget {
               InsetRow(
                 title: AppStrings.exportCsv,
                 titleColor: colors.accent,
-                onTap: () => _export(context, ref, json: false),
+                onTap: () => _export(context, ref, backup: false),
               ),
               InsetRow(
-                title: AppStrings.exportJson,
+                title: AppStrings.exportBackup,
                 titleColor: colors.accent,
-                onTap: () => _export(context, ref, json: true),
+                onTap: () => _export(context, ref, backup: true),
               ),
               InsetRow(
-                title: AppStrings.importJson,
+                title: AppStrings.importBackup,
                 titleColor: colors.accent,
                 onTap: () => _import(context, ref),
               ),
@@ -163,13 +163,13 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _export(
     BuildContext context,
     WidgetRef ref, {
-    required bool json,
+    required bool backup,
   }) async {
     final actions = ref.read(backupActionsProvider);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final done = json
-          ? await actions.exportJson()
+      final done = backup
+          ? await actions.exportBackup()
           : await actions.exportCsv();
       if (done) {
         messenger.showSnackBar(

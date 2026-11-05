@@ -126,6 +126,11 @@ abstract final class AppSizes {
   /// Long notes in a chip end in an ellipsis past this width.
   static const double chipLabelMaxWidth = 200;
 
+  /// The note chips at the bottom of the amount box: smaller than other
+  /// chips, and set further down from the note.
+  static const double noteChipHeight = 28;
+  static const double noteChipGap = 16;
+
   /// The date pill inside the add sheet's amount box.
   static const double inlineChipHeight = 30;
   static const double keypadKeyHeight = 54;
@@ -165,6 +170,14 @@ abstract final class AppSizes {
   static const double sticker = 56;
   static const double stickerIcon = 32;
   static const double stickerTilt = 14;
+
+  /// The sticker on the folded card: small, grey and dim, so the total
+  /// alone leads.
+  static const double stickerFolded = 40;
+  static const double stickerFoldedIcon = 22;
+  static const double stickerFoldedTilt = -8;
+  static const double stickerFoldedIconOpacity = 0.6;
+  static const double stickerPressScale = 0.85;
 
   /// The little receipt that prints out of the amount box while a
   /// screenshot is read, and the slot it comes out of.
@@ -235,15 +248,18 @@ abstract final class AppSizes {
   static const double fab = 62;
   static const double fabIcon = 28;
 
-  /// The floating tab bar.
-  static const double tabBarWidth = 250;
-  static const double tabBarHeight = 62;
+  /// The floating tab bar: small and low, so the expenses get the room.
+  static const double tabBarWidth = 220;
+  static const double tabBarHeight = 52;
   static const double tabBarInset = 6;
-  static const double tabBarBottom = 22;
-  static const double tabIcon = 20;
+  static const double tabBarBottom = 8;
+  static const double tabIcon = 18;
 
-  /// Room under scrolling lists for the floating tab bar and + button.
-  static const double fabClearance = 150;
+  /// Room under scrolling lists for the floating tab bar and + button, on
+  /// top of the phone's bottom safe area: the last receipt ends just above
+  /// the + (placed in `app.dart` from the same sizes).
+  static const double fabClearance =
+      tabBarBottom + tabBarHeight + AppSpacing.lg + fab + AppSpacing.xs;
 
   static const double pickerHeight = 216;
   static const double pickerItemExtent = 32;

@@ -21,9 +21,14 @@ import 'recurring_providers.dart';
 
 /// Creates a fixed monthly expense rule, or edits [existing].
 class EditRecurringScreen extends ConsumerStatefulWidget {
-  const EditRecurringScreen({super.key, this.existing});
+  const EditRecurringScreen({super.key, this.existing, this.template});
 
   final RecurringRule? existing;
+
+  /// An expense to fill a new rule from (Set as Fixed Expense): its amount,
+  /// category, note and day, starting next month. This month already has
+  /// the expense itself, so nothing is charged twice.
+  final Expense? template;
 
   @override
   ConsumerState<EditRecurringScreen> createState() =>
@@ -46,14 +51,24 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
   void initState() {
     super.initState();
     final rule = widget.existing;
+    final template = widget.template;
     final today = ref.read(todayProvider);
+    final amountMinor = rule?.amountMinor ?? template?.amountMinor;
     _amount = TextEditingController(
-      text: rule == null ? '' : formatMinor(rule.amountMinor, grouping: false),
+      text: amountMinor == null
+          ? ''
+          : formatMinor(amountMinor, grouping: false),
     );
-    _note = TextEditingController(text: rule?.note ?? '');
-    _categoryId = rule?.categoryId;
-    _dayOfMonth = rule?.dayOfMonth ?? today.day;
-    _startMonth = rule?.startMonth ?? toMonthKey(today);
+    _note = TextEditingController(text: rule?.note ?? template?.note ?? '');
+    _categoryId = rule?.categoryId ?? template?.categoryId;
+    _dayOfMonth =
+        rule?.dayOfMonth ??
+        (template == null ? today.day : parseLocalDate(template.localDate).day);
+    _startMonth =
+        rule?.startMonth ??
+        (template == null
+            ? toMonthKey(today)
+            : nextMonthKey(toMonthKey(today)));
     _endMonth = rule?.endMonth;
     _isActive = rule?.isActive ?? true;
   }
@@ -91,7 +106,11 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
       for (final category in categories)
         if (!category.isArchived) category,
     ];
-    final categoryId = _categoryId ?? active.firstOrNull?.id;
+    var categoryId = _categoryId ?? active.firstOrNull?.id;
+    // A template's archived category is left empty for Jack to pick.
+    if (widget.template != null && !active.any((c) => c.id == categoryId)) {
+      categoryId = null;
+    }
     final category = categories.where((c) => c.id == categoryId).firstOrNull;
     final existing = widget.existing;
     final canSave = _canSave(categoryId);
@@ -124,7 +143,7 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
                 label: AppStrings.amountLabel,
                 child: TextField(
                   controller: _amount,
-                  autofocus: existing == null,
+                  autofocus: existing == null && widget.template == null,
                   onChanged: (_) => setState(() {}),
                   onTapOutside: (_) => FocusScope.of(context).unfocus(),
                   textAlign: TextAlign.right,

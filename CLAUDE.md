@@ -140,6 +140,8 @@ Unit tests are required for, and only for:
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
 - `core/utils/bar_scale.dart` — the spending bars' cap
+- `data/services/export_service.dart` and `import_service.dart` — the backup's
+  gzip round trip, old plain-JSON files, and merging categories by name
 - the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.

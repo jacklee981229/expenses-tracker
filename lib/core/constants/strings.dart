@@ -50,8 +50,9 @@ abstract final class AppStrings {
 
   // Ledger
   static const String spentThisMonth = 'Spent this month';
+  static const String foldTotalCard = 'Show total only';
+  static const String openTotalCard = 'Show details';
   static String spentIn(String month) => 'Spent in $month';
-  static const String receiptTotal = 'TOTAL';
   static const String todayBadge = 'TODAY';
   static const String allCategories = 'All categories';
   static const String clearCategoryFilter = 'Show all categories';
@@ -176,6 +177,7 @@ abstract final class AppStrings {
   static const String editFixedExpense = 'Edit Fixed Expense';
   static const String noFixedExpenses = 'No fixed monthly expenses';
   static const String addFixedExpense = 'Add Fixed Expense';
+  static const String setAsFixedExpense = 'Set as Fixed Expense';
   static String everyMonthOn(int day) => 'Monthly on the ${_ordinal(day)}';
   static String categoryAndSchedule(String category, String schedule) =>
       '$category · $schedule';
@@ -209,8 +211,8 @@ abstract final class AppStrings {
   static const String appearanceLight = 'Light';
   static const String appearanceDark = 'Dark';
   static const String exportCsv = 'Export CSV';
-  static const String exportJson = 'Export JSON';
-  static const String importJson = 'Import JSON';
+  static const String exportBackup = 'Export Backup';
+  static const String importBackup = 'Import Backup';
   static String lastExport(String date) => 'Last export: $date';
   static const String lastExportNever = 'Last export: never';
   static const String version = 'Version';

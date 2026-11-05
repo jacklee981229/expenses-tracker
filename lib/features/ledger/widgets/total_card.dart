@@ -17,6 +17,7 @@ import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/hero_surface.dart';
 import '../../../shared/widgets/max_lines_wrap.dart';
 import '../../../shared/widgets/pill_bars.dart';
+import '../../../shared/widgets/pressable.dart';
 import '../../../shared/widgets/rolling_amount.dart';
 import '../ledger_providers.dart';
 
@@ -24,7 +25,8 @@ import '../ledger_providers.dart';
 /// sticker, the month's top three categories ([monthLegendProvider]) and
 /// pill bars ([heroBarsProvider]). This month also shows today's spend. The
 /// total flashes when it grows or shrinks. It swings in when the ledger
-/// opens.
+/// opens. Tapping the sticker folds it down to the total alone, and opens
+/// it again.
 class TotalCard extends ConsumerWidget {
   const TotalCard({super.key});
 
@@ -42,6 +44,7 @@ class TotalCard extends ConsumerWidget {
         month.year == today.year && month.month == today.month;
     final legend = ref.watch(monthLegendProvider);
     final onHero = colors.onHero;
+    final folded = ref.watch(totalCardFoldedProvider);
 
     return Entrance(
       offset: const Offset(0, 36),
@@ -71,15 +74,22 @@ class TotalCard extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          isCurrentMonth
-                              ? AppStrings.spentThisMonth
-                              : AppStrings.spentIn(formatMonthShort(month)),
-                          style: AppTextStyles.callout.copyWith(
-                            color: colors.onHeroSecondary,
+                        _Fold(
+                          folded: folded,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.sm,
+                            ),
+                            child: Text(
+                              isCurrentMonth
+                                  ? AppStrings.spentThisMonth
+                                  : AppStrings.spentIn(formatMonthShort(month)),
+                              style: AppTextStyles.callout.copyWith(
+                                color: colors.onHeroSecondary,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
@@ -92,47 +102,74 @@ class TotalCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  if (isCurrentMonth || legend.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.sm),
-                    // Two rows at most, so the card keeps its height: the
-                    // smaller categories drop out first.
-                    MaxLinesWrap(
-                      maxLines: AppSizes.heroChipLines,
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
+                  _Fold(
+                    folded: folded,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isCurrentMonth) _TodayChip(minor: todayTotal),
-                        for (final (category, percent) in legend)
-                          _LegendChip(category: category, percent: percent),
+                        if (isCurrentMonth || legend.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          // Two rows at most, so the card keeps its height: the
+                          // smaller categories drop out first.
+                          MaxLinesWrap(
+                            maxLines: AppSizes.heroChipLines,
+                            spacing: AppSpacing.xs,
+                            runSpacing: AppSpacing.xs,
+                            children: [
+                              if (isCurrentMonth) _TodayChip(minor: todayTotal),
+                              for (final (category, percent) in legend)
+                                _LegendChip(
+                                  category: category,
+                                  percent: percent,
+                                ),
+                            ],
+                          ),
+                        ],
+                        if (bars != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          PillBars(
+                            bars: bars,
+                            color: onHero,
+                            labelColor: colors.onHeroSecondary,
+                            height: AppSizes.heroWeekBarsHeight,
+                            barWidthFactor: AppSizes.heroWeekBarWidthFactor,
+                            onTap: (index) {
+                              final targets = ref.read(heroBarTargetsProvider);
+                              final day = index < targets.length
+                                  ? targets[index]
+                                  : null;
+                              if (day != null) {
+                                ref
+                                    .read(ledgerJumpProvider.notifier)
+                                    .jumpTo(day);
+                              }
+                            },
+                          ),
+                        ],
                       ],
                     ),
-                  ],
-                  if (bars != null) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    PillBars(
-                      bars: bars,
-                      color: onHero,
-                      labelColor: colors.onHeroSecondary,
-                      height: AppSizes.heroWeekBarsHeight,
-                      barWidthFactor: AppSizes.heroWeekBarWidthFactor,
-                      onTap: (index) {
-                        final targets = ref.read(heroBarTargetsProvider);
-                        final day = index < targets.length
-                            ? targets[index]
-                            : null;
-                        if (day != null) {
-                          ref.read(ledgerJumpProvider.notifier).jumpTo(day);
-                        }
-                      },
-                    ),
-                  ],
+                  ),
                 ],
               ),
             ),
-            const Positioned(
-              top: AppSpacing.md,
-              right: AppSpacing.md,
-              child: _Sticker(),
+            // Fills the card, so the sticker can glide from the top corner
+            // to the middle of the folded card's right; taps elsewhere go
+            // through to the card.
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: AnimatedAlign(
+                  alignment: folded
+                      ? Alignment.centerRight
+                      : Alignment.topRight,
+                  duration: AppMotion.slow,
+                  curve: AppMotion.enter,
+                  child: _Sticker(
+                    folded: folded,
+                    onTap: ref.read(totalCardFoldedProvider.notifier).toggle,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -236,13 +273,45 @@ class _LegendChip extends StatelessWidget {
   }
 }
 
-/// A receipt picture on a white disc, stuck on at an angle.
+/// Shrinks [child] away to nothing, fading, while [folded]. It stays built,
+/// so what it shows (today's rolling amount) keeps its state.
+class _Fold extends StatelessWidget {
+  const _Fold({required this.folded, required this.child});
+
+  final bool folded;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: folded ? 0 : 1),
+      duration: AppMotion.slow,
+      curve: AppMotion.enter,
+      child: IgnorePointer(ignoring: folded, child: child),
+      builder: (context, open, child) => ClipRect(
+        child: Align(
+          alignment: Alignment.topLeft,
+          heightFactor: open.clamp(0.0, 1.0),
+          child: Opacity(opacity: open.clamp(0.0, 1.0), child: child),
+        ),
+      ),
+    );
+  }
+}
+
+/// A receipt picture on a white disc, stuck on at an angle: the button that
+/// folds and opens the card. Folded, it shrinks to a dim grey disc and
+/// tips the other way.
 class _Sticker extends StatelessWidget {
-  const _Sticker();
+  const _Sticker({required this.folded, required this.onTap});
+
+  final bool folded;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final label = folded ? AppStrings.openTotalCard : AppStrings.foldTotalCard;
     return Entrance(
       delay: AppMotion.slow,
       offset: Offset.zero,
@@ -250,25 +319,56 @@ class _Sticker extends StatelessWidget {
       fromScale: 0,
       duration: AppMotion.page,
       curve: AppMotion.pop,
-      child: Transform.rotate(
-        angle: AppSizes.stickerTilt * math.pi / 180,
-        child: Container(
-          width: AppSizes.sticker,
-          height: AppSizes.sticker,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: colors.onAccent,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadow,
-                offset: const Offset(0, 10),
-                blurRadius: 18,
-                spreadRadius: -8,
+      child: Semantics(
+        button: true,
+        label: label,
+        excludeSemantics: true,
+        child: Pressable(
+          onTap: onTap,
+          pressedScale: AppSizes.stickerPressScale,
+          child: AnimatedRotation(
+            turns:
+                (folded ? AppSizes.stickerFoldedTilt : AppSizes.stickerTilt) /
+                360,
+            duration: AppMotion.slow,
+            curve: AppMotion.pop,
+            child: AnimatedContainer(
+              duration: AppMotion.slow,
+              curve: AppMotion.pop,
+              width: folded ? AppSizes.stickerFolded : AppSizes.sticker,
+              height: folded ? AppSizes.stickerFolded : AppSizes.sticker,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: folded ? colors.heroChip : colors.onAccent,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: folded
+                        ? colors.shadow.withValues(alpha: 0)
+                        : colors.shadow,
+                    offset: const Offset(0, 10),
+                    blurRadius: 18,
+                    spreadRadius: -8,
+                  ),
+                ],
               ),
-            ],
+              child: AnimatedOpacity(
+                opacity: folded ? AppSizes.stickerFoldedIconOpacity : 1,
+                duration: AppMotion.slow,
+                child: AnimatedScale(
+                  scale: folded
+                      ? AppSizes.stickerFoldedIcon / AppSizes.stickerIcon
+                      : 1,
+                  duration: AppMotion.slow,
+                  curve: AppMotion.pop,
+                  child: const UiIcon(
+                    UiIcons.receipt,
+                    size: AppSizes.stickerIcon,
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: const UiIcon(UiIcons.receipt, size: AppSizes.stickerIcon),
         ),
       ),
     );

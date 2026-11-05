@@ -18,6 +18,7 @@ class PillChip extends StatelessWidget {
     this.labelColor,
     this.selectedColor,
     this.selectedLabelColor,
+    this.small = false,
   });
 
   final String label;
@@ -32,6 +33,9 @@ class PillChip extends StatelessWidget {
   final Color? selectedColor;
   final Color? selectedLabelColor;
 
+  /// A quieter chip: lower, smaller text, a soft shadow under it.
+  final bool small;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -43,13 +47,25 @@ class PillChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: AppMotion.normal,
         curve: AppMotion.enter,
-        height: AppSizes.chipHeight,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
+        height: small ? AppSizes.noteChipHeight : AppSizes.chipHeight,
+        padding: EdgeInsets.symmetric(
+          horizontal: small ? AppSpacing.sm : AppSpacing.sm + 2,
+        ),
         decoration: BoxDecoration(
           color: selected
               ? selectedColor ?? colors.accent
               : color ?? colors.fill,
           borderRadius: BorderRadius.circular(AppRadius.chip),
+          boxShadow: small
+              ? [
+                  BoxShadow(
+                    color: colors.shadow,
+                    offset: const Offset(0, 4),
+                    blurRadius: 10,
+                    spreadRadius: -3,
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -66,11 +82,13 @@ class PillChip extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.subheadline.copyWith(
-                  color: selected
-                      ? selectedLabelColor ?? colors.onAccent
-                      : labelColor ?? colors.labelSecondary,
-                ),
+                style:
+                    (small ? AppTextStyles.footnote : AppTextStyles.subheadline)
+                        .copyWith(
+                          color: selected
+                              ? selectedLabelColor ?? colors.onAccent
+                              : labelColor ?? colors.labelSecondary,
+                        ),
               ),
             ),
           ],

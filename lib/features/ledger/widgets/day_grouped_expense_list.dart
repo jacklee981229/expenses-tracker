@@ -19,9 +19,9 @@ import 'expense_row.dart';
 /// Where receipts come in from when they first appear.
 enum EnterFrom { below, left, right }
 
-/// Expenses as one paper receipt per day, newest day first: a stamp with
-/// the date on top, a row per expense, and the day's total at the torn
-/// bottom. Receipts lean a little, alternating sides, and come in one after
+/// Expenses as one paper receipt per day, newest day first: a quiet stamp
+/// with the date and the day's total on top, then a row per expense down
+/// to the torn bottom. Receipts lean a little, alternating sides, and come in one after
 /// another. An expense added to a day already on screen prints into its
 /// receipt, which gives a small wobble. A deleted expense leaves an Undo row
 /// in its place for a few seconds. [header] scrolls in above the days;
@@ -194,7 +194,9 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
 
     return ListView.builder(
       controller: _scroll,
-      padding: const EdgeInsets.only(bottom: AppSizes.fabClearance),
+      padding: EdgeInsets.only(
+        bottom: AppSizes.fabClearance + MediaQuery.paddingOf(context).bottom,
+      ),
       itemCount: lead + (showEmpty ? 1 : groups.length),
       itemBuilder: (context, index) {
         if (header != null && index == 0) {
@@ -223,11 +225,12 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
         };
         return Padding(
           key: _dayKeys.putIfAbsent(group.localDate, GlobalKey.new),
+          // Half the old gap each side: receipts sit 16 apart.
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md + 2,
-            AppSpacing.sm,
+            AppSpacing.xs,
             AppSpacing.md + 2,
-            AppSpacing.sm,
+            AppSpacing.xs,
           ),
           child: Entrance(
             key: ValueKey(dayKey),
@@ -376,24 +379,34 @@ class _DayReceiptState extends State<_DayReceipt>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // The total sits where a row's amount does, so the right
+            // padding matches the rows'.
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md + 2,
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.xxs,
+                AppSpacing.sm,
+                AppSpacing.md - 2,
+                AppSpacing.xxs - 2,
               ),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      formatReceiptStamp(group.date),
-                      style: AppTextStyles.stamp.copyWith(
-                        color: colors.sectionLabel,
-                      ),
+                  Text(
+                    formatReceiptStamp(group.date),
+                    style: AppTextStyles.stamp.copyWith(
+                      color: colors.sectionLabel,
                     ),
                   ),
-                  if (widget.isToday) const _TodayBadge(),
+                  if (widget.isToday) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    const _TodayBadge(),
+                  ],
+                  const Spacer(),
+                  Text(
+                    formatWithSymbol(group.totalMinor),
+                    style: AppTextStyles.stampFigure.copyWith(
+                      color: colors.sectionLabel,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -418,40 +431,7 @@ class _DayReceiptState extends State<_DayReceipt>
                   onDelete: widget.onDelete,
                 ),
             ],
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md + 2,
-                AppSpacing.xxs,
-                AppSpacing.md + 2,
-                AppSpacing.md,
-              ),
-              child: Column(
-                children: [
-                  const DashedLine(thickness: 2),
-                  const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppStrings.receiptTotal,
-                          style: AppTextStyles.stamp.copyWith(
-                            color: colors.sectionLabel,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        formatWithSymbol(group.totalMinor),
-                        style: AppTextStyles.receiptTotal.copyWith(
-                          color: colors.label,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: AppSpacing.xxs),
           ],
         ),
       ),

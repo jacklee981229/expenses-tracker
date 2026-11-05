@@ -14,13 +14,16 @@ import '../../../data/database/daos/transaction_dao.dart';
 import '../../../data/database/tables/transactions_table.dart';
 import '../../../shared/widgets/category_avatar.dart';
 import '../../../shared/widgets/pressable.dart';
+import '../../../shared/widgets/sheets.dart';
 import '../../../shared/widgets/swipe_action_row.dart';
 import '../../add_expense/add_expense_sheet.dart';
+import '../../recurring/edit_recurring_screen.dart';
 
 /// One line of a receipt: the category icon, the note as the title (the
 /// category when there is no note), `time · category` underneath, and the
 /// amount as `-RM12.50`. Tap to edit; swipe left for Again (a new copy
-/// dated today) and Delete. A new expense prints in (the row unrolls from
+/// dated today) and Delete; long-press for those two and Set as Fixed
+/// Expense. A new expense prints in (the row unrolls from
 /// nothing); a deleted one is torn away to the right, leaving its space to
 /// the [DeletedExpenseRow] that replaces it.
 class ExpenseRow extends StatefulWidget {
@@ -96,6 +99,7 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
         color: Colors.transparent,
         pressedScale: 0.97,
         onTap: () => showAddExpenseSheet(context, editing: expense),
+        onLongPress: _showMenu,
         child: _RowContent(widget.item),
       ),
     );
@@ -127,11 +131,44 @@ class _ExpenseRowState extends State<ExpenseRow> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _showMenu() async {
+    final expense = widget.item.expense;
+    final action = await showOptionsSheet<_RowAction>(
+      context,
+      options: [
+        const SheetOption(AppStrings.again, _RowAction.again),
+        // One already made by a fixed expense needs no second rule.
+        if (expense.recurringRuleId == null)
+          const SheetOption(AppStrings.setAsFixedExpense, _RowAction.fixed),
+        const SheetOption(
+          AppStrings.delete,
+          _RowAction.delete,
+          destructive: true,
+        ),
+      ],
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case _RowAction.again:
+        await showAddExpenseSheet(context, template: expense);
+      case _RowAction.fixed:
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => EditRecurringScreen(template: expense),
+          ),
+        );
+      case _RowAction.delete:
+        await _delete();
+    }
+  }
+
   Future<void> _delete() async {
     await _tear.forward();
     if (mounted) widget.onDelete(widget.item);
   }
 }
+
+enum _RowAction { again, fixed, delete }
 
 /// The row's icon, title, detail line and amount.
 class _RowContent extends StatelessWidget {
