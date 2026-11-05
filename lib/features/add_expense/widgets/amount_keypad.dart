@@ -65,6 +65,9 @@ class AmountKeypad extends StatelessWidget {
 
     return SafeArea(
       top: false,
+      // The keyboard shrinks the bottom padding as it rises; keeping it
+      // stops the keypad, and the amount box above it, sinking meanwhile.
+      maintainBottomViewPadding: true,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.sm + 2,

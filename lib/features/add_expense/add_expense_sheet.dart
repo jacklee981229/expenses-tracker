@@ -204,59 +204,66 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     final today = ref.watch(todayProvider);
     final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: keyboardHeight),
-      child: Column(
-        children: [
-          _SheetHeader(
-            title:
-                _notice ??
-                (state.isEditing
-                    ? AppStrings.editExpense
-                    : AppStrings.newExpense),
+    return Column(
+      children: [
+        _SheetHeader(
+          title:
+              _notice ??
+              (state.isEditing
+                  ? AppStrings.editExpense
+                  : AppStrings.newExpense),
+        ),
+        Expanded(
+          child: CategoryGrid(
+            categories: categories,
+            selectedId: state.categoryId,
+            onSelected: controller.selectCategory,
+            onAddCategory: () => _addCategory(controller),
           ),
-          Expanded(
-            child: CategoryGrid(
-              categories: categories,
-              selectedId: state.categoryId,
-              onSelected: controller.selectCategory,
-              onAddCategory: () => _addCategory(controller),
-            ),
+        ),
+        _AmountBox(
+          categoryColor: switch (categories
+              .where((c) => c.id == state.categoryId)
+              .firstOrNull) {
+            final category? => colorFromHex(category.colorHex),
+            null => null,
+          },
+          reading: _reading,
+          overlay: ScanOverlay(reading: _reading),
+          amount: AmountDisplay(
+            expression: state.expression,
+            resultMinor: state.amountMinor,
+            showResult: state.showsResult,
+            sent: _sent,
           ),
-          _AmountBox(
-            categoryColor: switch (categories
-                .where((c) => c.id == state.categoryId)
-                .firstOrNull) {
-              final category? => colorFromHex(category.colorHex),
-              null => null,
-            },
-            reading: _reading,
-            overlay: ScanOverlay(reading: _reading),
-            amount: AmountDisplay(
-              expression: state.expression,
-              resultMinor: state.amountMinor,
-              showResult: state.showsResult,
-              sent: _sent,
-            ),
-            date: DateChip(
-              date: state.date,
-              today: today,
-              onChanged: controller.setDate,
-            ),
-            note: _NoteField(
-              controller: _note,
-              focusNode: _noteFocus,
-              onChanged: controller.typeNote,
-            ),
-            history: HistoryChipStrip(
-              categoryId: state.categoryId,
-              note: state.note,
-              onSelected: controller.setNote,
-            ),
+          date: DateChip(
+            date: state.date,
+            today: today,
+            onChanged: controller.setDate,
           ),
-          // The system keyboard replaces the keypad while the note is edited.
-          if (keyboardHeight == 0)
-            AmountKeypad(
+          note: _NoteField(
+            controller: _note,
+            focusNode: _noteFocus,
+            onChanged: controller.typeNote,
+          ),
+          history: HistoryChipStrip(
+            categoryId: state.categoryId,
+            note: state.note,
+            onSelected: controller.setNote,
+          ),
+        ),
+        // The system keyboard slides up over the keypad while the note is
+        // edited. Removing the keypad instead dropped the amount box to the
+        // bottom and back up on every open and close; this way the box only
+        // moves once the keyboard is taller than the keypad.
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: keyboardHeight == 0 ? 0 : keyboardHeight + AppSpacing.xs,
+          ),
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: 1,
+            child: AmountKeypad(
               onDigit: (digit) => _key(() => controller.digit(digit)),
               onDecimalPoint: () => _key(controller.decimalPoint),
               onPlusMinus: () => _key(controller.toggleOperator),
@@ -271,11 +278,10 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
                   ? () => _save(controller, addAnother: true)
                   : null,
               onSave: state.canSave ? () => _save(controller) : null,
-            )
-          else
-            const SizedBox(height: AppSpacing.xs),
-        ],
-      ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
