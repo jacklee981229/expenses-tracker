@@ -248,11 +248,29 @@ class _RowContent extends StatelessWidget {
                       const SizedBox(width: AppSpacing.xxs),
                       ScaleTransition(
                         scale: fixedMark ?? kAlwaysCompleteAnimation,
-                        child: Icon(
-                          Icons.repeat_rounded,
-                          size: AppSizes.repeatGlyph,
-                          color: colors.labelSecondary,
-                          semanticLabel: AppStrings.recurringTooltip,
+                        // The TODAY stamp's violet and glow, so fixed rows
+                        // stand out down the receipt.
+                        child: Container(
+                          width: AppSizes.fixedMark,
+                          height: AppSizes.fixedMark,
+                          decoration: BoxDecoration(
+                            color: colors.accent,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.accent.withValues(alpha: 0.85),
+                                offset: const Offset(0, 3),
+                                blurRadius: 10,
+                                spreadRadius: -2,
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.repeat_rounded,
+                            size: AppSizes.repeatGlyph,
+                            color: colors.onAccent,
+                            semanticLabel: AppStrings.recurringTooltip,
+                          ),
                         ),
                       ),
                     ],

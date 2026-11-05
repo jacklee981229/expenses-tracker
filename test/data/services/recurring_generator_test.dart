@@ -238,6 +238,77 @@ void main() {
     });
   });
 
+  group('earlier payments', () {
+    Future<String> paid(
+      DateTime when, {
+      int amountMinor = 150000,
+      String? note = 'Rent',
+      String? category,
+    }) => db.transactionDao.insertExpense(
+      amountMinor: amountMinor,
+      categoryId: category ?? categoryId,
+      occurredAt: when,
+      note: note,
+    );
+
+    Future<Expense> byId(String id) async =>
+        (await db.transactionDao.getAll()).singleWhere((e) => e.id == id);
+
+    test('before the rule starts count as fixed, linked to it', () async {
+      final ruleId = await rule(startMonth: '2026-10');
+      final august = await paid(DateTime(2026, 8, 1, 20));
+      final september = await paid(DateTime(2026, 9, 3, 20));
+      expect(await generator.catchUp(), 0);
+      for (final id in [august, september]) {
+        final expense = await byId(id);
+        expect(expense.source, TransactionSource.recurring);
+        expect(expense.recurringRuleId, ruleId);
+      }
+    });
+
+    test('need the same amount, note and category', () async {
+      await rule(startMonth: '2026-10');
+      final other = await db.categoryDao.insertCategory(
+        name: 'Test Other',
+        iconKey: 'rent',
+        colorHex: '8D6E63',
+      );
+      final ids = [
+        await paid(DateTime(2026, 9, 1), amountMinor: 140000),
+        await paid(DateTime(2026, 9, 1), note: 'Rent deposit'),
+        await paid(DateTime(2026, 9, 1), note: null),
+        await paid(DateTime(2026, 9, 1), category: other),
+      ];
+      await generator.catchUp();
+      for (final id in ids) {
+        expect((await byId(id)).source, TransactionSource.manual);
+      }
+    });
+
+    test('a rule without a note takes payments without one', () async {
+      await rule(startMonth: '2026-10', note: null);
+      final id = await paid(DateTime(2026, 9, 1), note: null);
+      await generator.catchUp();
+      expect((await byId(id)).source, TransactionSource.recurring);
+    });
+
+    test('from the start month on stay as entered', () async {
+      // Paid by hand in a month the rule also generates: a second payment.
+      await rule(startMonth: '2026-09', dayOfMonth: 1);
+      final id = await paid(DateTime(2026, 9, 2));
+      await generator.catchUp();
+      expect((await byId(id)).source, TransactionSource.manual);
+      expect(await generatedDates(), ['2026-09-01']);
+    });
+
+    test('count for a paused rule too', () async {
+      await rule(startMonth: '2026-10', isActive: false);
+      final id = await paid(DateTime(2026, 9, 1));
+      await generator.catchUp();
+      expect((await byId(id)).source, TransactionSource.recurring);
+    });
+  });
+
   group('first month to generate', () {
     RecurringRule ruleWith({required String start, String? last}) =>
         RecurringRule(

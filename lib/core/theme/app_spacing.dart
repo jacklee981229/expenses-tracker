@@ -254,7 +254,10 @@ abstract final class AppSizes {
   static const int heroChipLines = 2;
   static const double legendNameMaxWidth = 110;
   static const double inlineIcon = 18;
-  static const double repeatGlyph = 14;
+
+  /// The fixed mark: a violet coin with the repeat glyph in it.
+  static const double fixedMark = 20;
+  static const double repeatGlyph = 12;
   static const double bannerIcon = 20;
   static const double emptyStateIcon = 64;
 

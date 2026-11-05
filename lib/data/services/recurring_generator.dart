@@ -2,7 +2,8 @@ import '../../core/utils/date_utils.dart';
 import '../database/app_database.dart';
 import '../database/tables/transactions_table.dart';
 
-/// Turns fixed monthly rules into expenses. Runs on app start and resume.
+/// Turns fixed monthly rules into expenses, and marks each rule's earlier
+/// payments entered by hand as fixed. Runs on app start and resume.
 ///
 /// `lastGeneratedMonth` is the only idempotency guard: a generated expense
 /// the user deletes is not recreated. Each rule's catch-up, including the
@@ -29,6 +30,10 @@ class RecurringGenerator {
     var added = 0;
     for (final rule in await _db.recurringDao.getActive()) {
       added += await _catchUpRule(rule.id, currentMonth);
+    }
+    // Paused and ended rules are still fixed expenses.
+    for (final rule in await _db.recurringDao.getAll()) {
+      await _db.transactionDao.markEarlierPayments(rule);
     }
     return added;
   }

@@ -74,7 +74,6 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
   final Set<String> _undone = {};
 
   final ScrollController _scroll = ScrollController();
-  final GlobalKey _headerKey = GlobalKey();
 
   /// Each day's receipt (with its padding), by `localDate`, for [_jumpTo].
   final Map<String, GlobalKey> _dayKeys = {};
@@ -107,11 +106,15 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
     super.dispose();
   }
 
-  /// The list is lazy, so an unbuilt receipt has no position yet: jump to
-  /// an estimate from the heights seen so far, let it build, and once it
-  /// exists, settle on it (as far as the list allows near the end).
-  void _jumpTo(LedgerJump jump, {int tries = 0}) {
-    if (!mounted || !_scroll.hasClients) return;
+  /// The list is lazy, so an unbuilt receipt has no position yet: scroll to
+  /// an estimate measured from the nearest receipt that is built, let it
+  /// build, and once it exists, settle on it (as far as the list allows
+  /// near the end). Estimating from the top instead overshot a month with
+  /// a few tall receipts, and gave up before reaching an early week.
+  void _jumpTo(LedgerJump jump, {int tries = 0, int? run}) {
+    final thisRun = run ?? ++_jumpRun;
+    // A newer tap took over.
+    if (!mounted || !_scroll.hasClients || thisRun != _jumpRun) return;
     final localDate = jump.localDate;
     final target = _dayKeys[localDate]?.currentContext?.findRenderObject();
     if (target != null) {
@@ -129,31 +132,78 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
             duration: AppMotion.slow,
             curve: AppMotion.enter,
           )
-          .then((_) => _light(jump.light));
+          .then((_) {
+            if (thisRun == _jumpRun) _light(jump.light);
+          });
       return;
     }
     final index = _shown.indexWhere((group) => group.localDate == localDate);
     if (index < 0 || tries >= _jumpTries) return;
-    for (final MapEntry(:key, :value) in _dayKeys.entries) {
-      final box = value.currentContext?.findRenderObject() as RenderBox?;
-      if (box != null && box.hasSize) _heights[key] = box.size.height;
+    // The built receipt nearest the target, and where it really is.
+    int? anchor;
+    var anchorOffset = 0.0;
+    for (var i = 0; i < _shown.length; i++) {
+      final box =
+          _dayKeys[_shown[i].localDate]?.currentContext?.findRenderObject()
+              as RenderBox?;
+      if (box == null || !box.hasSize) continue;
+      _heights[_shown[i].localDate] = box.size.height;
+      if (anchor == null || (i - index).abs() < (anchor - index).abs()) {
+        anchor = i;
+        anchorOffset = RenderAbstractViewport.of(
+          box,
+        ).getOffsetToReveal(box, 0).offset;
+      }
     }
-    if (_heights.isEmpty) return;
-    final average =
-        _heights.values.reduce((sum, height) => sum + height) / _heights.length;
-    final header = _headerKey.currentContext?.size?.height ?? 0;
-    var offset = header;
-    for (final group in _shown.take(index)) {
-      offset += _heights[group.localDate] ?? average;
+    if (anchor == null) return;
+    // An unmeasured receipt is guessed from its rows, its stamp counting as
+    // one, at the measured receipts' height per row: one long day of fixed
+    // expenses no longer throws the guess for every short day.
+    var measured = 0.0;
+    var rows = 0;
+    for (final group in _shown) {
+      final height = _heights[group.localDate];
+      if (height == null) continue;
+      measured += height;
+      rows += group.items.length + 1;
     }
-    _scroll.jumpTo(math.min(offset, _scroll.position.maxScrollExtent));
-    WidgetsBinding.instance
-      ..addPostFrameCallback((_) => _jumpTo(jump, tries: tries + 1))
-      ..scheduleFrame();
+    final perRow = measured / rows;
+    double heightOf(DayGroup group) =>
+        _heights[group.localDate] ?? perRow * (group.items.length + 1);
+    final offset = index > anchor
+        ? anchorOffset +
+              _shown
+                  .sublist(anchor, index)
+                  .fold(0.0, (sum, g) => sum + heightOf(g))
+        : anchorOffset -
+              _shown
+                  .sublist(index, anchor)
+                  .fold(0.0, (sum, g) => sum + heightOf(g));
+    final position = _scroll.position;
+    _scroll
+        .animateTo(
+          offset.clamp(position.minScrollExtent, position.maxScrollExtent),
+          duration: AppMotion.page,
+          curve: AppMotion.exit,
+        )
+        // Waits for the frame's layout, so the next try measures the
+        // receipts this step built rather than the ones before it.
+        .then(
+          (_) => WidgetsBinding.instance
+            ..addPostFrameCallback(
+              (_) => _jumpTo(jump, tries: tries + 1, run: thisRun),
+            )
+            ..scheduleFrame(),
+        );
   }
 
-  /// Estimates before giving up; each one builds more receipts to measure.
+  /// Estimates before giving up; each one lands nearer and builds more
+  /// receipts to measure.
   static const int _jumpTries = 6;
+
+  /// Counts taps on the bars, so an older jump still under way stops; a
+  /// drag counts too, so a jump never pulls against the finger.
+  int _jumpRun = 0;
 
   void _light(Set<String> days) {
     if (!mounted) return;
@@ -223,81 +273,85 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
     final lead = header == null ? 0 : 1;
     final showEmpty = groups.isEmpty && empty != null;
 
-    return ListView.builder(
-      controller: _scroll,
-      padding: EdgeInsets.only(
-        bottom: AppSizes.fabClearance + MediaQuery.paddingOf(context).bottom,
-      ),
-      itemCount: lead + (showEmpty ? 1 : groups.length),
-      itemBuilder: (context, index) {
-        if (header != null && index == 0) {
-          return _KeepAlive(
-            child: KeyedSubtree(key: _headerKey, child: header),
-          );
-        }
-        if (showEmpty) {
-          return Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.lg),
-            child: empty,
-          );
-        }
-        final position = index - lead;
-        final group = groups[position];
-        final dayKey = '${widget.scope}|${group.localDate}';
-        // Rows only print in when their receipt was already on screen; a
-        // whole new receipt comes in by itself instead.
-        final dayIsNew = _seenDays.add(dayKey);
-        final staggered =
-            dayIsNew &&
-            DateTime.now().difference(_scopeStart) < AppMotion.page * 2;
-        final printing = <String>{
-          for (final item in group.items)
-            if (_seenRows.add(item.expense.id) && !dayIsNew) item.expense.id,
-        };
-        return Padding(
-          key: _dayKeys.putIfAbsent(group.localDate, GlobalKey.new),
-          // Half the old gap each side: receipts sit 16 apart.
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md + 2,
-            AppSpacing.xs,
-            AppSpacing.md + 2,
-            AppSpacing.xs,
-          ),
-          child: Entrance(
-            key: ValueKey(dayKey),
-            animate: dayIsNew,
-            delay: staggered ? staggerDelay(position) : Duration.zero,
-            offset: switch (widget.enterFrom) {
-              EnterFrom.below => const Offset(0, 24),
-              EnterFrom.left => const Offset(-48, 0),
-              EnterFrom.right => const Offset(48, 0),
-            },
-            fromTilt: switch (widget.enterFrom) {
-              EnterFrom.below => -2,
-              EnterFrom.left => -3,
-              EnterFrom.right => 3,
-            },
-            child: _DayReceipt(
-              group: group,
-              tilt: position.isEven
-                  ? -AppSizes.receiptTilt
-                  : AppSizes.receiptTilt,
-              isToday: dateOnly(group.date) == dateOnly(today),
-              lightRun: _lit.contains(group.localDate) ? _lightRun : null,
-              printing: printing,
-              deleted: [
-                for (final item in _deleted.values)
-                  if (item.expense.localDate == group.localDate &&
-                      !live.contains(item.expense.id))
-                    item,
-              ],
-              onDelete: _delete,
-              onUndo: _undo,
-              onGone: _gone,
-            ),
-          ),
-        );
+    return NotificationListener<ScrollStartNotification>(
+      onNotification: (start) {
+        if (start.dragDetails != null) _jumpRun++;
+        return false;
       },
+      child: ListView.builder(
+        controller: _scroll,
+        padding: EdgeInsets.only(
+          bottom: AppSizes.fabClearance + MediaQuery.paddingOf(context).bottom,
+        ),
+        itemCount: lead + (showEmpty ? 1 : groups.length),
+        itemBuilder: (context, index) {
+          if (header != null && index == 0) {
+            return _KeepAlive(child: header);
+          }
+          if (showEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.lg),
+              child: empty,
+            );
+          }
+          final position = index - lead;
+          final group = groups[position];
+          final dayKey = '${widget.scope}|${group.localDate}';
+          // Rows only print in when their receipt was already on screen; a
+          // whole new receipt comes in by itself instead.
+          final dayIsNew = _seenDays.add(dayKey);
+          final staggered =
+              dayIsNew &&
+              DateTime.now().difference(_scopeStart) < AppMotion.page * 2;
+          final printing = <String>{
+            for (final item in group.items)
+              if (_seenRows.add(item.expense.id) && !dayIsNew) item.expense.id,
+          };
+          return Padding(
+            key: _dayKeys.putIfAbsent(group.localDate, GlobalKey.new),
+            // Half the old gap each side: receipts sit 16 apart.
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md + 2,
+              AppSpacing.xs,
+              AppSpacing.md + 2,
+              AppSpacing.xs,
+            ),
+            child: Entrance(
+              key: ValueKey(dayKey),
+              animate: dayIsNew,
+              delay: staggered ? staggerDelay(position) : Duration.zero,
+              offset: switch (widget.enterFrom) {
+                EnterFrom.below => const Offset(0, 24),
+                EnterFrom.left => const Offset(-48, 0),
+                EnterFrom.right => const Offset(48, 0),
+              },
+              fromTilt: switch (widget.enterFrom) {
+                EnterFrom.below => -2,
+                EnterFrom.left => -3,
+                EnterFrom.right => 3,
+              },
+              child: _DayReceipt(
+                group: group,
+                tilt: position.isEven
+                    ? -AppSizes.receiptTilt
+                    : AppSizes.receiptTilt,
+                isToday: dateOnly(group.date) == dateOnly(today),
+                lightRun: _lit.contains(group.localDate) ? _lightRun : null,
+                printing: printing,
+                deleted: [
+                  for (final item in _deleted.values)
+                    if (item.expense.localDate == group.localDate &&
+                        !live.contains(item.expense.id))
+                      item,
+                ],
+                onDelete: _delete,
+                onUndo: _undo,
+                onGone: _gone,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

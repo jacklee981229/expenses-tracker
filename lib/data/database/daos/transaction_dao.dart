@@ -160,6 +160,29 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
+  /// Marks as made by [rule] the expenses entered by hand that are its
+  /// earlier payments: same category, amount and note, dated before the rule
+  /// starts. Covers expenses set as fixed before that linked them, and
+  /// payments recorded before the rule existed. Returns how many it marked.
+  Future<int> markEarlierPayments(RecurringRule rule) {
+    final note = rule.note;
+    return (update(transactions)..where(
+          (t) =>
+              t.source.equals(TransactionSource.manual) &
+              t.categoryId.equals(rule.categoryId) &
+              t.amountMinor.equals(rule.amountMinor) &
+              (note == null ? t.note.isNull() : t.note.equals(note)) &
+              t.localDate.isSmallerThanValue('${rule.startMonth}-01'),
+        ))
+        .write(
+          TransactionsCompanion(
+            source: const Value(TransactionSource.recurring),
+            recurringRuleId: Value(rule.id),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+  }
+
   Future<void> deleteExpense(String id) async {
     await (delete(transactions)..where((t) => t.id.equals(id))).go();
   }
