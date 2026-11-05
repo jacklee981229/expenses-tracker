@@ -59,6 +59,10 @@ or follows the phone).
 - Elements: C (gradient with glass) first, then B (colours that mean
   something) and D (one hero).
 - Signature: the glass shows your month, quietly.
+- App icon: the theme's four gap colours as blobs with a tilted glass
+  receipt. Android uses adaptive layers (`ic_launcher_background` and
+  `_foreground`, drawn 108dp with the design in the middle 72dp); the
+  source SVG is on Jack's private icon prototype page.
 
 ## Looks I don't prefer
 
