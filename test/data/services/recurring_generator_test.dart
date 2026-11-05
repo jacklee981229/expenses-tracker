@@ -285,11 +285,12 @@ void main() {
       }
     });
 
-    test('a rule without a note takes payments without one', () async {
+    test('a rule without a note takes none', () async {
+      // It would match every old expense of its category and amount.
       await rule(startMonth: '2026-10', note: null);
       final id = await paid(DateTime(2026, 9, 1), note: null);
       await generator.catchUp();
-      expect((await byId(id)).source, TransactionSource.recurring);
+      expect((await byId(id)).source, TransactionSource.manual);
     });
 
     test('from the start month on stay as entered', () async {
@@ -336,6 +337,20 @@ void main() {
         ),
         '2027-01',
       );
+    });
+  });
+
+  group('a rule made from an expense', () {
+    final today = DateTime(2026, 11, 6);
+
+    test('starts next month for one dated this month or before', () {
+      expect(RecurringGenerator.startMonthFor('2026-11-01', today), '2026-12');
+      expect(RecurringGenerator.startMonthFor('2026-08-15', today), '2026-12');
+    });
+
+    test('starts after a later month, which already has its payment', () {
+      expect(RecurringGenerator.startMonthFor('2026-12-01', today), '2027-01');
+      expect(RecurringGenerator.startMonthFor('2027-02-28', today), '2027-03');
     });
   });
 

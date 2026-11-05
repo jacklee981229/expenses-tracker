@@ -74,6 +74,18 @@ class RecurringGenerator {
     return next.compareTo(rule.startMonth) < 0 ? rule.startMonth : next;
   }
 
+  /// The start month of a rule made from an expense dated [localDate] (Set
+  /// as Fixed Expense): the month after the later of this month and the
+  /// expense's. The expense is its own month's payment, so starting there
+  /// would charge that month twice.
+  static String startMonthFor(String localDate, DateTime today) {
+    final thisMonth = toMonthKey(today);
+    final expenseMonth = toMonthKey(parseLocalDate(localDate));
+    return nextMonthKey(
+      expenseMonth.compareTo(thisMonth) > 0 ? expenseMonth : thisMonth,
+    );
+  }
+
   /// The guard to store when a paused rule is switched back on: generation
   /// resumes from the current month instead of back-filling the months the
   /// rule was paused.

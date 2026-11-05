@@ -10,6 +10,7 @@ import '../../core/utils/amount_input.dart';
 import '../../core/utils/date_utils.dart';
 import '../../core/utils/money.dart';
 import '../../data/database/app_database.dart';
+import '../../data/services/recurring_generator.dart';
 import '../../shared/today_provider.dart';
 import '../../shared/widgets/category_avatar.dart';
 import '../../shared/widgets/inset_group.dart';
@@ -26,8 +27,8 @@ class EditRecurringScreen extends ConsumerStatefulWidget {
   final RecurringRule? existing;
 
   /// An expense to fill a new rule from (Set as Fixed Expense): its amount,
-  /// category, note and day, starting next month. This month already has
-  /// the expense itself, so nothing is charged twice.
+  /// category, note and day, starting after the expense's month
+  /// ([RecurringGenerator.startMonthFor]), so nothing is charged twice.
   final Expense? template;
 
   @override
@@ -68,7 +69,7 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
         rule?.startMonth ??
         (template == null
             ? toMonthKey(today)
-            : nextMonthKey(toMonthKey(today)));
+            : RecurringGenerator.startMonthFor(template.localDate, today));
     _endMonth = rule?.endMonth;
     _isActive = rule?.isActive ?? true;
   }

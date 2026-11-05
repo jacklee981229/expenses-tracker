@@ -187,5 +187,8 @@ Widget tests are not required. Do not write them unless asked.
   Actions (`.github/workflows/ios-unsigned.yml`, on every push to `main`);
   Jack signs and installs it with Sideloadly and his free Apple ID, which
   expires every 7 days. Signing with a paid account (TestFlight) is on hold.
+  After each push, download the run's `Expenses-unsigned-ipa` artifact
+  and put the `.ipa` at `C:\Jack\ipa\Expenses-unsigned.ipa`, replacing the
+  old one: Jack takes the latest from there.
 - Do not fine-tune spacing or typography against the Android emulator. That pass
   happens on a real iPhone later.

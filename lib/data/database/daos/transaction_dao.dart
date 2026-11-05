@@ -164,14 +164,17 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   /// earlier payments: same category, amount and note, dated before the rule
   /// starts. Covers expenses set as fixed before that linked them, and
   /// payments recorded before the rule existed. Returns how many it marked.
-  Future<int> markEarlierPayments(RecurringRule rule) {
+  /// A rule without a note marks none: it would take every old expense of
+  /// its category and amount.
+  Future<int> markEarlierPayments(RecurringRule rule) async {
     final note = rule.note;
+    if (note == null) return 0;
     return (update(transactions)..where(
           (t) =>
               t.source.equals(TransactionSource.manual) &
               t.categoryId.equals(rule.categoryId) &
               t.amountMinor.equals(rule.amountMinor) &
-              (note == null ? t.note.isNull() : t.note.equals(note)) &
+              t.note.equals(note) &
               t.localDate.isSmallerThanValue('${rule.startMonth}-01'),
         ))
         .write(
