@@ -90,6 +90,64 @@ class AnalysisDao extends DatabaseAccessor<AppDatabase>
     for (final row in rows) row.read(_month)!: row.read(_total) ?? 0,
   };
 
+  /// Spending per week between inclusive local dates, keyed by the
+  /// `YYYY-MM-DD` its week starts on ([firstDayOfWeek] is an ISO weekday,
+  /// 1 = Monday), limited to [categoryIds] when that is not empty. Weeks
+  /// with nothing are absent.
+  Stream<Map<String, int>> watchWeekTotals({
+    required String start,
+    required String end,
+    required int firstDayOfWeek,
+    Set<String> categoryIds = const {},
+  }) {
+    final week = _weekStart(firstDayOfWeek);
+    return _weekTotals(
+      week,
+      start,
+      end,
+      categoryIds,
+    ).watch().map((rows) => _toWeeks(week, rows));
+  }
+
+  Future<Map<String, int>> weekTotals({
+    required String start,
+    required String end,
+    required int firstDayOfWeek,
+    Set<String> categoryIds = const {},
+  }) async {
+    final week = _weekStart(firstDayOfWeek);
+    return _toWeeks(
+      week,
+      await _weekTotals(week, start, end, categoryIds).get(),
+    );
+  }
+
+  /// The date of the first day of `local_date`'s week. SQLite's `%w` counts
+  /// from Sunday = 0, as does an ISO weekday mod 7.
+  Expression<String> _weekStart(int firstDayOfWeek) {
+    assert(firstDayOfWeek >= 1 && firstDayOfWeek <= 7);
+    final back = 7 - firstDayOfWeek % 7;
+    return CustomExpression<String>(
+      "date(local_date, '-' || ((CAST(strftime('%w', local_date) AS INTEGER)"
+      " + $back) % 7) || ' days')",
+    );
+  }
+
+  JoinedSelectStatement<HasResultSet, dynamic> _weekTotals(
+    Expression<String> week,
+    String start,
+    String end,
+    Set<String> categoryIds,
+  ) {
+    return selectOnly(transactions)
+      ..addColumns([week, _total])
+      ..where(_filter(start, end, categoryIds)!)
+      ..groupBy([week]);
+  }
+
+  Map<String, int> _toWeeks(Expression<String> week, List<TypedResult> rows) =>
+      {for (final row in rows) row.read(week)!: row.read(_total) ?? 0};
+
   /// The day with the most spending between inclusive local dates (both
   /// null = all time), limited to [categoryIds] when that is not empty; the
   /// later day wins a tie. Null when there is no spending.

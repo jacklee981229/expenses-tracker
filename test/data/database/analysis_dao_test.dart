@@ -167,6 +167,65 @@ void main() {
     );
   });
 
+  test('week totals group by the week a day falls in', () async {
+    // 1 Sep 2026 is a Tuesday, 5 Sep a Saturday, 15 Sep a Tuesday,
+    // 30 Sep a Wednesday, 31 Aug a Monday, 1 Oct a Thursday.
+    expect(
+      await db.analysisDao.weekTotals(
+        start: '2026-08-31',
+        end: '2026-10-04',
+        firstDayOfWeek: DateTime.monday,
+      ),
+      {
+        '2026-08-31': 999 + 1250 + 150000,
+        '2026-09-14': 300,
+        '2026-09-28': 800 + 111,
+      },
+    );
+  });
+
+  test('week totals follow the first day of week', () async {
+    // Weeks from Sunday: 31 Aug and 1–5 Sep share the week of 30 Aug.
+    expect(
+      await db.analysisDao.weekTotals(
+        start: '2026-08-30',
+        end: '2026-10-03',
+        firstDayOfWeek: DateTime.sunday,
+      ),
+      {
+        '2026-08-30': 999 + 1250 + 150000,
+        '2026-09-13': 300,
+        '2026-09-27': 800 + 111,
+      },
+    );
+    // Weeks from Saturday: 5 Sep starts a new one.
+    expect(
+      await db.analysisDao.weekTotals(
+        start: '2026-08-29',
+        end: '2026-10-02',
+        firstDayOfWeek: DateTime.saturday,
+      ),
+      {
+        '2026-08-29': 999 + 1250,
+        '2026-09-05': 150000,
+        '2026-09-12': 300,
+        '2026-09-26': 800 + 111,
+      },
+    );
+  });
+
+  test('week totals stay inside the bounds and follow the filter', () async {
+    expect(
+      await db.analysisDao.weekTotals(
+        start: '2026-09-01',
+        end: '2026-09-30',
+        firstDayOfWeek: DateTime.monday,
+        categoryIds: {food},
+      ),
+      {'2026-08-31': 1250, '2026-09-28': 800},
+    );
+  });
+
   test('finds the biggest day, filtered or not', () async {
     expect(
       await db.analysisDao.biggestDay(start: '2026-09-01', end: '2026-09-30'),

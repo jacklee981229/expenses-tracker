@@ -44,7 +44,8 @@ or follows the phone).
   page text at its centre keeps 4.5:1 (the small section labels 3:1).
   Category colour also marks the icon tiles, the total card's legend chips
   (two rows at most, with Today) and the amount box while recording.
-  Everything else is neutral glass, the Analysis bars included.
+  Everything else is neutral glass, the Analysis bars included; the one
+  exception is a capped spending bar, which turns the theme's coral.
 - Type: Bricolage Grotesque; the month's total is the one hero.
 - Shapes and material: glass, meaning a translucent tint, a 1px edge and a
   lighter top. The total card's glass is thinner than the glass under
@@ -59,11 +60,12 @@ or follows the phone).
   something) and D (one hero).
 - Signature: the glass shows your month, quietly.
 
-## Looks we don't use
+## Looks I don't prefer
 
 Plain dark-grey cards with only a small colour block; flat full-colour cards
 with no depth; every card tilted (the + button, amount box and keypad stay
-upright); 3D-extruded charts (charts are 2D with shading and shadow);
+upright); 3D-extruded charts; pie with 3D shading and a dropped shadow
+(charts are 2D, and glow softly in their own colours);
 per-category colours inside the total card's bars; plain line icons for
 categories; a category block that fills the middle of the ledger; a mostly
 blank Undo row with a small button (the deleted row becomes a full dark bar).
@@ -88,11 +90,9 @@ These are correctness issues, not style preferences.
 
 ## Traps
 
-- `fl_chart` is pinned to 1.0.0: 1.1.0 and later call
-  `Matrix4.translateByDouble` (vector_math 2.2), and Flutter 3.32 pins
-  vector_math 2.1.4. The resolver only checks the Dart SDK, so a package can
-  still need a newer Flutter; only a real build shows it.
-- `fl_chart` reports touch section `-1` on touch-exit; guard for it.
+- The resolver only checks the Dart SDK, so a package can still need a
+  newer Flutter (say a newer `vector_math` than the 2.1.4 Flutter 3.32
+  pins); only a real build shows it.
 - The `Pixel_9` image uses 16 KB memory pages. Any plugin with native code
   must be 16 KB-aligned; a `dlopen` crash on start or a page-size warning
   means a plugin's native library is not.
@@ -139,6 +139,7 @@ Unit tests are required for, and only for:
 - `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
+- `core/utils/bar_scale.dart` — the spending bars' cap
 - the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.

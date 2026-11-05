@@ -9,6 +9,7 @@ import '../../core/utils/date_utils.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/transaction_dao.dart';
+import '../../data/database/tables/transactions_table.dart';
 import '../../shared/today_provider.dart';
 import '../../shared/widgets/colour_field.dart';
 import '../../shared/widgets/pill_bars.dart';
@@ -135,23 +136,28 @@ class LedgerCategoryTotal {
   final int totalMinor;
 }
 
-/// Spending on each of the last seven days, oldest first, ending today:
-/// the bars on the total card.
-final lastSevenDaysProvider = StreamProvider<List<DayTotal>>((ref) {
+/// Spending on each day of this week, in the order set by the first day of
+/// week: the bars on the total card. Days still to come are 0. Fixed
+/// monthly expenses are left out, so one big fixed day doesn't flatten the
+/// rest; they still count in the month total.
+final thisWeekProvider = StreamProvider<List<DayTotal>>((ref) {
   final today = ref.watch(todayProvider);
+  final (start, end) = weekBounds(
+    today,
+    firstDayOfWeek: ref.watch(firstDayOfWeekProvider),
+  );
+  final first = parseLocalDate(start);
   final days = [
-    for (var back = DateTime.daysPerWeek - 1; back >= 0; back--)
-      DateTime(today.year, today.month, today.day - back),
+    for (var i = 0; i < DateTime.daysPerWeek; i++)
+      DateTime(first.year, first.month, first.day + i),
   ];
   return ref
       .watch(transactionDaoProvider)
-      .watchWithCategory(
-        start: toLocalDateString(days.first),
-        end: toLocalDateString(days.last),
-      )
+      .watchWithCategory(start: start, end: end)
       .map((items) {
         final byDate = <String, int>{};
         for (final item in items) {
+          if (isFixed(item)) continue;
           byDate.update(
             item.expense.localDate,
             (sum) => sum + item.expense.amountMinor,
@@ -173,14 +179,19 @@ class DayTotal {
   final int totalMinor;
 }
 
-/// The total card's bars: in this month the seven days ending today (today
-/// lit); in any other month one bar per week of it (days 1–7, 8–14, …), so
-/// the bars describe the month on screen. Null while loading.
+/// Whether [item] was made by a fixed monthly expense rule.
+bool isFixed(ExpenseWithCategory item) =>
+    item.expense.source == TransactionSource.recurring;
+
+/// The total card's bars: in this month this week's days (today lit); in
+/// any other month one bar per week of it (days 1–7, 8–14, …), so the bars
+/// describe the month on screen. Fixed monthly expenses are left out of
+/// both. Null while loading.
 final heroBarsProvider = Provider<List<PillBar>?>((ref) {
   final month = ref.watch(selectedMonthProvider);
   final today = ref.watch(todayProvider);
   if (month.year == today.year && month.month == today.month) {
-    final days = ref.watch(lastSevenDaysProvider).valueOrNull;
+    final days = ref.watch(thisWeekProvider).valueOrNull;
     if (days == null) return null;
     return [
       for (final day in days)
@@ -199,6 +210,7 @@ final heroBarsProvider = Provider<List<PillBar>?>((ref) {
     0,
   );
   for (final item in items) {
+    if (isFixed(item)) continue;
     final day = parseLocalDate(item.expense.localDate).day;
     weeks[(day - 1) ~/ week] += item.expense.amountMinor;
   }
@@ -207,6 +219,57 @@ final heroBarsProvider = Provider<List<PillBar>?>((ref) {
       PillBar(AppStrings.weekOfMonth(index + 1), total),
   ];
 });
+
+/// Where tapping each total card bar takes the ledger: the `localDate` of
+/// the day to bring up, or null when the bar does nothing. This month's
+/// bars go to their day; another month's go to the earliest day of that
+/// week. Only days the ledger shows count (fixed ones too, not those the
+/// category filter hides), and only days of the month on screen.
+final heroBarTargetsProvider = Provider<List<String?>>((ref) {
+  final month = ref.watch(selectedMonthProvider);
+  final today = ref.watch(todayProvider);
+  final groups = ref.watch(monthDayGroupsProvider).valueOrNull ?? const [];
+  final shown = {for (final group in groups) group.localDate};
+  if (month.year == today.year && month.month == today.month) {
+    final days = ref.watch(thisWeekProvider).valueOrNull ?? const [];
+    return [
+      for (final day in days)
+        shown.contains(toLocalDateString(day.date))
+            ? toLocalDateString(day.date)
+            : null,
+    ];
+  }
+  const week = DateTime.daysPerWeek;
+  final weeks = List<String?>.filled(
+    (daysInMonth(month.year, month.month) + week - 1) ~/ week,
+    null,
+  );
+  // Groups are newest first, so the last one seen in a week is its earliest.
+  for (final date in shown) {
+    weeks[(parseLocalDate(date).day - 1) ~/ week] = date;
+  }
+  return weeks;
+});
+
+/// A request to bring a day's receipt to the top of the ledger. A new
+/// object each time, so tapping the same bar twice scrolls twice.
+@immutable
+class LedgerJump {
+  const LedgerJump(this.localDate);
+
+  final String localDate;
+}
+
+final ledgerJumpProvider = NotifierProvider<LedgerJumpNotifier, LedgerJump?>(
+  LedgerJumpNotifier.new,
+);
+
+class LedgerJumpNotifier extends Notifier<LedgerJump?> {
+  @override
+  LedgerJump? build() => null;
+
+  void jumpTo(String localDate) => state = LedgerJump(localDate);
+}
 
 final todayTotalProvider = StreamProvider<int>((ref) {
   final today = toLocalDateString(ref.watch(todayProvider));

@@ -273,7 +273,7 @@ drive or your Downloads folder.
 | Emulator black screen or crawling | Hardware acceleration off | Step 6. In Device Manager, set the AVD's graphics to a Hardware option. |
 | Gradle download hangs on first build | Large one-time download | Leave it. The first Android build can take 10+ minutes. |
 | Wall of analyzer errors after codegen | build_runner failed | `dart run build_runner build` and read the *first* error, not the last |
-| Build fails inside a package, e.g. `translateByDouble isn't defined` | `flutter pub add` picked a release that needs a newer Flutter | Pin the last release that builds, with a comment in `pubspec.yaml` (fl_chart is pinned to 1.0.0 for this reason) |
+| Build fails inside a package, e.g. `translateByDouble isn't defined` | `flutter pub add` picked a release that needs a newer Flutter | Pin the last release that builds, with a comment in `pubspec.yaml` |
 | App shows only a black screen, but the launcher and other apps are fine | The emulator's window manager is stuck in the app's launch animation (`adb shell dumpsys SurfaceFlinger --list` shows `animation-leash of starting_reveal`) | `adb reboot`, wait for the home screen, relaunch the app |
 | App misbehaves but logcat shows no exception | Debug exceptions go to the Dart VM console | Run `flutter run -d emulator-5554` and read its output |
 | `flutter create` fails on project name | Hyphen in the folder name | Pass `--project-name expense_tracker` (Step 11) |

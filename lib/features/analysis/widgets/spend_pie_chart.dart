@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +11,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/money.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../analysis_providers.dart';
+import 'glow_ring.dart';
 
 /// Outer edge of a tapped slice, the furthest the ring reaches.
 const double _ringEdge = AppSizes.pieCenterRadius + AppSizes.pieTouchedRadius;
@@ -22,10 +22,10 @@ const double _elbowRadius = _ringEdge + AppSizes.pieLabelReach;
 
 /// Spending per category as a donut, largest first: the bigger slices have
 /// their share and name outside the ring on a leader line in the slice's
-/// colour, and the hole is a raised disc. Slices are shaded light to dark
-/// and the ring casts a soft shadow, so it reads as solid rather than flat.
-/// It swings in when shown; tapping a slice pushes it out, names it and its
-/// amount on the disc, and highlights its category below.
+/// colour. The ring is flat, 2D, with soft round slice ends, and each slice
+/// glows softly in its own colour. It swings in when shown; tapping a slice
+/// pushes it out, names it and its amount in the hole, and highlights its
+/// category below.
 class SpendPieChart extends ConsumerWidget {
   const SpendPieChart({super.key});
 
@@ -35,7 +35,8 @@ class SpendPieChart extends ConsumerWidget {
     final slices = ref.watch(pieSlicesProvider);
     final touched = ref.watch(touchedSliceProvider);
     final total = ref.watch(filteredTotalProvider);
-    final layout = _layoutLabels(slices, total, colors.chartOther);
+    final sweeps = ringSweeps([for (final slice in slices) slice.totalMinor]);
+    final layout = _layoutLabels(slices, sweeps, total, colors.chartOther);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -59,57 +60,22 @@ class SpendPieChart extends ConsumerWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      IgnorePointer(
-                        child: CustomPaint(
-                          size: const Size.square(_ringEdge * 2),
-                          painter: _RingShadowPainter(colors.shadow),
-                        ),
-                      ),
-                      PieChart(
-                        duration: AppMotion.slow,
-                        curve: AppMotion.pop,
-                        PieChartData(
-                          startDegreeOffset: AppSizes.pieStartAngle,
-                          centerSpaceRadius: AppSizes.pieCenterRadius,
-                          sectionsSpace: AppSizes.pieSectionSpace,
-                          pieTouchData: PieTouchData(
-                            touchCallback: (event, response) {
-                              if (event is! FlTapUpEvent) return;
-                              final slices = ref.read(
-                                touchedSliceProvider.notifier,
-                              );
-                              // The index is -1 when the tap misses every slice.
-                              final index =
-                                  response
-                                      ?.touchedSection
-                                      ?.touchedSectionIndex ??
-                                  -1;
-                              if (index < 0) {
-                                slices.clear();
-                              } else {
-                                slices.toggle(index);
-                              }
-                            },
-                          ),
-                          sections: [
-                            for (final (index, slice) in slices.indexed)
-                              PieChartSectionData(
-                                // The only place money becomes a double: geometry.
-                                value: slice.totalMinor.toDouble(),
-                                color: _sliceColor(slice, colors.chartOther),
-                                gradient: _sliceShading(
-                                  _sliceColor(slice, colors.chartOther),
-                                ),
-                                radius: index == touched
-                                    ? AppSizes.pieTouchedRadius
-                                    : AppSizes.pieRadius,
-                                showTitle: false,
-                              ),
-                          ],
-                        ),
+                      GlowRing(
+                        arcs: _arcs(slices, sweeps, touched, colors.chartOther),
+                        glow: colors.chartGlow,
+                        onTap: (index) {
+                          final slices = ref.read(
+                            touchedSliceProvider.notifier,
+                          );
+                          if (index < 0) {
+                            slices.clear();
+                          } else {
+                            slices.toggle(index);
+                          }
+                        },
                       ),
                       IgnorePointer(
-                        child: _CentreDisc(
+                        child: _CentreText(
                           slice: touched != null && touched < slices.length
                               ? slices[touched]
                               : null,
@@ -126,13 +92,10 @@ class SpendPieChart extends ConsumerWidget {
                     offset: Offset.zero,
                     fromTilt: 0,
                     child: CustomPaint(
-                      painter: _ChartOverlayPainter(
+                      painter: _LeaderLinePainter(
                         labels: layout.labels,
-                        slices: slices,
                         touched: touched,
-                        total: total,
                         center: center,
-                        shade: colors.chartShade,
                       ),
                     ),
                   ),
@@ -155,49 +118,36 @@ class SpendPieChart extends ConsumerWidget {
 Color _sliceColor(PieSlice slice, Color other) =>
     slice.isOther ? other : colorFromHex(slice.category!.colorHex);
 
-/// Lit from the top left: a touch lighter there, a touch deeper opposite.
-Gradient _sliceShading(Color color) => LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: [
-    Color.lerp(color, Colors.white, 0.22)!,
-    Color.lerp(color, Colors.black, 0.12)!,
-  ],
-);
-
-/// The ring's soft shadow, dropped below it.
-class _RingShadowPainter extends CustomPainter {
-  _RingShadowPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(const Offset(0, AppSizes.pieShadowOffset));
-    const radius = AppSizes.pieCenterRadius + AppSizes.pieRadius / 2;
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = AppSizes.pieRadius
-        ..maskFilter = const MaskFilter.blur(
-          BlurStyle.normal,
-          AppSizes.pieShadowBlur,
-        ),
-    );
+List<RingArc> _arcs(
+  List<PieSlice> slices,
+  List<double> sweeps,
+  int? touched,
+  Color other,
+) {
+  final pad = ringGap(slices.length);
+  var angle = AppSizes.pieStartAngle * math.pi / 180;
+  final arcs = <RingArc>[];
+  for (final (index, slice) in slices.indexed) {
+    final sweep = sweeps[index];
+    arcs.add((
+      // Other keeps one key, so it eases between months like a category.
+      key: slice.isOther ? '' : slice.category!.id,
+      color: _sliceColor(slice, other),
+      start: angle + pad,
+      sweep: math.max(0.0, sweep - pad * 2),
+      outer:
+          AppSizes.pieCenterRadius +
+          (index == touched ? AppSizes.pieTouchedRadius : AppSizes.pieRadius),
+    ));
+    angle += sweep;
   }
-
-  @override
-  bool shouldRepaint(_RingShadowPainter oldDelegate) =>
-      oldDelegate.color != color;
+  return arcs;
 }
 
-/// The disc in the hole: empty, since the card's Spent is the one total,
-/// until a slice is tapped; then that slice's name over its amount.
-class _CentreDisc extends StatelessWidget {
-  const _CentreDisc({required this.slice});
+/// The hole: empty, since the card's Spent is the one total, until a slice
+/// is tapped; then that slice's name over its amount.
+class _CentreText extends StatelessWidget {
+  const _CentreText({required this.slice});
 
   final PieSlice? slice;
 
@@ -209,18 +159,6 @@ class _CentreDisc extends StatelessWidget {
       width: (AppSizes.pieCenterRadius - AppSpacing.xxs) * 2,
       height: (AppSizes.pieCenterRadius - AppSpacing.xxs) * 2,
       padding: const EdgeInsets.all(AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow,
-            offset: const Offset(0, 8),
-            blurRadius: 18,
-            spreadRadius: -8,
-          ),
-        ],
-      ),
       child: AnimatedSwitcher(
         duration: AppMotion.normal,
         reverseDuration: AppMotion.quick,
@@ -300,17 +238,20 @@ typedef _ChartLayout = ({
   List<_SliceLabel> labels,
 });
 
-_ChartLayout _layoutLabels(List<PieSlice> slices, int total, Color other) {
+_ChartLayout _layoutLabels(
+  List<PieSlice> slices,
+  List<double> sweeps,
+  int total,
+  Color other,
+) {
   final labels = <_SliceLabel>[];
   if (total > 0) {
-    const start = AppSizes.pieStartAngle * math.pi / 180;
-    var before = 0;
+    var before = AppSizes.pieStartAngle * math.pi / 180;
     for (final (index, slice) in slices.indexed) {
-      // Angle of the slice's middle, from integer sen until this division.
-      final middle = (before * 2 + slice.totalMinor) / (total * 2);
-      before += slice.totalMinor;
+      // The middle of the slice as drawn, which a raised slice moves.
+      final angle = before + sweeps[index] / 2;
+      before += sweeps[index];
       if (slice.totalMinor * 100 < total * kPieLabelMinPercent) continue;
-      final angle = start + middle * 2 * math.pi;
       labels.add(
         _SliceLabel(
           index: index,
@@ -392,37 +333,20 @@ double _lineEnd(_SliceLabel label) {
   );
 }
 
-/// Shades the ring's inner edge, then draws each label's leader line in its
-/// slice's colour.
-class _ChartOverlayPainter extends CustomPainter {
-  _ChartOverlayPainter({
+/// Each label's leader line, in its slice's colour.
+class _LeaderLinePainter extends CustomPainter {
+  _LeaderLinePainter({
     required this.labels,
-    required this.slices,
     required this.touched,
-    required this.total,
     required this.center,
-    required this.shade,
   });
 
   final List<_SliceLabel> labels;
-  final List<PieSlice> slices;
   final int? touched;
-  final int total;
   final Offset center;
-  final Color shade;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (total > 0) {
-      canvas.drawCircle(
-        center,
-        AppSizes.pieCenterRadius + AppSizes.pieShadeWidth / 2,
-        Paint()
-          ..color = shade
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = AppSizes.pieShadeWidth,
-      );
-    }
     for (final label in labels) {
       final outer =
           AppSizes.pieCenterRadius +
@@ -446,13 +370,10 @@ class _ChartOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ChartOverlayPainter oldDelegate) =>
+  bool shouldRepaint(_LeaderLinePainter oldDelegate) =>
       oldDelegate.labels != labels ||
-      oldDelegate.slices != slices ||
       oldDelegate.touched != touched ||
-      oldDelegate.total != total ||
-      oldDelegate.center != center ||
-      oldDelegate.shade != shade;
+      oldDelegate.center != center;
 }
 
 /// The share over the name, centred on the end of the leader line.

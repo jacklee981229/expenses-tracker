@@ -12,9 +12,6 @@ environment:
 dependencies:
   drift: ^2.31.0
   file_picker: ^11.0.3
-  # Pinned: 1.1.0+ calls Matrix4.translateByDouble (vector_math 2.2), but
-  # Flutter 3.32 pins vector_math 2.1.4, so newer versions fail to build.
-  fl_chart: 1.0.0
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1

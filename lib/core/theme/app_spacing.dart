@@ -265,23 +265,27 @@ abstract final class AppSizes {
   /// Donut: ring from [pieCenterRadius] out by [pieRadius], labels outside.
   /// Leader lines bend [pieLabelReach] beyond a tapped slice's edge, then run
   /// at least [pieLabelElbow] across to the text. The chart is as tall as
-  /// the ring and its labels need. [pieShadeWidth] of the ring's inner edge
-  /// is shaded.
-  static const double pieRadius = 30;
-  static const double pieTouchedRadius = 38;
-  static const double pieCenterRadius = 52;
-  static const double pieShadeWidth = 6;
-  static const double pieSectionSpace = 2;
+  /// the ring and its labels need. Slice corners round off by up to
+  /// [pieCornerRadius] and slices sit [pieSectionSpace] apart: small and
+  /// tight, so the ring still reads as one band. Each
+  /// slice glows with a blur of [pieGlowBlur]. Every slice takes at least
+  /// [pieMinSliceSweep] degrees, however small its share; only one easing
+  /// open or shut gets shorter than [pieMinSliceLength], and then isn't
+  /// drawn.
+  static const double pieRadius = 16;
+  static const double pieTouchedRadius = 24;
+  static const double pieCenterRadius = 66;
+  static const double pieCornerRadius = 3;
+  static const double pieGlowBlur = 7;
+  static const double pieMinSliceSweep = 15;
+  static const double pieMinSliceLength = 2;
+  static const double pieSectionSpace = 3;
   static const double pieStartAngle = -90;
   static const double pieLabelReach = 6;
   static const double pieLabelElbow = 10;
   static const double pieLabelGap = 36;
   static const double pieLabelWidth = 92;
   static const double pieLineWidth = 1.4;
-
-  /// The donut's soft shadow, dropped below it.
-  static const double pieShadowOffset = 10;
-  static const double pieShadowBlur = 14;
 
   static const double shareBarHeight = 8;
 

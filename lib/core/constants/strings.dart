@@ -104,7 +104,9 @@ abstract final class AppStrings {
   // Analysis
   static const String spentStat = 'Spent';
   static const String perDayStat = 'Per day';
-  static const String trendTitle = 'Last 6 months';
+  static const String trendWeeksTitle = 'Last 6 weeks';
+  static const String trendMonthsTitle = 'Last 6 months';
+  static String trendYearTitle(int year) => '$year by month';
 
   /// The summary line's comparison: `Food: 12% more than last month`.
   static String insightMore(String category, int percent, String period) =>

@@ -25,8 +25,9 @@ enum EnterFrom { below, left, right }
 /// another. An expense added to a day already on screen prints into its
 /// receipt, which gives a small wobble. A deleted expense leaves an Undo row
 /// in its place for a few seconds. [header] scrolls in above the days;
-/// [empty] shows under it when there are none. Shared by the ledger and the
-/// analysis category drilldown.
+/// [empty] shows under it when there are none. A new [jump] brings that
+/// day's receipt to the top. Shared by the ledger and the analysis category
+/// drilldown.
 class DayGroupedExpenseList extends ConsumerStatefulWidget {
   const DayGroupedExpenseList({
     super.key,
@@ -35,6 +36,7 @@ class DayGroupedExpenseList extends ConsumerStatefulWidget {
     this.empty,
     this.scope = '',
     this.enterFrom = EnterFrom.below,
+    this.jump,
   });
 
   final List<DayGroup> groups;
@@ -45,6 +47,7 @@ class DayGroupedExpenseList extends ConsumerStatefulWidget {
   /// e.g. the month or the category filter.
   final String scope;
   final EnterFrom enterFrom;
+  final LedgerJump? jump;
 
   @override
   ConsumerState<DayGroupedExpenseList> createState() =>
@@ -66,6 +69,72 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
 
   /// Ids whose Undo was pressed: their Undo rows go when the expense is back.
   final Set<String> _undone = {};
+
+  final ScrollController _scroll = ScrollController();
+  final GlobalKey _headerKey = GlobalKey();
+
+  /// Each day's receipt (with its padding), by `localDate`, for [_jumpTo].
+  final Map<String, GlobalKey> _dayKeys = {};
+
+  /// Heights of receipts seen so far, for estimating where unbuilt ones are.
+  final Map<String, double> _heights = {};
+
+  /// The days as last built, Undo-only days included.
+  List<DayGroup> _shown = const [];
+
+  @override
+  void didUpdateWidget(DayGroupedExpenseList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final jump = widget.jump;
+    if (jump != null && !identical(jump, oldWidget.jump)) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _jumpTo(jump.localDate),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// The list is lazy, so an unbuilt receipt has no position yet: jump to
+  /// an estimate from the heights seen so far, let it build, and once it
+  /// exists, settle on it (as far as the list allows near the end).
+  void _jumpTo(String localDate, {int tries = 0}) {
+    if (!mounted || !_scroll.hasClients) return;
+    final target = _dayKeys[localDate]?.currentContext;
+    if (target != null) {
+      Scrollable.ensureVisible(
+        target,
+        duration: AppMotion.slow,
+        curve: AppMotion.enter,
+      );
+      return;
+    }
+    final index = _shown.indexWhere((group) => group.localDate == localDate);
+    if (index < 0 || tries >= _jumpTries) return;
+    for (final MapEntry(:key, :value) in _dayKeys.entries) {
+      final box = value.currentContext?.findRenderObject() as RenderBox?;
+      if (box != null && box.hasSize) _heights[key] = box.size.height;
+    }
+    if (_heights.isEmpty) return;
+    final average =
+        _heights.values.reduce((sum, height) => sum + height) / _heights.length;
+    final header = _headerKey.currentContext?.size?.height ?? 0;
+    var offset = header;
+    for (final group in _shown.take(index)) {
+      offset += _heights[group.localDate] ?? average;
+    }
+    _scroll.jumpTo(math.min(offset, _scroll.position.maxScrollExtent));
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) => _jumpTo(localDate, tries: tries + 1))
+      ..scheduleFrame();
+  }
+
+  /// Estimates before giving up; each one builds more receipts to measure.
+  static const int _jumpTries = 6;
 
   void _delete(ExpenseWithCategory item) {
     setState(() => _deleted[item.expense.id] = item);
@@ -119,14 +188,20 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
       _undone.remove(id);
     }
     final groups = _withDeletedDays(widget.groups, live);
+    _shown = groups;
     final lead = header == null ? 0 : 1;
     final showEmpty = groups.isEmpty && empty != null;
 
     return ListView.builder(
+      controller: _scroll,
       padding: const EdgeInsets.only(bottom: AppSizes.fabClearance),
       itemCount: lead + (showEmpty ? 1 : groups.length),
       itemBuilder: (context, index) {
-        if (header != null && index == 0) return _KeepAlive(child: header);
+        if (header != null && index == 0) {
+          return _KeepAlive(
+            child: KeyedSubtree(key: _headerKey, child: header),
+          );
+        }
         if (showEmpty) {
           return Padding(
             padding: const EdgeInsets.only(top: AppSpacing.lg),
@@ -147,6 +222,7 @@ class _DayGroupedExpenseListState extends ConsumerState<DayGroupedExpenseList> {
             if (_seenRows.add(item.expense.id) && !dayIsNew) item.expense.id,
         };
         return Padding(
+          key: _dayKeys.putIfAbsent(group.localDate, GlobalKey.new),
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md + 2,
             AppSpacing.sm,

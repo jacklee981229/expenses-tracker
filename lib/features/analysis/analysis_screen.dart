@@ -19,8 +19,8 @@ import 'widgets/spend_pie_chart.dart';
 import 'widgets/trend_card.dart';
 
 /// The period switcher and filter, a one-line summary, a card with the
-/// period's spend, daily spend and the categories donut, the last six
-/// months, then a card per category. Changing the
+/// period's spend, daily spend and the categories donut, the weeks or
+/// months around it (not under All), then a card per category. Changing the
 /// period or the filter replays the entrance.
 class AnalysisScreen extends ConsumerWidget {
   const AnalysisScreen({super.key});
@@ -31,6 +31,14 @@ class AnalysisScreen extends ConsumerWidget {
     final selection = ref.watch(periodSelectionProvider);
     final bounds = ref.watch(periodBoundsProvider);
     final filter = ref.watch(categoryFilterProvider);
+    // An empty week still shows the weeks around it; All has no card.
+    final showTrend =
+        ref
+            .watch(trendProvider)
+            .valueOrNull
+            ?.bars
+            .any((bar) => bar.totalMinor > 0) ??
+        false;
     final scope =
         '${selection.period.name}|${bounds?.start}|${filter.join(',')}';
 
@@ -53,7 +61,7 @@ class AnalysisScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          if (totals.valueOrNull?.isNotEmpty ?? false) ...[
+          if (showTrend) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Entrance(

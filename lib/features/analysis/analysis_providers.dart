@@ -240,35 +240,112 @@ List<CategorySpend> _spends(List<CategoryTotal> totals) => [
     ),
 ];
 
-/// How many months the trend card shows.
-const int kTrendMonths = 6;
+/// How many weeks or months the trend card shows before the period.
+const int kTrendBars = 6;
 
-typedef MonthSpend = ({DateTime month, int totalMinor});
+typedef TrendBar = ({String label, int totalMinor, bool lit});
 
-/// (Filtered) spending in each of the [kTrendMonths] months ending with the
-/// month the selected period ends in, never past this month; oldest first.
-final trendProvider = StreamProvider<List<MonthSpend>>((ref) {
-  final bounds = ref.watch(periodBoundsProvider);
+/// The trend card: its title and bars, oldest first.
+typedef Trend = ({String title, List<TrendBar> bars});
+
+/// The trend card for the period on screen, following the category filter:
+/// Week the [kTrendBars] weeks and Month the [kTrendBars] months ending with
+/// the one on screen (never past this one), Year that year's 12 months. The
+/// bar of the period on screen is lit; in a Year, this month when it is in
+/// that year. Null under All, which has no card.
+final trendProvider = StreamProvider<Trend?>((ref) {
+  final selection = ref.watch(periodSelectionProvider);
   final today = ref.watch(todayProvider);
-  final periodEnd = bounds == null ? today : parseLocalDate(bounds.end);
-  final end = periodEnd.isAfter(today) ? today : periodEnd;
-  final months = [
-    for (var back = kTrendMonths - 1; back >= 0; back--)
-      DateTime(end.year, end.month - back),
-  ];
-  return ref
-      .watch(analysisDaoProvider)
-      .watchMonthTotals(
-        start: toLocalDateString(months.first),
-        end: monthBounds(months.last).$2,
-        categoryIds: ref.watch(categoryFilterProvider),
-      )
-      .map(
-        (totals) => [
-          for (final month in months)
-            (month: month, totalMinor: totals[toMonthKey(month)] ?? 0),
-        ],
-      );
+  final categoryIds = ref.watch(categoryFilterProvider);
+  final dao = ref.watch(analysisDaoProvider);
+  switch (selection.period) {
+    case AnalysisPeriod.all:
+      return Stream.value(null);
+    case AnalysisPeriod.week:
+      final firstDayOfWeek = ref.watch(firstDayOfWeekProvider);
+      DateTime weekStart(DateTime day) =>
+          parseLocalDate(weekBounds(day, firstDayOfWeek: firstDayOfWeek).$1);
+      final thisWeek = weekStart(today);
+      final shownWeek = weekStart(selection.anchor);
+      final shown = shownWeek.isAfter(thisWeek) ? null : shownWeek;
+      final last = shown ?? thisWeek;
+      final weeks = [
+        for (var back = kTrendBars - 1; back >= 0; back--)
+          DateTime(
+            last.year,
+            last.month,
+            last.day - DateTime.daysPerWeek * back,
+          ),
+      ];
+      return dao
+          .watchWeekTotals(
+            start: toLocalDateString(weeks.first),
+            end: toLocalDateString(
+              DateTime(
+                last.year,
+                last.month,
+                last.day + DateTime.daysPerWeek - 1,
+              ),
+            ),
+            firstDayOfWeek: firstDayOfWeek,
+            categoryIds: categoryIds,
+          )
+          .map(
+            (totals) => (
+              title: AppStrings.trendWeeksTitle,
+              bars: [
+                for (final week in weeks)
+                  (
+                    label: formatDayMonth(week),
+                    totalMinor: totals[toLocalDateString(week)] ?? 0,
+                    lit: week == shown,
+                  ),
+              ],
+            ),
+          );
+    case AnalysisPeriod.month:
+    case AnalysisPeriod.year:
+      final isYear = selection.period == AnalysisPeriod.year;
+      final DateTime lastMonth;
+      final DateTime? lit;
+      if (isYear) {
+        lastMonth = DateTime(selection.anchor.year, DateTime.december);
+        lit = selection.anchor.year == today.year
+            ? DateTime(today.year, today.month)
+            : null;
+      } else {
+        final thisMonth = DateTime(today.year, today.month);
+        final shown = DateTime(selection.anchor.year, selection.anchor.month);
+        lastMonth = shown.isAfter(thisMonth) ? thisMonth : shown;
+        lit = shown.isAfter(thisMonth) ? null : shown;
+      }
+      final count = isYear ? DateTime.monthsPerYear : kTrendBars;
+      final months = [
+        for (var back = count - 1; back >= 0; back--)
+          DateTime(lastMonth.year, lastMonth.month - back),
+      ];
+      return dao
+          .watchMonthTotals(
+            start: toLocalDateString(months.first),
+            end: monthBounds(months.last).$2,
+            categoryIds: categoryIds,
+          )
+          .map(
+            (totals) => (
+              title: isYear
+                  ? AppStrings.trendYearTitle(selection.anchor.year)
+                  : AppStrings.trendMonthsTitle,
+              bars: [
+                for (final month in months)
+                  (
+                    label: formatMonthAbbrev(month),
+                    totalMinor: totals[toMonthKey(month)] ?? 0,
+                    lit: month == lit,
+                  ),
+              ],
+            ),
+          );
+  }
 });
 
 int sumTotals(List<CategoryTotal>? totals) =>

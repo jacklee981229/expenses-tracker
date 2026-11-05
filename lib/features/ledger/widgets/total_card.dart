@@ -115,6 +115,15 @@ class TotalCard extends ConsumerWidget {
                       labelColor: colors.onHeroSecondary,
                       height: AppSizes.heroWeekBarsHeight,
                       barWidthFactor: AppSizes.heroWeekBarWidthFactor,
+                      onTap: (index) {
+                        final targets = ref.read(heroBarTargetsProvider);
+                        final day = index < targets.length
+                            ? targets[index]
+                            : null;
+                        if (day != null) {
+                          ref.read(ledgerJumpProvider.notifier).jumpTo(day);
+                        }
+                      },
                     ),
                   ],
                 ],

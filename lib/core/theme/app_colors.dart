@@ -38,9 +38,10 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.heroDown,
     required this.boxBase,
     required this.boxMix,
+    required this.barCap,
     required this.fill,
     required this.chartOther,
-    required this.chartShade,
+    required this.chartGlow,
     required this.expense,
     required this.cardEdge,
     required this.shadow,
@@ -117,14 +118,18 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color boxBase;
   final double boxMix;
 
+  /// A capped spending bar: the one bar that isn't neutral, so "this one
+  /// goes on beyond the top" reads at a glance.
+  final Color barCap;
+
   /// Unselected chips, empty share bars and other filled controls.
   final Color fill;
 
   /// The merged "Other" slice of the analysis donut.
   final Color chartOther;
 
-  /// The translucent band that shades the inner edge of the donut.
-  final Color chartShade;
+  /// How strong each donut slice's glow in its own colour is.
+  final double chartGlow;
 
   /// Expense red, for warnings about money.
   final Color expense;
@@ -196,9 +201,10 @@ class AppColors extends ThemeExtension<AppColors> {
     heroDown: Color(0xFF12855A),
     boxBase: Color(0xFFFFFFFF),
     boxMix: 0.32,
+    barCap: Color(0xFFDD5546),
     fill: Color(0x1417172B),
     chartOther: Color(0xFFC9C8DA),
-    chartShade: Color(0x14000000),
+    chartGlow: 0.6,
     expense: Color(0xFFD6335A),
     cardEdge: Color(0x1417172B),
     shadow: Color(0x24463A8C),
@@ -243,9 +249,10 @@ class AppColors extends ThemeExtension<AppColors> {
     heroDown: Color(0xFF7CF2B0),
     boxBase: Color(0xFF14162C),
     boxMix: 0.45,
+    barCap: Color(0xFFE9695B),
     fill: Color(0x1FFFFFFF),
     chartOther: Color(0xFF5A5878),
-    chartShade: Color(0x40000000),
+    chartGlow: 0.7,
     expense: Color(0xFFFF6B86),
     cardEdge: Color(0x1AFFFFFF),
     shadow: Color(0x73000000),
@@ -325,9 +332,10 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? heroDown,
     Color? boxBase,
     double? boxMix,
+    Color? barCap,
     Color? fill,
     Color? chartOther,
-    Color? chartShade,
+    double? chartGlow,
     Color? expense,
     Color? cardEdge,
     Color? shadow,
@@ -370,9 +378,10 @@ class AppColors extends ThemeExtension<AppColors> {
       heroDown: heroDown ?? this.heroDown,
       boxBase: boxBase ?? this.boxBase,
       boxMix: boxMix ?? this.boxMix,
+      barCap: barCap ?? this.barCap,
       fill: fill ?? this.fill,
       chartOther: chartOther ?? this.chartOther,
-      chartShade: chartShade ?? this.chartShade,
+      chartGlow: chartGlow ?? this.chartGlow,
       expense: expense ?? this.expense,
       cardEdge: cardEdge ?? this.cardEdge,
       shadow: shadow ?? this.shadow,
@@ -422,9 +431,10 @@ class AppColors extends ThemeExtension<AppColors> {
       heroDown: mix(heroDown, other.heroDown),
       boxBase: mix(boxBase, other.boxBase),
       boxMix: mixD(boxMix, other.boxMix),
+      barCap: mix(barCap, other.barCap),
       fill: mix(fill, other.fill),
       chartOther: mix(chartOther, other.chartOther),
-      chartShade: mix(chartShade, other.chartShade),
+      chartGlow: mixD(chartGlow, other.chartGlow),
       expense: mix(expense, other.expense),
       cardEdge: mix(cardEdge, other.cardEdge),
       shadow: mix(shadow, other.shadow),

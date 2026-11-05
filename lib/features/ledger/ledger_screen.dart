@@ -50,6 +50,7 @@ class _LedgerScreenState extends ConsumerState<LedgerScreen> {
           // A new month or category replays the receipts' entrance.
           scope: '${month.toIso8601String()}|$filter',
           enterFrom: _enterFrom,
+          jump: ref.watch(ledgerJumpProvider),
           empty: EmptyState(
             icon: UiIcons.receipt,
             message: AppStrings.noExpensesThisMonth,
