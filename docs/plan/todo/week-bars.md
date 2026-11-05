@@ -36,7 +36,9 @@ B3吧。但是其他颜色不用变。
   Analysis bar card.
 - D4. Cap mark: B (fade). A capped bar fades out towards its top. Only a
   capped bar changes colour, to the theme's coral (a new `core/theme`
-  token, light and dark values, from the `E9695B` swatch); every other bar
+  token, light and dark values; first Food's `E9695B`, then made redder,
+  `EF4458` dark and `D8323F` light, so it isn't read as Food: Jack
+  "调偏红"); every other bar
   keeps today's look. A capped bar that is today is coral at full strength
   with the lit glow. CLAUDE.md's Theme line "the Analysis bars included"
   gains this one exception. Prototype: the private canvas "Expenses bar
@@ -94,6 +96,8 @@ B3吧。但是其他颜色不用变。
 - D9. Under All, the Analysis bar card is hidden.
 - D10. Its titles: `Last 6 weeks`, `Last 6 months`, `2026 by month` (the
   year on screen).
+- D11. On Year, the lit bar is this month when the year on screen is this
+  year; other years light none (Jack, 2026-11-05: "亮当前月").
 
 ## Tasks
 

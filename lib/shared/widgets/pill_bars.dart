@@ -22,7 +22,7 @@ class PillBar {
 
 /// A row of pill bars, growing up one after another, scaled by [barScale]:
 /// a bar far above the rest is capped, filling the height in the theme's
-/// coral and fading out at its top. The lit bar is [color] with a glow; the
+/// red and fading out at its top. The lit bar is [color] with a glow; the
 /// rest are see-through [color].
 /// Used on the total card and the Analysis trend card.
 class PillBars extends StatelessWidget {
@@ -120,7 +120,7 @@ class _Bar extends StatelessWidget {
 
   final double fraction;
 
-  /// Above the row's scale: full height, coral, fading out at the top.
+  /// Above the row's scale: full height, red, fading out at the top.
   final bool capped;
   final bool lit;
   final String label;

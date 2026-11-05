@@ -201,7 +201,7 @@ class AppColors extends ThemeExtension<AppColors> {
     heroDown: Color(0xFF12855A),
     boxBase: Color(0xFFFFFFFF),
     boxMix: 0.32,
-    barCap: Color(0xFFDD5546),
+    barCap: Color(0xFFD8323F),
     fill: Color(0x1417172B),
     chartOther: Color(0xFFC9C8DA),
     chartGlow: 0.6,
@@ -249,7 +249,8 @@ class AppColors extends ThemeExtension<AppColors> {
     heroDown: Color(0xFF7CF2B0),
     boxBase: Color(0xFF14162C),
     boxMix: 0.45,
-    barCap: Color(0xFFE9695B),
+    // Redder than Food's E9695B, so a capped bar isn't read as Food.
+    barCap: Color(0xFFEF4458),
     fill: Color(0x1FFFFFFF),
     chartOther: Color(0xFF5A5878),
     chartGlow: 0.7,
