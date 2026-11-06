@@ -128,6 +128,12 @@ These are correctness issues, not style preferences.
 - Sheets take their background from `bottomSheetTheme`. Passing a colour read
   when the sheet opens freezes it: a sheet opened by the scan link at launch
   then stays light after the dark theme loads.
+- Pictures leave through the share sheet (`share_plus`), whose Save Image
+  puts them in Photos; there is no save-to-album package. iOS needs
+  `NSPhotoLibraryAddUsageDescription` in `Info.plist`, or Save Image crashes
+  the app.
+- The app is still called `Expenses`: Jack hasn't picked a name (shortlist:
+  Monthglass, Bulan, 月色).
 
 ## Code style
 
