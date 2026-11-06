@@ -250,7 +250,8 @@ final periodExpensesProvider = StreamProvider.autoDispose((ref) {
 final reportProvider = Provider.autoDispose<Report?>((ref) {
   final expenses = ref.watch(periodExpensesProvider).valueOrNull;
   final previous = ref.watch(previousCategoryTotalsProvider);
-  if (expenses == null || !previous.hasValue) return null;
+  final kinds = ref.watch(receiptKindsProvider);
+  if (expenses == null || !previous.hasValue || kinds.isLoading) return null;
   // All counts its days from the first expense: wait for it, or the per
   // day shows RM0.00 for a moment.
   if (ref.watch(periodBoundsProvider) == null &&
@@ -279,8 +280,15 @@ final reportProvider = Provider.autoDispose<Report?>((ref) {
                 parseLocalDate(before.end),
               ) +
               1,
+    // A failed read only stops kinds counting as one.
+    kindNames: [for (final kind in kinds.valueOrNull ?? []) kind.name],
   );
 });
+
+/// The named kinds of receipt page, read each time the report opens.
+final receiptKindsProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(receiptKindDaoProvider).getAll(),
+);
 
 List<CategorySpend> _spends(List<CategoryTotal> totals) => [
   for (final total in totals)

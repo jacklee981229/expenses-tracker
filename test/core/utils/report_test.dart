@@ -158,6 +158,26 @@ void main() {
     ]);
   });
 
+  test('notes from one kind of receipt page count as one', () {
+    final report = buildReport(
+      current: [
+        spend('Food', 2034, '2026-11-06', note: 'GrabFood - Lim Fried Chicken'),
+        spend('Food', 1500, '2026-11-05', note: 'grabfood - Kedai Ali'),
+        spend('Food', 1200, '2026-11-04', note: 'GrabFood'),
+        spend('Food', 4000, '2026-11-03', note: 'ShopeeFood - Thong Kee'),
+        spend('Food', 2000, '2026-11-02', note: 'Shopeefood - Kedai Abu'),
+        spend('Food', 900, '2026-11-01', note: 'Grabcar - home'),
+        spend('Food', 900, '2026-11-01', note: 'Grabcar - office'),
+      ],
+      daysSoFar: 6,
+      kindNames: ['GrabFood', 'ShopeeFood'],
+    )!;
+    expect(report.notes, [
+      (note: 'GrabFood', count: 3, totalMinor: 4734),
+      (note: 'ShopeeFood', count: 2, totalMinor: 6000),
+    ]);
+  });
+
   test('changePercent', () {
     expect(changePercent(150, 100), 50);
     expect(changePercent(50, 100), -50);

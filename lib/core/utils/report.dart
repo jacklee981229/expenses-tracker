@@ -87,12 +87,15 @@ const int kReportNotes = 3;
 /// compared with the whole period before, as the summary line is.
 /// [daysSoFar] is the period's calendar days up to today and [previousDays]
 /// the period before's full length, the two per day figures' divisors.
+/// [kindNames] are the named kinds of receipt page: notes from one kind
+/// (`GrabFood - Kedai Ali`, `GrabFood - Kedai Abu`) count as one.
 /// Null when nothing was spent.
 Report? buildReport({
   required List<ReportExpense> current,
   List<CategorySpend>? previous,
   required int daysSoFar,
   int previousDays = 0,
+  Iterable<String> kindNames = const [],
 }) {
   final total = current.fold(0, (sum, e) => sum + e.amountMinor);
   if (total <= 0) return null;
@@ -120,7 +123,7 @@ Report? buildReport({
             e.localDate.compareTo(biggest.localDate) > 0)) {
       biggest = e;
     }
-    final note = _tidy(e.note);
+    final note = _kindOf(_tidy(e.note), kindNames);
     if (note.isNotEmpty) {
       final key = note.toLowerCase();
       final seen = notes[key];
@@ -194,3 +197,17 @@ Report? buildReport({
 final RegExp _spaces = RegExp(r'\s+');
 
 String _tidy(String? note) => (note ?? '').trim().replaceAll(_spaces, ' ');
+
+/// The kind [note] was read from (`GrabFood` for `GrabFood - Kedai Ali`),
+/// or the note itself.
+String _kindOf(String note, Iterable<String> kindNames) {
+  final lower = note.toLowerCase();
+  for (final name in kindNames) {
+    final kind = _tidy(name);
+    final key = kind.toLowerCase();
+    if (key.isNotEmpty && (lower == key || lower.startsWith('$key - '))) {
+      return kind;
+    }
+  }
+  return note;
+}

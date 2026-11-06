@@ -144,11 +144,13 @@ int? _amount(List<ReadLine> lines) {
   for (final line in lines) {
     final own = _paid(line.text);
     if (own != null) lowest = own;
-    if (own != null &&
-        big == null &&
+    // A big figure may carry a minus: e-wallets print a payment as money
+    // going out (`-RM31.86`). Only discounts in normal-sized text are
+    // left out.
+    if (big == null &&
         _alone(line.text) &&
         line.bottom - line.top >= usual * _bigAmount) {
-      big = own;
+      big = _anyAmount(line.text);
     }
     if (!_totalLabel.hasMatch(line.text)) continue;
     // The amount is on the label's line, or on the same row to its right.
@@ -177,6 +179,14 @@ int? _paid(String text) {
     if (minor > 0) found = minor;
   }
   return found;
+}
+
+/// The amount in [text], minus sign or not; null for none or zero.
+int? _anyAmount(String text) {
+  final match = _money.firstMatch(text);
+  if (match == null) return null;
+  final minor = parseToMinor(match.group(2)!);
+  return minor > 0 ? minor : null;
 }
 
 int? _rowAmount(List<ReadLine> lines, ReadLine label) {
@@ -215,8 +225,37 @@ String? _shop(List<ReadLine> lines) {
       if (name.isNotEmpty && !_money.hasMatch(name)) return name;
     }
   }
+  // No label: a short `Name - Branch` line, as food apps print the shop.
+  for (final line in lines) {
+    final text = line.text.trim();
+    if (_branchShop.hasMatch(text) &&
+        !_clock.hasMatch(text) &&
+        !_money.hasMatch(text) &&
+        _digit.allMatches(text).length < _phoneDigits &&
+        text.split(_spaceRun).length <= _branchShopMaxWords) {
+      return text;
+    }
+  }
   return null;
 }
+
+// `Lim Fried Chicken - Puchong`: letters on both sides of a spaced dash.
+final RegExp _branchShop = RegExp(r'[A-Za-z].*\s[-–]\s.*[A-Za-z]');
+
+// `11:55 AM - 12:10 PM`, a delivery time, is not a shop.
+final RegExp _clock = RegExp(r'\d{1,2}:\d{2}');
+
+final RegExp _spaceRun = RegExp(r'\s+');
+
+final RegExp _digit = RegExp(r'\d');
+
+/// A line with this many digits holds a phone number: the customer's
+/// `Ali Ahmad - (+60) 12-345 6789`, not a shop.
+const int _phoneDigits = 7;
+
+/// The most words (the dash counted) a `Name - Branch` shop line has; a
+/// longer line is a sentence.
+const int _branchShopMaxWords = 8;
 
 DateTime? _date(List<ReadLine> lines) {
   for (final line in lines) {

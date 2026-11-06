@@ -140,7 +140,7 @@ void main() {
   ReadLine at(String text, double top, double bottom, double left) =>
       (text: text, top: top, bottom: bottom, left: left);
 
-  test('a delivery order scrolled past the shop: total, date, delivery', () {
+  test('a delivery order scrolled past its shop label: the shop line', () {
     final reading = parseReceipt([
       at('13:56', 68, 108, 173),
       at('KEDAI IVIAKAN - IVI JALAN CUNTUH', 326, 350, 62),
@@ -164,6 +164,16 @@ void main() {
     expect(reading.amountMinor, 3610);
     expect(reading.date, DateTime(2026, 10, 26));
     expect(reading.delivery, isTrue);
+    expect(reading.shop, 'KEDAI IVIAKAN - IVI JALAN CUNTUH');
+  });
+
+  test('a customer line or a delivery time is not a shop', () {
+    final reading = parseReceipt([
+      line('11:55 AM - 12:10 PM', 1),
+      line('Ali Ahmad - (+60) 12-345 6789', 2),
+      line('Total', 3),
+      line('RM20.00', 3, left: 700),
+    ]);
     expect(reading.shop, isNull);
   });
 
@@ -210,5 +220,79 @@ void main() {
     expect(reading.shop, 'ALI BIN AHMAD');
     expect(reading.labels, isNot(contains('ali bin ahmad')));
     expect(reading.labels, containsAll(['receiver', 'remark']));
+  });
+
+  test('an e-wallet payment: the big amount with its minus, the merchant', () {
+    // Real recognised lines; the Chinese item line came out garbled.
+    final reading = parseReceipt([
+      at('T', 203, 245, 80),
+      at('14:51', 64, 113, 156),
+      at('-RM31.86', 379, 453, 54),
+      at('Transaction Type', 584, 631, 49),
+      at('Merchant', 745, 779, 52),
+      at('Payment Details', 933, 980, 52),
+      at('Payment Method', 1125, 1174, 51),
+      at('Date/Time', 1287, 1326, 52),
+      at('Wallet Ref', 1471, 1506, 49),
+      at('Status', 1655, 1692, 51),
+      at('Details', 200, 245, 557),
+      at('Transaction No.', 1840, 1875, 50),
+      at('77', 64, 107, 1117),
+      at('+31 points', 397, 434, 1044),
+      at('Payment', 588, 627, 1056),
+      at('TAOBAO', 745, 778, 1063),
+      at('iRHA! 400g47E#RAT', 897, 947, 438),
+      at('Powered by klipaył', 2127, 2183, 418),
+      at('eWallet Balance', 1132, 1166, 909),
+      at('06/11/2026 14:50:38', 1287, 1326, 805),
+      at('202611061011000001000OTNGOW3MY1716', 1444, 1477, 304),
+      at('49562626691', 1501, 1535, 945),
+      at('Successful', 1656, 1691, 1013),
+      at('202611060000000000008454090875', 1813, 1846, 421),
+      at('09', 1870, 1904, 1188),
+    ]);
+    expect(reading.amountMinor, 3186);
+    expect(reading.shop, 'TAOBAO');
+    expect(reading.date, DateTime(2026, 11, 6));
+    expect(reading.delivery, isFalse);
+  });
+
+  test('a delivery being tracked: total, and the shop with no label', () {
+    // Real recognised lines.
+    final reading = parseReceipt([
+      at('10:55', 66, 108, 143),
+      at('Saver Delivery', 448, 484, 73),
+      at('11:55 AM -12:10 PM', 562, 612, 69),
+      at('On time We\'ve got your order', 652, 693, 50),
+      at("We'll let you know when it's in the restaurant.", 863, 901, 49),
+      at('G', 1503, 1539, 150),
+      at('Lim Fried Chicken - Puchong', 1075, 1116, 267),
+      at('Save this restaurant to Favourites and find it', 1259, 1287, 170),
+      at('quickly next time.', 1299, 1336, 170),
+      at('Total', 1825, 1868, 130),
+      at('PayLater', 1506, 1551, 268),
+      at('2 offers applied.', 1669, 1718, 267),
+      at('Get help', 239, 281, 892),
+      at("Yay, you've saved RM9.30", 1889, 1932, 124),
+      at('View order summary', 2048, 2090, 108),
+      at('91', 66, 103, 1084),
+      at('3', 1268, 1320, 1052),
+      at('RM20.34', 1829, 1865, 973),
+      at('RM29.64', 1897, 1929, 1003),
+      at('GrabMore and save on delivery', 2533, 2585, 225),
+      at('14: 48', 2637, 2711, 544),
+    ]);
+    expect(reading.amountMinor, 2034);
+    expect(reading.shop, 'Lim Fried Chicken - Puchong');
+    expect(reading.labels, isNot(contains('lim fried chicken puchong')));
+  });
+
+  test('a small minus amount is still a discount, not what was paid', () {
+    final reading = parseReceipt([
+      line('Voucher', 1),
+      line('-RM5.00', 1, left: 700),
+      line('RM12.00', 2, left: 700),
+    ]);
+    expect(reading.amountMinor, 1200);
   });
 }

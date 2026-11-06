@@ -103,5 +103,7 @@ void main() {
     expect(learnedKindName(note: 'Kedai Ali', shop: 'Kedai Ali'), isNull);
     expect(learnedKindName(note: 'Lunch', shop: 'Kedai Ali'), isNull);
     expect(learnedKindName(note: '  '), isNull);
+    // No shop read, so Jack typed it: only the part before it is the kind.
+    expect(learnedKindName(note: 'ShopeeFood - Thong Kee'), 'ShopeeFood');
   });
 }

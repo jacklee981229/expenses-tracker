@@ -40,12 +40,16 @@ String? receiptNote({String? shop, String? kindName}) {
 }
 
 /// The name to remember for a receipt's kind from the note Jack saved: the
-/// whole note when the receipt showed no shop, or the part before
-/// ` - Shop` when it did. Null when there is nothing to learn.
+/// part before ` - Shop` when the receipt showed a shop; with none, the
+/// part before the first ` - ` (he typed the shop himself), else the whole
+/// note. Null when there is nothing to learn.
 String? learnedKindName({required String note, String? shop}) {
   final cleaned = cleanNote(note);
   if (cleaned == null) return null;
-  if (shop == null) return cleaned;
+  if (shop == null) {
+    final dash = cleaned.indexOf(' - ');
+    return dash < 0 ? cleaned : cleanNote(cleaned.substring(0, dash));
+  }
   final suffix = ' - $shop';
   if (!cleaned.endsWith(suffix)) return null;
   return cleanNote(cleaned.substring(0, cleaned.length - suffix.length));
