@@ -58,7 +58,6 @@ abstract final class AppStrings {
   static const String clearCategoryFilter = 'Show all categories';
   static const String thisMonth = 'This Month';
   static String timeAndDetail(String time, String detail) => '$time · $detail';
-  static const String settingsTooltip = 'Settings';
   static const String noExpensesThisMonth = 'No expenses this month';
   static const String exportNudgeNever = 'Back up your data — no export yet';
   static String exportNudge(int days) =>

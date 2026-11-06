@@ -5,13 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/date_utils.dart';
-import '../../../core/utils/icon_registry.dart';
 import '../../../shared/today_provider.dart';
 import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/large_title.dart';
 import '../../../shared/widgets/pill_chip.dart';
 import '../../../shared/widgets/sheets.dart';
-import '../../settings/settings_screen.dart';
 import '../ledger_providers.dart';
 import '../search_screen.dart';
 import 'category_drawer.dart';
@@ -19,7 +17,7 @@ import 'export_nudge_banner.dart';
 import 'total_card.dart';
 
 /// The top of the ledger: the month as the page title (tap it to pick
-/// another), month arrows and settings, the total card, and the category
+/// another), search and month arrows, the total card, and the category
 /// drawer. It scrolls with the list below it.
 class LedgerHeader extends ConsumerWidget {
   const LedgerHeader({super.key, required this.forward});
@@ -87,15 +85,6 @@ class LedgerHeader extends ConsumerWidget {
                 icon: Icons.chevron_right_rounded,
                 tooltip: AppStrings.next,
                 onPressed: months.next,
-              ),
-              CircleIconButton(
-                asset: UiIcons.gear,
-                tooltip: AppStrings.settingsTooltip,
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const SettingsScreen(),
-                  ),
-                ),
               ),
             ],
           ),

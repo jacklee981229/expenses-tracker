@@ -6,7 +6,7 @@ import 'pressable.dart';
 
 /// The + button: a violet gradient square with a white plus. It pops in
 /// when the app opens, springs under the finger, and spins away while
-/// [visible] is false (on the Analysis tab).
+/// [visible] is false (on the Settings tab).
 class FloatingAddButton extends StatelessWidget {
   const FloatingAddButton({
     super.key,

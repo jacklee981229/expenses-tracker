@@ -12,11 +12,12 @@ import '../../data/services/import_service.dart';
 import '../../shared/widgets/inset_group.dart';
 import '../../shared/widgets/inset_row.dart';
 import '../../shared/widgets/sheets.dart';
-import '../../shared/widgets/glow_scaffold.dart';
+import '../../shared/widgets/large_title.dart';
 import '../categories/manage_categories_screen.dart';
 import '../recurring/recurring_list_screen.dart';
 import 'settings_providers.dart';
 
+/// The Settings tab.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -28,11 +29,14 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = settings?.themeMode ?? ThemeModeSetting.system;
     final lastExportAt = settings?.lastExportAt;
 
-    return GlowScaffold(
-      appBar: AppBar(title: const Text(AppStrings.settingsTitle)),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: EdgeInsets.only(
+          bottom: AppSizes.fabClearance + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
+          const LargeTitle(Text(AppStrings.settingsTitle)),
           InsetGroup(
             header: AppStrings.sectionData,
             children: [

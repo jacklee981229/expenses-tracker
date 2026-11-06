@@ -116,6 +116,14 @@ abstract final class AppTheme {
       textSelectionTheme: TextSelectionThemeData(cursorColor: c.accent),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        // Above the floating tab bar, which sits in the page, not the
+        // Scaffold's bottom slot, so the Scaffold doesn't lift it.
+        insetPadding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.xs,
+          AppSpacing.md,
+          AppSizes.fabClearance,
+        ),
         backgroundColor: c.label,
         contentTextStyle: AppTextStyles.subheadline.copyWith(
           color: c.background,

@@ -83,14 +83,6 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 15)],
   );
 
-  /// A tab's name in the floating tab bar.
-  static const TextStyle tabLabel = TextStyle(
-    fontFamily: family,
-    fontSize: 13,
-    fontWeight: FontWeight.w700,
-    fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 13)],
-  );
-
   /// The title of an expense or category row.
   static const TextStyle rowTitle = TextStyle(
     fontFamily: family,

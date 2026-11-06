@@ -13,6 +13,8 @@ import 'features/analysis/analysis_screen.dart';
 import 'features/ledger/ledger_providers.dart';
 import 'features/ledger/ledger_screen.dart';
 import 'features/settings/settings_providers.dart';
+import 'features/settings/settings_screen.dart';
+import 'shared/root_tab_provider.dart';
 import 'shared/scan_link.dart';
 import 'shared/today_provider.dart';
 import 'shared/widgets/floating_add_button.dart';
@@ -61,8 +63,9 @@ class _BouncingScrollBehavior extends MaterialScrollBehavior {
   ) => child;
 }
 
-/// Two tabs, Ledger and Analysis, over the colour field of the month or
-/// period on screen, with the tab bar and the + button floating above them.
+/// Three tabs, Ledger, Analysis and Settings, over the colour field of the
+/// month or period on screen, with one row floating above them: the tab bar
+/// on the left and the + button on the right.
 class RootShell extends ConsumerStatefulWidget {
   const RootShell({super.key});
 
@@ -71,13 +74,12 @@ class RootShell extends ConsumerStatefulWidget {
 }
 
 class _RootShellState extends ConsumerState<RootShell> {
-  static const int _ledgerTab = 0;
   static const List<FloatingTab> _tabs = [
     FloatingTab(label: AppStrings.tabLedger, icon: UiIcons.receipt),
     FloatingTab(label: AppStrings.tabAnalysis, icon: UiIcons.chart),
+    FloatingTab(label: AppStrings.settingsTitle, icon: UiIcons.gear),
   ];
 
-  int _tab = _ledgerTab;
   late final AppLifecycleListener _lifecycle;
 
   @override
@@ -101,7 +103,7 @@ class _RootShellState extends ConsumerState<RootShell> {
   /// The Back Tap shortcut copied a screenshot and opened the scan link:
   /// show the ledger and an add sheet that fills from the clipboard picture.
   void _scanClipboard() {
-    setState(() => _tab = _ledgerTab);
+    ref.read(rootTabProvider.notifier).select(RootTabNotifier.ledger);
     showAddExpenseSheet(
       context,
       scan: ref.read(receiptReaderProvider).clipboard(),
@@ -121,56 +123,71 @@ class _RootShellState extends ConsumerState<RootShell> {
 
   @override
   Widget build(BuildContext context) {
+    final tab = ref.watch(rootTabProvider);
+    final tabs = ref.read(rootTabProvider.notifier);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: AppTheme.overlayStyle(Theme.of(context).brightness),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: ColourField(
-          spots: ref.watch(
-            _tab == _ledgerTab ? ledgerFieldProvider : analysisFieldProvider,
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: IndexedStack(
-                  index: _tab,
-                  children: [
-                    _TabPage(visible: _tab == 0, child: const LedgerScreen()),
-                    _TabPage(visible: _tab == 1, child: const AnalysisScreen()),
-                  ],
-                ),
-              ),
-              Positioned(
-                right: AppSpacing.lg,
-                bottom:
-                    AppSizes.tabBarBottom +
-                    AppSizes.tabBarHeight +
-                    AppSpacing.lg,
-                child: SafeArea(
-                  top: false,
-                  child: FloatingAddButton(
-                    tooltip: AppStrings.addExpense,
-                    visible: _tab == _ledgerTab,
-                    onPressed: () => showAddExpenseSheet(context),
+      // Android back on another tab returns to the ledger, as it did when
+      // Settings was a pushed page, instead of closing the app.
+      child: PopScope(
+        canPop: tab == RootTabNotifier.ledger,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) tabs.select(RootTabNotifier.ledger);
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: ColourField(
+            spots: ref.watch(
+              tab == RootTabNotifier.analysis
+                  ? analysisFieldProvider
+                  : ledgerFieldProvider,
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: IndexedStack(
+                    index: tab,
+                    children: [
+                      _TabPage(
+                        visible: tab == RootTabNotifier.ledger,
+                        child: const LedgerScreen(),
+                      ),
+                      _TabPage(
+                        visible: tab == RootTabNotifier.analysis,
+                        child: const AnalysisScreen(),
+                      ),
+                      _TabPage(
+                        visible: tab == RootTabNotifier.settings,
+                        child: const SettingsScreen(),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: AppSizes.tabBarBottom,
-                child: SafeArea(
-                  top: false,
-                  child: Center(
-                    child: FloatingTabBar(
-                      tabs: _tabs,
-                      selected: _tab,
-                      onSelected: (index) => setState(() => _tab = index),
+                Positioned(
+                  left: AppSpacing.lg,
+                  right: AppSpacing.lg,
+                  bottom: AppSizes.tabBarBottom,
+                  child: SafeArea(
+                    top: false,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FloatingTabBar(
+                          tabs: _tabs,
+                          selected: tab,
+                          onSelected: tabs.select,
+                        ),
+                        FloatingAddButton(
+                          tooltip: AppStrings.addExpense,
+                          visible: tab != RootTabNotifier.settings,
+                          onPressed: () => showAddExpenseSheet(context),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

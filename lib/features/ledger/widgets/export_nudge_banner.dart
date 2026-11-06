@@ -6,11 +6,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../shared/widgets/app_card.dart';
-import '../../settings/settings_screen.dart';
+import '../../../shared/root_tab_provider.dart';
 import '../ledger_providers.dart';
 
 /// "Back up your data" banner above the ledger list. Exports are the backup
-/// strategy, since reinstalls wipe the app's data. Tap to open Settings;
+/// strategy, since reinstalls wipe the app's data. Tap to switch to Settings;
 /// dismissing hides it for the rest of the session.
 class ExportNudgeBanner extends ConsumerWidget {
   const ExportNudgeBanner({super.key});
@@ -31,9 +31,8 @@ class ExportNudgeBanner extends ConsumerWidget {
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen())),
+        onTap: () =>
+            ref.read(rootTabProvider.notifier).select(RootTabNotifier.settings),
         child: DecoratedBox(
           decoration: cardDecoration(colors, radius: AppRadius.tile),
           child: Row(

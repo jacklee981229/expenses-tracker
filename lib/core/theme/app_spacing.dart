@@ -261,22 +261,23 @@ abstract final class AppSizes {
   static const double bannerIcon = 20;
   static const double emptyStateIcon = 64;
 
-  /// The + button.
-  static const double fab = 62;
+  /// The + button, as tall as the tab bar beside it.
+  static const double fab = tabBarHeight;
   static const double fabIcon = 28;
 
-  /// The floating tab bar: small and low, so the expenses get the room.
-  static const double tabBarWidth = 220;
-  static const double tabBarHeight = 52;
+  /// The floating tab bar: icons only, small and low, so the expenses get
+  /// the room.
+  static const double tabBarHeight = 56;
+  static const double tabSlot = 60;
   static const double tabBarInset = 6;
   static const double tabBarBottom = 8;
-  static const double tabIcon = 18;
+  static const double tabIcon = 26;
 
-  /// Room under scrolling lists for the floating tab bar and + button, on
-  /// top of the phone's bottom safe area: the last receipt ends just above
-  /// the + (placed in `app.dart` from the same sizes).
+  /// Room under scrolling pages for the bottom row (tab bar and + side by
+  /// side), on top of the phone's bottom safe area (placed in `app.dart`
+  /// from the same sizes).
   static const double fabClearance =
-      tabBarBottom + tabBarHeight + AppSpacing.lg + fab + AppSpacing.xs;
+      tabBarBottom + tabBarHeight + AppSpacing.lg;
 
   static const double pickerHeight = 216;
   static const double pickerItemExtent = 32;
@@ -325,6 +326,7 @@ abstract final class AppSizes {
   static const double disabledOpacity = 0.35;
   static const double dimOpacity = 0.4;
   static const double pausedOpacity = 0.45;
+  static const double idleTabOpacity = 0.7;
 
   /// One physical pixel, the iOS hairline.
   static double hairline(BuildContext context) =>

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_text_styles.dart';
 import 'category_avatar.dart';
 import 'pressable.dart';
 
@@ -17,9 +16,10 @@ class FloatingTab {
   final String icon;
 }
 
-/// A frosted pill floating above the page, with one tab per item and a
+/// A frosted pill floating above the page, with one icon per tab and a
 /// darker pill that glides to the selected tab. The selected icon leans and
-/// grows a little.
+/// grows a little; the others are dimmed, since there are no labels to
+/// show which is on.
 class FloatingTabBar extends StatelessWidget {
   const FloatingTabBar({
     super.key,
@@ -36,9 +36,9 @@ class FloatingTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     const inset = AppSizes.tabBarInset;
-    final slot = (AppSizes.tabBarWidth - inset * 2) / tabs.length;
+    const slot = AppSizes.tabSlot;
     return SizedBox(
-      width: AppSizes.tabBarWidth,
+      width: inset * 2 + slot * tabs.length,
       height: AppSizes.tabBarHeight,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -122,38 +122,34 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     return Semantics(
       button: true,
       selected: selected,
       label: tab.label,
       excludeSemantics: true,
-      child: Pressable(
-        onTap: onTap,
-        pressedScale: 0.9,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedRotation(
-              turns: selected ? -1 / 30 : 0,
-              duration: AppMotion.slow,
-              curve: AppMotion.pop,
-              child: AnimatedScale(
-                scale: selected ? 1.18 : 1,
+      child: Tooltip(
+        message: tab.label,
+        excludeFromSemantics: true,
+        child: Pressable(
+          onTap: onTap,
+          pressedScale: 0.9,
+          child: Center(
+            child: AnimatedOpacity(
+              opacity: selected ? 1 : AppSizes.idleTabOpacity,
+              duration: AppMotion.normal,
+              child: AnimatedRotation(
+                turns: selected ? -1 / 30 : 0,
                 duration: AppMotion.slow,
                 curve: AppMotion.pop,
-                child: UiIcon(tab.icon, size: AppSizes.tabIcon),
+                child: AnimatedScale(
+                  scale: selected ? 1.18 : 1,
+                  duration: AppMotion.slow,
+                  curve: AppMotion.pop,
+                  child: UiIcon(tab.icon, size: AppSizes.tabIcon),
+                ),
               ),
             ),
-            const SizedBox(width: AppSpacing.xs - 2),
-            AnimatedDefaultTextStyle(
-              duration: AppMotion.normal,
-              style: AppTextStyles.tabLabel.copyWith(
-                color: selected ? colors.label : colors.labelSecondary,
-              ),
-              child: Text(tab.label, maxLines: 1),
-            ),
-          ],
+          ),
         ),
       ),
     );
