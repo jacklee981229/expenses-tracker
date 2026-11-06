@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Claude reads scanned screenshots when an API key is set. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Expenses"
         android:name="${applicationName}"

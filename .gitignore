@@ -46,3 +46,6 @@ app.*.map.json
 
 # Jack's receipt screenshots and probes: personal data, never committed.
 /scratch/
+
+# Jack's Claude API key for checks on the laptop; the app keeps its own on the phone.
+.env

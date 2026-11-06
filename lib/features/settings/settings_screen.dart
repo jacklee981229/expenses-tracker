@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
+import '../../data/data_providers.dart';
 import '../../data/database/tables/app_settings_table.dart';
 import '../../data/services/import_service.dart';
 import '../../shared/widgets/inset_group.dart';
@@ -28,6 +29,7 @@ class SettingsScreen extends ConsumerWidget {
     final firstDayOfWeek = settings?.firstDayOfWeek ?? DateTime.monday;
     final themeMode = settings?.themeMode ?? ThemeModeSetting.system;
     final lastExportAt = settings?.lastExportAt;
+    final claudeKey = ref.watch(claudeKeyProvider).valueOrNull;
 
     return SafeArea(
       bottom: false,
@@ -69,6 +71,23 @@ class SettingsScreen extends ConsumerWidget {
                 trailing: _Value(AppStrings.weekdays[firstDayOfWeek - 1]),
                 showChevron: true,
                 onTap: () => _pickFirstDay(context, ref, firstDayOfWeek),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          InsetGroup(
+            header: AppStrings.sectionClaude,
+            footer: AppStrings.claudeFooter,
+            children: [
+              InsetRow(
+                title: AppStrings.claudeKey,
+                trailing: _Value(
+                  claudeKey == null
+                      ? AppStrings.claudeKeyNotSet
+                      : AppStrings.claudeKeyEnding(claudeKey),
+                ),
+                showChevron: true,
+                onTap: () => _editClaudeKey(context, ref, claudeKey),
               ),
             ],
           ),
@@ -117,6 +136,41 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Adds a key, or for a set one offers to replace or remove it.
+  Future<void> _editClaudeKey(
+    BuildContext context,
+    WidgetRef ref,
+    String? current,
+  ) async {
+    final store = ref.read(claudeKeyStoreProvider);
+    if (current != null) {
+      final remove = await showOptionsSheet<bool>(
+        context,
+        title: AppStrings.claudeKey,
+        options: const [
+          SheetOption(AppStrings.claudeKeyReplace, false),
+          SheetOption(AppStrings.claudeKeyRemove, true, destructive: true),
+        ],
+      );
+      if (remove == null) return;
+      if (remove) {
+        await store.delete();
+        ref.invalidate(claudeKeyProvider);
+        return;
+      }
+      if (!context.mounted) return;
+    }
+    final key = await showTextInputDialog(
+      context,
+      title: AppStrings.claudeKey,
+      message: AppStrings.claudeKeyMessage,
+      placeholder: AppStrings.claudeKeyPlaceholder,
+    );
+    if (key == null) return;
+    await store.write(key);
+    ref.invalidate(claudeKeyProvider);
   }
 
   void _push(BuildContext context, Widget screen) {

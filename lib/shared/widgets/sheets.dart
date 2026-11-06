@@ -126,6 +126,11 @@ class _PickerPopup extends StatelessWidget {
   }
 }
 
+bool _isApple(BuildContext context) => switch (Theme.of(context).platform) {
+  TargetPlatform.iOS || TargetPlatform.macOS => true,
+  _ => false,
+};
+
 /// A one-button alert: Cupertino on iOS, Material elsewhere.
 Future<void> showAlert(
   BuildContext context, {
@@ -136,10 +141,7 @@ Future<void> showAlert(
     context: context,
     builder: (context) {
       void close() => Navigator.of(context).pop();
-      final isApple = switch (Theme.of(context).platform) {
-        TargetPlatform.iOS || TargetPlatform.macOS => true,
-        _ => false,
-      };
+      final isApple = _isApple(context);
       return AlertDialog.adaptive(
         title: Text(title),
         content: Text(message),
@@ -155,6 +157,104 @@ Future<void> showAlert(
       );
     },
   );
+}
+
+/// A dialog with one text field, Cancel and Save: Cupertino on iOS,
+/// Material elsewhere. Returns the trimmed text, or null when cancelled or
+/// left empty.
+Future<String?> showTextInputDialog(
+  BuildContext context, {
+  required String title,
+  String? message,
+  String? placeholder,
+}) async {
+  final text = await showAdaptiveDialog<String>(
+    context: context,
+    builder: (context) => _TextInputDialog(
+      title: title,
+      message: message,
+      placeholder: placeholder,
+    ),
+  );
+  final trimmed = text?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
+}
+
+class _TextInputDialog extends StatefulWidget {
+  const _TextInputDialog({required this.title, this.message, this.placeholder});
+
+  final String title;
+  final String? message;
+  final String? placeholder;
+
+  @override
+  State<_TextInputDialog> createState() => _TextInputDialogState();
+}
+
+class _TextInputDialogState extends State<_TextInputDialog> {
+  final TextEditingController _text = TextEditingController();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    void cancel() => Navigator.of(context).pop();
+    void save() => Navigator.of(context).pop(_text.text);
+    final message = widget.message;
+    final isApple = _isApple(context);
+    // A Cupertino dialog has no Material ancestor for a TextField.
+    final field = isApple
+        ? CupertinoTextField(
+            controller: _text,
+            placeholder: widget.placeholder,
+            autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            onSubmitted: (_) => save(),
+          )
+        : TextField(
+            controller: _text,
+            autofocus: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(hintText: widget.placeholder),
+            onSubmitted: (_) => save(),
+          );
+    return AlertDialog.adaptive(
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (message != null) Text(message),
+          const SizedBox(height: AppSpacing.sm),
+          field,
+        ],
+      ),
+      actions: isApple
+          ? [
+              CupertinoDialogAction(
+                onPressed: cancel,
+                child: const Text(AppStrings.cancel),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: save,
+                child: const Text(AppStrings.save),
+              ),
+            ]
+          : [
+              TextButton(
+                onPressed: cancel,
+                child: const Text(AppStrings.cancel),
+              ),
+              TextButton(onPressed: save, child: const Text(AppStrings.save)),
+            ],
+    );
+  }
 }
 
 /// iOS action sheet asking to confirm a destructive action.

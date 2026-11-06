@@ -8,6 +8,8 @@ import 'database/daos/receipt_kind_dao.dart';
 import 'database/daos/recurring_dao.dart';
 import 'database/daos/settings_dao.dart';
 import 'database/daos/transaction_dao.dart';
+import 'services/claude_api.dart';
+import 'services/claude_key_store.dart';
 import 'services/export_service.dart';
 import 'services/import_service.dart';
 import 'services/receipt_reader.dart';
@@ -59,4 +61,20 @@ final importServiceProvider = Provider<ImportService>(
   (ref) => ImportService(ref.watch(appDatabaseProvider)),
 );
 
-final receiptReaderProvider = Provider<ReceiptReader>((ref) => ReceiptReader());
+final claudeApiProvider = Provider<ClaudeApi>((ref) => ClaudeApi());
+
+final claudeKeyStoreProvider = Provider<ClaudeKeyStore>(
+  (ref) => const ClaudeKeyStore(),
+);
+
+/// The Claude API key, or null when none is set. Invalidate after a change.
+final claudeKeyProvider = FutureProvider<String?>(
+  (ref) => ref.watch(claudeKeyStoreProvider).read(),
+);
+
+final receiptReaderProvider = Provider<ReceiptReader>(
+  (ref) => ReceiptReader(
+    claude: ref.watch(claudeApiProvider),
+    keys: ref.watch(claudeKeyStoreProvider),
+  ),
+);

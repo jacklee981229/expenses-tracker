@@ -1,5 +1,5 @@
 name: expense_tracker
-description: "Personal expense tracker. Local-only, single-user, RM only."
+description: "Personal expense tracker. Single-user, RM only; the database stays on the phone."
 publish_to: 'none'
 
 # Keep in sync with lib/core/constants/app_info.dart (shown in Settings > About).
@@ -15,7 +15,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
+  flutter_secure_storage: ^10.3.4
   google_mlkit_text_recognition: ^0.16.0
+  http: ^1.6.0
   image_picker: ^1.2.1
   intl: ^0.20.2
   pasteboard: ^0.5.0

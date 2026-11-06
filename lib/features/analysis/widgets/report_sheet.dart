@@ -9,10 +9,13 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/report.dart';
+import '../../../core/utils/report_brief.dart';
+import '../../../data/data_providers.dart';
 import '../../../data/database/daos/analysis_dao.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/receipt_card.dart';
 import '../analysis_providers.dart';
+import 'claude_review.dart';
 
 /// Opens the report for the period on screen, following the filter: one
 /// printed statement whose lines print in one after another.
@@ -49,6 +52,8 @@ class _ReportSheet extends ConsumerWidget {
       AnalysisPeriod.month => AppStrings.insightMonth,
       AnalysisPeriod.year || AnalysisPeriod.all => AppStrings.insightYear,
     };
+    final apiKey = ref.watch(claudeKeyProvider).valueOrNull;
+    final daysSoFar = ref.watch(periodDaysSoFarProvider);
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -112,6 +117,17 @@ class _ReportSheet extends ConsumerWidget {
                       report: report,
                       word: word,
                       colours: colours,
+                      claude: apiKey == null
+                          ? null
+                          : ClaudeReview(
+                              apiKey: apiKey,
+                              brief: () => reportBrief(
+                                report,
+                                period: period,
+                                word: word,
+                                daysSoFar: daysSoFar,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -129,9 +145,13 @@ class _Statement extends StatelessWidget {
     required this.report,
     required this.word,
     required this.colours,
+    this.claude,
   });
 
   final Report report;
+
+  /// The Claude section's body, shown only with an API key set.
+  final Widget? claude;
 
   /// `week`, `month` or `year`, for "than last month".
   final String word;
@@ -264,6 +284,11 @@ class _Statement extends StatelessWidget {
             plain(AppStrings.reportTimes(n.count)),
             plain(formatWithSymbol(n.totalMinor)),
           ]),
+      ],
+      if (claude case final claude?) ...[
+        dash,
+        section(AppStrings.reportClaude),
+        claude,
       ],
     ];
 

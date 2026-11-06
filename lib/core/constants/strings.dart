@@ -154,6 +154,12 @@ abstract final class AppStrings {
   static const String reportFixed = 'FIXED AND EVERYDAY';
   static const String reportHighlights = 'HIGHLIGHTS';
   static const String reportMostOften = 'MOST OFTEN';
+  static const String reportClaude = 'CLAUDE';
+  static const String reportAskClaude = 'Ask Claude what stands out.';
+  static const String reportClaudeWriting =
+      'Claude is reading the report\u{2026}';
+  static const String reportClaudeFailed =
+      "Claude didn't answer. Tap to try again.";
   static String reportMore(int percent) => '$percent% more';
   static String reportLess(int percent) => '$percent% less';
   static const String reportVsLast = "{} than last {}'s {}.";
@@ -253,12 +259,28 @@ abstract final class AppStrings {
   static const String sectionData = 'Data';
   static const String sectionPreferences = 'Preferences';
   static const String sectionBackup = 'Backup';
+  static const String sectionClaude = 'Reading screenshots';
   static const String sectionAbout = 'About';
   static const String firstDayOfWeek = 'First day of week';
   static const String appearance = 'Appearance';
   static const String appearanceSystem = 'System';
   static const String appearanceLight = 'Light';
   static const String appearanceDark = 'Dark';
+  static const String claudeKey = 'Claude API key';
+  static const String claudeKeyNotSet = 'Not set';
+
+  /// The key's last four characters, the rest hidden.
+  static String claudeKeyEnding(String key) =>
+      '\u{2022}\u{2022}\u{2022}\u{2022}'
+      '${key.length > 4 ? key.substring(key.length - 4) : ''}';
+  static const String claudeFooter =
+      'With a key, Claude also reads each screenshot you scan. Without one, '
+      'screenshots are read on the phone only.';
+  static const String claudeKeyMessage =
+      "Kept in this phone's keychain, never in a backup.";
+  static const String claudeKeyPlaceholder = 'sk-ant-\u{2026}';
+  static const String claudeKeyReplace = 'Replace key';
+  static const String claudeKeyRemove = 'Remove key';
   static const String exportCsv = 'Export CSV';
   static const String exportBackup = 'Export Backup';
   static const String importBackup = 'Import Backup';
