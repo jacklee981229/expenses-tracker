@@ -239,6 +239,9 @@ class _RowContent extends StatelessWidget {
                         note ?? category,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        // A cut-off title would otherwise fill the leftover
+                        // width, leaving a gap before the fixed mark.
+                        textWidthBasis: TextWidthBasis.longestLine,
                         style: AppTextStyles.rowTitle.copyWith(
                           color: colors.label,
                         ),
