@@ -250,6 +250,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
             categoryId: state.categoryId,
             note: state.note,
             onSelected: controller.setNote,
+            onHide: (note) => _hideNote(controller, note),
           ),
         ),
         // The system keyboard slides up over the keypad while the note is
@@ -314,6 +315,16 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
     } else {
       Navigator.of(context).pop();
     }
+  }
+
+  /// Asks before taking [note] out of the category's chips.
+  Future<void> _hideNote(AddExpenseController controller, String note) async {
+    final confirmed = await confirmDestructive(
+      context,
+      title: AppStrings.hideNoteTitle(note),
+      confirmLabel: AppStrings.hideNote,
+    );
+    if (confirmed && mounted) await controller.hideNote(note);
   }
 
   /// Opens New Category over the sheet and selects the result.

@@ -10,7 +10,8 @@ import '../add_expense_controller.dart';
 /// Notes used before in the selected category, most recent first, as
 /// frosted chips at the bottom of the amount box, under the note field they
 /// fill. A chip is a description picker only: it fills the note and never
-/// touches or shows an amount. Tapping the selected chip clears the note.
+/// touches or shows an amount. Tapping the selected chip clears the note;
+/// a long press offers to take the chip away.
 /// The chips slide in one after another when the category changes, and the
 /// strip folds away, taking no space, when the category has no notes.
 class HistoryChipStrip extends ConsumerWidget {
@@ -19,6 +20,7 @@ class HistoryChipStrip extends ConsumerWidget {
     required this.categoryId,
     required this.note,
     required this.onSelected,
+    required this.onHide,
   });
 
   final String? categoryId;
@@ -26,6 +28,7 @@ class HistoryChipStrip extends ConsumerWidget {
   /// The current note; the chip with exactly this text shows as selected.
   final String note;
   final ValueChanged<String> onSelected;
+  final ValueChanged<String> onHide;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,6 +78,7 @@ class HistoryChipStrip extends ConsumerWidget {
                           selectedColor: onHero,
                           selectedLabelColor: colors.boxBase,
                           onTap: () => onSelected(selected ? '' : text),
+                          onLongPress: () => onHide(text),
                         ),
                       ),
                     );

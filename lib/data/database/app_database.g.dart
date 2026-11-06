@@ -2416,6 +2416,276 @@ class ReceiptKindsCompanion extends UpdateCompanion<ReceiptKindRow> {
   }
 }
 
+class $HiddenNotesTable extends HiddenNotes
+    with TableInfo<$HiddenNotesTable, HiddenNoteRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HiddenNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hiddenAtMeta = const VerificationMeta(
+    'hiddenAt',
+  );
+  @override
+  late final GeneratedColumn<int> hiddenAt = GeneratedColumn<int>(
+    'hidden_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [categoryId, note, hiddenAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'hidden_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HiddenNoteRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_noteMeta);
+    }
+    if (data.containsKey('hidden_at')) {
+      context.handle(
+        _hiddenAtMeta,
+        hiddenAt.isAcceptableOrUnknown(data['hidden_at']!, _hiddenAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hiddenAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {categoryId, note};
+  @override
+  HiddenNoteRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HiddenNoteRow(
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      hiddenAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}hidden_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HiddenNotesTable createAlias(String alias) {
+    return $HiddenNotesTable(attachedDatabase, alias);
+  }
+}
+
+class HiddenNoteRow extends DataClass implements Insertable<HiddenNoteRow> {
+  final String categoryId;
+
+  /// Exactly as stored, case included, as the chips match it.
+  final String note;
+
+  /// Epoch milliseconds, compared with an expense's `createdAt`.
+  final int hiddenAt;
+  const HiddenNoteRow({
+    required this.categoryId,
+    required this.note,
+    required this.hiddenAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['category_id'] = Variable<String>(categoryId);
+    map['note'] = Variable<String>(note);
+    map['hidden_at'] = Variable<int>(hiddenAt);
+    return map;
+  }
+
+  HiddenNotesCompanion toCompanion(bool nullToAbsent) {
+    return HiddenNotesCompanion(
+      categoryId: Value(categoryId),
+      note: Value(note),
+      hiddenAt: Value(hiddenAt),
+    );
+  }
+
+  factory HiddenNoteRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HiddenNoteRow(
+      categoryId: serializer.fromJson<String>(json['categoryId']),
+      note: serializer.fromJson<String>(json['note']),
+      hiddenAt: serializer.fromJson<int>(json['hiddenAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'categoryId': serializer.toJson<String>(categoryId),
+      'note': serializer.toJson<String>(note),
+      'hiddenAt': serializer.toJson<int>(hiddenAt),
+    };
+  }
+
+  HiddenNoteRow copyWith({String? categoryId, String? note, int? hiddenAt}) =>
+      HiddenNoteRow(
+        categoryId: categoryId ?? this.categoryId,
+        note: note ?? this.note,
+        hiddenAt: hiddenAt ?? this.hiddenAt,
+      );
+  HiddenNoteRow copyWithCompanion(HiddenNotesCompanion data) {
+    return HiddenNoteRow(
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      note: data.note.present ? data.note.value : this.note,
+      hiddenAt: data.hiddenAt.present ? data.hiddenAt.value : this.hiddenAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HiddenNoteRow(')
+          ..write('categoryId: $categoryId, ')
+          ..write('note: $note, ')
+          ..write('hiddenAt: $hiddenAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(categoryId, note, hiddenAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HiddenNoteRow &&
+          other.categoryId == this.categoryId &&
+          other.note == this.note &&
+          other.hiddenAt == this.hiddenAt);
+}
+
+class HiddenNotesCompanion extends UpdateCompanion<HiddenNoteRow> {
+  final Value<String> categoryId;
+  final Value<String> note;
+  final Value<int> hiddenAt;
+  final Value<int> rowid;
+  const HiddenNotesCompanion({
+    this.categoryId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.hiddenAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HiddenNotesCompanion.insert({
+    required String categoryId,
+    required String note,
+    required int hiddenAt,
+    this.rowid = const Value.absent(),
+  }) : categoryId = Value(categoryId),
+       note = Value(note),
+       hiddenAt = Value(hiddenAt);
+  static Insertable<HiddenNoteRow> custom({
+    Expression<String>? categoryId,
+    Expression<String>? note,
+    Expression<int>? hiddenAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (categoryId != null) 'category_id': categoryId,
+      if (note != null) 'note': note,
+      if (hiddenAt != null) 'hidden_at': hiddenAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HiddenNotesCompanion copyWith({
+    Value<String>? categoryId,
+    Value<String>? note,
+    Value<int>? hiddenAt,
+    Value<int>? rowid,
+  }) {
+    return HiddenNotesCompanion(
+      categoryId: categoryId ?? this.categoryId,
+      note: note ?? this.note,
+      hiddenAt: hiddenAt ?? this.hiddenAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (hiddenAt.present) {
+      map['hidden_at'] = Variable<int>(hiddenAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HiddenNotesCompanion(')
+          ..write('categoryId: $categoryId, ')
+          ..write('note: $note, ')
+          ..write('hiddenAt: $hiddenAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2424,6 +2694,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TransactionsTable transactions = $TransactionsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $ReceiptKindsTable receiptKinds = $ReceiptKindsTable(this);
+  late final $HiddenNotesTable hiddenNotes = $HiddenNotesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -2434,6 +2705,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ReceiptKindDao receiptKindDao = ReceiptKindDao(
     this as AppDatabase,
   );
+  late final HiddenNoteDao hiddenNoteDao = HiddenNoteDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2444,6 +2716,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     transactions,
     appSettings,
     receiptKinds,
+    hiddenNotes,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4315,6 +4588,170 @@ typedef $$ReceiptKindsTableProcessedTableManager =
       ReceiptKindRow,
       PrefetchHooks Function()
     >;
+typedef $$HiddenNotesTableCreateCompanionBuilder =
+    HiddenNotesCompanion Function({
+      required String categoryId,
+      required String note,
+      required int hiddenAt,
+      Value<int> rowid,
+    });
+typedef $$HiddenNotesTableUpdateCompanionBuilder =
+    HiddenNotesCompanion Function({
+      Value<String> categoryId,
+      Value<String> note,
+      Value<int> hiddenAt,
+      Value<int> rowid,
+    });
+
+class $$HiddenNotesTableFilterComposer
+    extends Composer<_$AppDatabase, $HiddenNotesTable> {
+  $$HiddenNotesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get hiddenAt => $composableBuilder(
+    column: $table.hiddenAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HiddenNotesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HiddenNotesTable> {
+  $$HiddenNotesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get hiddenAt => $composableBuilder(
+    column: $table.hiddenAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HiddenNotesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HiddenNotesTable> {
+  $$HiddenNotesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get hiddenAt =>
+      $composableBuilder(column: $table.hiddenAt, builder: (column) => column);
+}
+
+class $$HiddenNotesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HiddenNotesTable,
+          HiddenNoteRow,
+          $$HiddenNotesTableFilterComposer,
+          $$HiddenNotesTableOrderingComposer,
+          $$HiddenNotesTableAnnotationComposer,
+          $$HiddenNotesTableCreateCompanionBuilder,
+          $$HiddenNotesTableUpdateCompanionBuilder,
+          (
+            HiddenNoteRow,
+            BaseReferences<_$AppDatabase, $HiddenNotesTable, HiddenNoteRow>,
+          ),
+          HiddenNoteRow,
+          PrefetchHooks Function()
+        > {
+  $$HiddenNotesTableTableManager(_$AppDatabase db, $HiddenNotesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HiddenNotesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HiddenNotesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HiddenNotesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> categoryId = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                Value<int> hiddenAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HiddenNotesCompanion(
+                categoryId: categoryId,
+                note: note,
+                hiddenAt: hiddenAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String categoryId,
+                required String note,
+                required int hiddenAt,
+                Value<int> rowid = const Value.absent(),
+              }) => HiddenNotesCompanion.insert(
+                categoryId: categoryId,
+                note: note,
+                hiddenAt: hiddenAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HiddenNotesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HiddenNotesTable,
+      HiddenNoteRow,
+      $$HiddenNotesTableFilterComposer,
+      $$HiddenNotesTableOrderingComposer,
+      $$HiddenNotesTableAnnotationComposer,
+      $$HiddenNotesTableCreateCompanionBuilder,
+      $$HiddenNotesTableUpdateCompanionBuilder,
+      (
+        HiddenNoteRow,
+        BaseReferences<_$AppDatabase, $HiddenNotesTable, HiddenNoteRow>,
+      ),
+      HiddenNoteRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4329,4 +4766,6 @@ class $AppDatabaseManager {
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$ReceiptKindsTableTableManager get receiptKinds =>
       $$ReceiptKindsTableTableManager(_db, _db.receiptKinds);
+  $$HiddenNotesTableTableManager get hiddenNotes =>
+      $$HiddenNotesTableTableManager(_db, _db.hiddenNotes);
 }

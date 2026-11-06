@@ -5,6 +5,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/note_utils.dart';
 import '../app_database.dart';
 import '../tables/categories_table.dart';
+import '../tables/hidden_notes_table.dart';
 import '../tables/transactions_table.dart';
 
 part 'transaction_dao.g.dart';
@@ -18,7 +19,7 @@ class ExpenseWithCategory {
   final ExpenseCategory category;
 }
 
-@DriftAccessor(tables: [Transactions, Categories])
+@DriftAccessor(tables: [Transactions, Categories, HiddenNotes])
 class TransactionDao extends DatabaseAccessor<AppDatabase>
     with _$TransactionDaoMixin {
   TransactionDao(super.attachedDatabase);
@@ -210,15 +211,26 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   }
 
   /// Every use of a note in [categoryId], for ranking the history chips.
-  /// Notes are kept exactly as stored, case included.
+  /// Notes are kept exactly as stored, case included. A hidden note's uses
+  /// are left out, except those saved after it was hidden.
   Stream<List<NoteUse>> watchNoteUses(String categoryId) {
-    final query = selectOnly(transactions)
-      ..addColumns([transactions.note, transactions.occurredAt])
-      ..where(
-        transactions.categoryId.equals(categoryId) &
-            transactions.note.isNotNull() &
-            transactions.note.trim().equals('').not(),
-      );
+    final query =
+        selectOnly(transactions).join([
+            leftOuterJoin(
+              hiddenNotes,
+              hiddenNotes.categoryId.equalsExp(transactions.categoryId) &
+                  hiddenNotes.note.equalsExp(transactions.note),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([transactions.note, transactions.occurredAt])
+          ..where(
+            transactions.categoryId.equals(categoryId) &
+                transactions.note.isNotNull() &
+                transactions.note.trim().equals('').not() &
+                (hiddenNotes.hiddenAt.isNull() |
+                    transactions.createdAt.isBiggerThan(hiddenNotes.hiddenAt)),
+          );
     return query.watch().map(
       (rows) => [
         for (final row in rows)

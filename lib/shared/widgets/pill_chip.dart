@@ -13,6 +13,7 @@ class PillChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.onLongPress,
     this.leading,
     this.color,
     this.labelColor,
@@ -24,6 +25,7 @@ class PillChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final Widget? leading;
 
   /// The unselected fill, when the chip sits on a colour the default fill
@@ -42,6 +44,7 @@ class PillChip extends StatelessWidget {
     final leading = this.leading;
     return Pressable(
       onTap: onTap,
+      onLongPress: onLongPress,
       pressedScale: 0.92,
       // No alignment: the chip is as wide as its label, even in a Wrap.
       child: AnimatedContainer(

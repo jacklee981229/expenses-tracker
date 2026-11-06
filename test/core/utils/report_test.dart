@@ -138,8 +138,8 @@ void main() {
         spend('Food', 1200, '2026-11-09', note: 'Mamak'),
         spend('Food', 1000, '2026-11-08', note: ' mamak '),
         spend('Food', 900, '2026-11-07', note: 'MAMAK'),
-        spend('Transport', 1500, '2026-11-06', note: 'Grab  car'),
-        spend('Transport', 900, '2026-11-05', note: 'grab car'),
+        spend('Transport', 1500, '2026-11-06', note: 'Ride  share'),
+        spend('Transport', 900, '2026-11-05', note: 'ride share'),
         spend('Food', 500, '2026-11-04', note: 'Coffee'),
         spend('Food', 500, '2026-11-03', note: 'coffee'),
         spend('Food', 100, '2026-11-02', note: 'Kuih'),
@@ -153,7 +153,7 @@ void main() {
     expect(report.notes, [
       (note: 'Mamak', count: 3, totalMinor: 3100),
       // Two each: the bigger total first, so Kuih drops out.
-      (note: 'Grab car', count: 2, totalMinor: 2400),
+      (note: 'Ride share', count: 2, totalMinor: 2400),
       (note: 'Coffee', count: 2, totalMinor: 1000),
     ]);
   });
@@ -161,20 +161,20 @@ void main() {
   test('notes from one kind of receipt page count as one', () {
     final report = buildReport(
       current: [
-        spend('Food', 2034, '2026-11-06', note: 'GrabFood - Lim Fried Chicken'),
-        spend('Food', 1500, '2026-11-05', note: 'grabfood - Kedai Ali'),
-        spend('Food', 1200, '2026-11-04', note: 'GrabFood'),
-        spend('Food', 4000, '2026-11-03', note: 'ShopeeFood - Thong Kee'),
-        spend('Food', 2000, '2026-11-02', note: 'Shopeefood - Kedai Abu'),
-        spend('Food', 900, '2026-11-01', note: 'Grabcar - home'),
-        spend('Food', 900, '2026-11-01', note: 'Grabcar - office'),
+        spend('Food', 2034, '2026-11-06', note: 'Food App - Kedai Ayam'),
+        spend('Food', 1500, '2026-11-05', note: 'food app - Kedai Ali'),
+        spend('Food', 1200, '2026-11-04', note: 'Food App'),
+        spend('Food', 4000, '2026-11-03', note: 'Food Go - Kedai Abu'),
+        spend('Food', 2000, '2026-11-02', note: 'Food go - Kedai Mala'),
+        spend('Food', 900, '2026-11-01', note: 'Ride App - home'),
+        spend('Food', 900, '2026-11-01', note: 'Ride App - office'),
       ],
       daysSoFar: 6,
-      kindNames: ['GrabFood', 'ShopeeFood'],
+      kindNames: ['Food App', 'Food Go'],
     )!;
     expect(report.notes, [
-      (note: 'GrabFood', count: 3, totalMinor: 4734),
-      (note: 'ShopeeFood', count: 2, totalMinor: 6000),
+      (note: 'Food App', count: 3, totalMinor: 4734),
+      (note: 'Food Go', count: 2, totalMinor: 6000),
     ]);
   });
 

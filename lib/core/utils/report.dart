@@ -88,7 +88,7 @@ const int kReportNotes = 3;
 /// [daysSoFar] is the period's calendar days up to today and [previousDays]
 /// the period before's full length, the two per day figures' divisors.
 /// [kindNames] are the named kinds of receipt page: notes from one kind
-/// (`GrabFood - Kedai Ali`, `GrabFood - Kedai Abu`) count as one.
+/// (`Food App - Kedai Ali`, `Food App - Kedai Abu`) count as one.
 /// Null when nothing was spent.
 Report? buildReport({
   required List<ReportExpense> current,
@@ -198,7 +198,7 @@ final RegExp _spaces = RegExp(r'\s+');
 
 String _tidy(String? note) => (note ?? '').trim().replaceAll(_spaces, ' ');
 
-/// The kind [note] was read from (`GrabFood` for `GrabFood - Kedai Ali`),
+/// The kind [note] was read from (`Food App` for `Food App - Kedai Ali`),
 /// or the note itself.
 String _kindOf(String note, Iterable<String> kindNames) {
   final lower = note.toLowerCase();

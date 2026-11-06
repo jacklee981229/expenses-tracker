@@ -161,6 +161,14 @@ class AddExpenseController
     if (note != state.note) state = state.copyWith(note: note);
   }
 
+  /// Takes [note] out of the selected category's history chips; its past
+  /// expenses keep it.
+  Future<void> hideNote(String note) async {
+    final categoryId = state.categoryId;
+    if (categoryId == null) return;
+    await ref.read(hiddenNoteDaoProvider).hide(categoryId, note);
+  }
+
   /// A note typed by hand: when it was used before, switch to the category
   /// it was last used with, unless a category was tapped in this sheet or
   /// an existing expense is being edited.

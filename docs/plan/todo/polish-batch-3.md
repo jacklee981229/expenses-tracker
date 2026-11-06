@@ -94,7 +94,8 @@ erm这样看C就不好看了。我觉得你改成A+B吧。
 - D11. Recognising an app by name would put a trademark in the public repo,
   so Jack chose "记住我填的": each read keeps the page's printed labels;
   after a save, the note names that kind of page (the whole note without a
-  shop, the part before ` - Shop` with one). The next screenshot of the
+  shop, the part before ` - Shop` with one, or before the first ` - ` when
+  he retyped a misread shop). The next screenshot of the
   same kind fills `Name - Shop`, or the name alone. Names live only in the
   phone's database: a new `receipt_kinds` table, schemaVersion 2.
 

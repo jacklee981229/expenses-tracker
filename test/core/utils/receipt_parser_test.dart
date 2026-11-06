@@ -240,7 +240,7 @@ void main() {
       at('77', 64, 107, 1117),
       at('+31 points', 397, 434, 1044),
       at('Payment', 588, 627, 1056),
-      at('TAOBAO', 745, 778, 1063),
+      at('ONLINE MART', 745, 778, 1063),
       at('iRHA! 400g47E#RAT', 897, 947, 438),
       at('Powered by klipaył', 2127, 2183, 418),
       at('eWallet Balance', 1132, 1166, 909),
@@ -252,7 +252,7 @@ void main() {
       at('09', 1870, 1904, 1188),
     ]);
     expect(reading.amountMinor, 3186);
-    expect(reading.shop, 'TAOBAO');
+    expect(reading.shop, 'ONLINE MART');
     expect(reading.date, DateTime(2026, 11, 6));
     expect(reading.delivery, isFalse);
   });
@@ -266,7 +266,7 @@ void main() {
       at('On time We\'ve got your order', 652, 693, 50),
       at("We'll let you know when it's in the restaurant.", 863, 901, 49),
       at('G', 1503, 1539, 150),
-      at('Lim Fried Chicken - Puchong', 1075, 1116, 267),
+      at('Kedai Ayam - Puchong', 1075, 1116, 267),
       at('Save this restaurant to Favourites and find it', 1259, 1287, 170),
       at('quickly next time.', 1299, 1336, 170),
       at('Total', 1825, 1868, 130),
@@ -279,12 +279,36 @@ void main() {
       at('3', 1268, 1320, 1052),
       at('RM20.34', 1829, 1865, 973),
       at('RM29.64', 1897, 1929, 1003),
-      at('GrabMore and save on delivery', 2533, 2585, 225),
+      at('Join More and save on delivery', 2533, 2585, 225),
       at('14: 48', 2637, 2711, 544),
     ]);
     expect(reading.amountMinor, 2034);
-    expect(reading.shop, 'Lim Fried Chicken - Puchong');
-    expect(reading.labels, isNot(contains('lim fried chicken puchong')));
+    expect(reading.shop, 'Kedai Ayam - Puchong');
+    expect(reading.labels, isNot(contains('kedai ayam puchong')));
+  });
+
+  test('a food order: the shop line without its arrow', () {
+    // Real recognised lines; the shop line ends in a tappable arrow.
+    final reading = parseReceipt([
+      at('17:39', 68, 108, 175),
+      at('Take from', 402, 429, 98),
+      at('Kedai Mala - Puchong Jaya >', 465, 507, 62),
+      at('A-G-36, Jalan Puchong, Bandar Puchong Jaya,', 536, 574, 61),
+      at('• Deliver to', 696, 723, 60),
+      at('Order Details', 233, 278, 475),
+      at('Item Subtotal (2 items)', 2109, 2148, 64),
+      at('Food Discount Voucher', 2221, 2248, 63),
+      at('Delivery Fee D', 2301, 2339, 63),
+      at('Paid', 2559, 2591, 868),
+      at('RM28.30', 2111, 2142, 1052),
+      at('-RM7.00', 2222, 2249, 1092),
+      at('↑ RM4.50', 2304, 2334, 1040),
+      at('-RM3.00', 2387, 2416, 1084),
+      at('RM22.80', 2563, 2599, 1031),
+      at('Tax included, where applicable.', 2628, 2661, 699),
+    ]);
+    expect(reading.amountMinor, 2280);
+    expect(reading.shop, 'Kedai Mala - Puchong Jaya');
   });
 
   test('a small minus amount is still a discount, not what was paid', () {

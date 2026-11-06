@@ -147,6 +147,7 @@ Unit tests are required for, and only for:
 - `core/utils/report.dart` — the Analysis report's figures
 - `core/utils/receipt_parser.dart` — reading a screenshot's amount, shop, date
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
+- `HiddenNoteDao` with `TransactionDao.watchNoteUses` — chips taken away and brought back
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
 - `core/utils/bar_scale.dart` — the spending bars' cap
 - `data/services/export_service.dart` and `import_service.dart` — the backup's

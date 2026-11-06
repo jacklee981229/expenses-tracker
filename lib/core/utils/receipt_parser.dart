@@ -214,7 +214,7 @@ String? _shop(List<ReadLine> lines) {
   for (final line in lines) {
     final text = line.text.trim();
     final inline = _shopInline.firstMatch(text);
-    if (inline != null) return inline.group(2)!.trim();
+    if (inline != null) return _shopName(inline.group(2)!);
     if (!_shopLabel.hasMatch(text)) continue;
     // Beside the label first, else the first line under it.
     final beside = _rightOf(lines, line).map((l) => l.text.trim());
@@ -222,7 +222,7 @@ String? _shop(List<ReadLine> lines) {
         .where((l) => l.top >= line.bottom - 1)
         .map((l) => l.text.trim());
     for (final name in [...beside, ...below]) {
-      if (name.isNotEmpty && !_money.hasMatch(name)) return name;
+      if (name.isNotEmpty && !_money.hasMatch(name)) return _shopName(name);
     }
   }
   // No label: a short `Name - Branch` line, as food apps print the shop.
@@ -233,13 +233,19 @@ String? _shop(List<ReadLine> lines) {
         !_money.hasMatch(text) &&
         _digit.allMatches(text).length < _phoneDigits &&
         text.split(_spaceRun).length <= _branchShopMaxWords) {
-      return text;
+      return _shopName(text);
     }
   }
   return null;
 }
 
-// `Lim Fried Chicken - Puchong`: letters on both sides of a spaced dash.
+/// [text] without the arrow a tappable shop line ends in, which is read as
+/// `>` (`Kedai Ali - Puchong >`).
+String _shopName(String text) => text.replaceFirst(_trailingArrow, '').trim();
+
+final RegExp _trailingArrow = RegExp(r'\s*[>›»〉]+\s*$');
+
+// `Kedai Ayam - Puchong`: letters on both sides of a spaced dash.
 final RegExp _branchShop = RegExp(r'[A-Za-z].*\s[-–]\s.*[A-Za-z]');
 
 // `11:55 AM - 12:10 PM`, a delivery time, is not a shop.

@@ -8,12 +8,14 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_info.dart';
 import 'daos/analysis_dao.dart';
 import 'daos/category_dao.dart';
+import 'daos/hidden_note_dao.dart';
 import 'daos/receipt_kind_dao.dart';
 import 'daos/recurring_dao.dart';
 import 'daos/settings_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'tables/app_settings_table.dart';
 import 'tables/categories_table.dart';
+import 'tables/hidden_notes_table.dart';
 import 'tables/receipt_kinds_table.dart';
 import 'tables/recurring_rules_table.dart';
 import 'tables/transactions_table.dart';
@@ -21,7 +23,14 @@ import 'tables/transactions_table.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Categories, Transactions, RecurringRules, AppSettings, ReceiptKinds],
+  tables: [
+    Categories,
+    Transactions,
+    RecurringRules,
+    AppSettings,
+    ReceiptKinds,
+    HiddenNotes,
+  ],
   daos: [
     CategoryDao,
     TransactionDao,
@@ -29,6 +38,7 @@ part 'app_database.g.dart';
     AnalysisDao,
     SettingsDao,
     ReceiptKindDao,
+    HiddenNoteDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -48,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Any schema change bumps this and adds a step to [migration].
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +71,8 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       // 2: named kinds of receipt page, for reading screenshots.
       if (from < 2) await m.createTable(receiptKinds);
+      // 3: notes taken out of the history chips.
+      if (from < 3) await m.createTable(hiddenNotes);
     },
     beforeOpen: (details) async {
       // SQLite leaves foreign keys off unless enabled on every connection.

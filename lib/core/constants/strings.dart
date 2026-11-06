@@ -244,6 +244,9 @@ abstract final class AppStrings {
   static const String deleteRuleTitle = 'Delete this fixed expense?';
   static const String deleteRuleMessage =
       'Expenses it already added stay in the ledger.';
+  static String hideNoteTitle(String note) =>
+      'Remove “$note” from suggestions?';
+  static const String hideNote = 'Remove';
 
   // Settings
   static const String settingsTitle = 'Settings';

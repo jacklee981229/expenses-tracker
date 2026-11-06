@@ -40,7 +40,8 @@ String? receiptNote({String? shop, String? kindName}) {
 }
 
 /// The name to remember for a receipt's kind from the note Jack saved: the
-/// part before ` - Shop` when the receipt showed a shop; with none, the
+/// part before ` - Shop` when the receipt showed a shop (or before the
+/// first ` - ` when he retyped the shop); with none, the
 /// part before the first ` - ` (he typed the shop himself), else the whole
 /// note. Null when there is nothing to learn.
 String? learnedKindName({required String note, String? shop}) {
@@ -51,6 +52,17 @@ String? learnedKindName({required String note, String? shop}) {
     return dash < 0 ? cleaned : cleanNote(cleaned.substring(0, dash));
   }
   final suffix = ' - $shop';
-  if (!cleaned.endsWith(suffix)) return null;
-  return cleanNote(cleaned.substring(0, cleaned.length - suffix.length));
+  if (cleaned.endsWith(suffix)) {
+    return cleanNote(cleaned.substring(0, cleaned.length - suffix.length));
+  }
+  // He retyped a misread shop (`Food App - kedai ali`): the part before
+  // the dash still names the kind, unless it is the read shop's own name
+  // (he only tidied `Kedai Ali - Puchong`).
+  final dash = cleaned.indexOf(' - ');
+  if (dash < 0) return null;
+  final kind = cleanNote(cleaned.substring(0, dash));
+  if (kind == null || shop.toLowerCase().startsWith(kind.toLowerCase())) {
+    return null;
+  }
+  return kind;
 }
