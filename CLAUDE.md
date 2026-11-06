@@ -44,8 +44,10 @@ or follows the phone).
   page text at its centre keeps 4.5:1 (the small section labels 3:1).
   Category colour also marks the icon tiles, the total card's legend chips
   (two rows at most, with Today) and the amount box while recording.
-  Everything else is neutral glass, the Analysis bars included; the one
-  exception is a capped spending bar, which turns the theme's red.
+  Everything else is neutral glass, the Analysis bars included; the
+  exceptions are a capped spending bar, which turns the theme's red, and
+  the change stickers (up red, down green, new violet; `changeUp` and
+  friends, deeper or paler than `heroUp` so they read over their tint).
 - Type: Bricolage Grotesque; the month's total is the one hero.
 - Shapes and material: glass, meaning a translucent tint, a 1px edge and a
   lighter top. The total card's glass is thinner than the glass under

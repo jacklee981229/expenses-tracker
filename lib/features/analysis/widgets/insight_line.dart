@@ -140,6 +140,9 @@ class _InsightLineState extends ConsumerState<InsightLine> {
       SameAsBefore(:final name) => AppStrings.insightSame(name, period),
       CategoryShare(:final name, :final totalMinor, :final percent) =>
         AppStrings.insightShare(name, formatWithSymbol(totalMinor), percent),
+      Projection(:final totalMinor) => AppStrings.insightProjection(
+        formatWithSymbol(totalMinor),
+      ),
       BiggestDay(:final localDate, :final totalMinor) =>
         AppStrings.insightBiggestDay(
           formatDayMonth(parseLocalDate(localDate)),

@@ -122,6 +122,29 @@ abstract final class AppStrings {
   static String insightSame(String category, String period) =>
       '$category: same as last $period';
 
+  // A category card's change sticker.
+  static const String changeNew = 'New';
+  static String changeUp(String figure) => '\u{25B2}$figure';
+  static String changeDown(String figure) => '\u{25BC}$figure';
+  static String changeSame(String figure) => '= $figure';
+  static String changeAbout(String figure) => '\u{2248} $figure';
+  static String changePercent(int percent) => '$percent%';
+
+  /// What a picture's stickers are compared with: `vs October 2026`.
+  static String changeVs(String period) => 'vs $period';
+
+  // Analysis as a picture, and the report as one.
+  static const String shareAsPicture = 'Share as picture';
+  static const String hideAmounts = 'Hide amounts';
+  static const String share = 'Share';
+  static const String shareReport = 'Share report';
+  static const String expensesStat = 'Expenses';
+  static const String posterFileName = 'expenses-analysis';
+  static const String reportFileName = 'expenses-report';
+
+  /// The foot of a picture: `Printed 6 Nov 2026`.
+  static String printedOn(String date) => 'Printed $date';
+
   /// A legend chip on the total card: `70%` beside the category's name, or
   /// `<1%` for a share that rounds to nothing.
   static String shareOfMonth(int percent) => percent < 1 ? '<1%' : '$percent%';
@@ -129,6 +152,10 @@ abstract final class AppStrings {
   /// With nothing to compare: `Food: RM100.18, 85% of spending`
   static String insightShare(String category, String amount, int percent) =>
       '$category: $amount, $percent% of spending';
+
+  /// `At this pace, about RM2,840.00 by month end`
+  static String insightProjection(String amount) =>
+      'At this pace, about $amount by month end';
 
   /// `Biggest day: 24 Sep, RM72.58`
   static String insightBiggestDay(String day, String amount) =>

@@ -60,5 +60,7 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Pick a screenshot to read an expense from it. The picture is not kept.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save a picture of your spending to Photos.</string>
 </dict>
 </plist>

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,7 @@ import '../../../core/constants/strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/insights.dart';
 import '../../../core/utils/money.dart';
 import '../../../data/database/daos/analysis_dao.dart';
 import '../../../shared/widgets/app_card.dart';
@@ -14,12 +17,14 @@ import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/pressable.dart';
 import '../analysis_providers.dart';
 import '../category_detail_screen.dart';
+import 'change_sticker.dart';
 
 /// A card per category, largest first, coming in one after another: icon,
 /// name and amount over a bar in the category colour that grows to its
-/// share, and the share in a small violet tag. The category of a tapped
-/// donut slice lifts and the others dim. Tap for the category's expenses in
-/// the period.
+/// share, the share in a small tag, and under it a sticker with the change
+/// in ringgit against the whole period before, slapped on once the bar has
+/// grown. The category of a tapped donut slice lifts and the others dim.
+/// Tap for the category's expenses in the period.
 class CategoryBreakdownList extends ConsumerWidget {
   const CategoryBreakdownList({super.key, required this.totals});
 
@@ -31,6 +36,7 @@ class CategoryBreakdownList extends ConsumerWidget {
     final selection = ref.watch(periodSelectionProvider);
     final bounds = ref.watch(periodBoundsProvider);
     final grandTotal = sumTotals(totals);
+    final changes = ref.watch(categoryChangesProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -46,6 +52,7 @@ class CategoryBreakdownList extends ConsumerWidget {
                   total: total,
                   grandTotal: grandTotal,
                   barDelay: AppMotion.slow + staggerDelay(index),
+                  change: changes?[total.category.id],
                   highlighted: highlighted.contains(total.category.id),
                   dimmed:
                       highlighted.isNotEmpty &&
@@ -73,6 +80,7 @@ class _BreakdownCard extends StatelessWidget {
     required this.total,
     required this.grandTotal,
     required this.barDelay,
+    required this.change,
     required this.highlighted,
     required this.dimmed,
     required this.onTap,
@@ -81,6 +89,9 @@ class _BreakdownCard extends StatelessWidget {
   final CategoryTotal total;
   final int grandTotal;
   final Duration barDelay;
+
+  /// Null when there is nothing to compare: no sticker at all.
+  final SpendChange? change;
   final bool highlighted;
   final bool dimmed;
   final VoidCallback onTap;
@@ -179,26 +190,62 @@ class _BreakdownCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Transform.rotate(
-                  angle: 0.08,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs - 1,
-                      vertical: AppSpacing.xxs - 1,
+                AnimatedSize(
+                  duration: AppMotion.normal,
+                  curve: AppMotion.enter,
+                  alignment: Alignment.topRight,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: AppSizes.tagColumn,
                     ),
-                    decoration: BoxDecoration(
-                      color: colors.fill,
-                      borderRadius: BorderRadius.circular(AppSpacing.xs),
-                    ),
-                    child: Text(
-                      formatShare(
-                        total.totalMinor,
-                        grandTotal,
-                        trimZeros: true,
-                      ),
-                      style: AppTextStyles.caption2.copyWith(
-                        color: colors.label,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Transform.rotate(
+                          angle: AppSizes.shareTagTilt * math.pi / 180,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xs - 1,
+                              vertical: AppSpacing.xxs - 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.fill,
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.xs,
+                              ),
+                            ),
+                            child: Text(
+                              formatShare(
+                                total.totalMinor,
+                                grandTotal,
+                                trimZeros: true,
+                              ),
+                              style: AppTextStyles.caption2.copyWith(
+                                color: colors.label,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (change case final change?)
+                          // Slapped on once, after the bar has grown.
+                          Entrance(
+                            delay: barDelay + AppMotion.slow,
+                            offset: Offset.zero,
+                            fromTilt: 12,
+                            fromScale: 0.6,
+                            duration: AppMotion.slow,
+                            curve: AppMotion.pop,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: AppSizes.tagGap,
+                              ),
+                              child: ChangeSticker(
+                                change: change,
+                                percent: false,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

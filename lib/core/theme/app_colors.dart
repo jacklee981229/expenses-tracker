@@ -37,6 +37,10 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.noteChip,
     required this.heroUp,
     required this.heroDown,
+    required this.changeUp,
+    required this.changeDown,
+    required this.changeNew,
+    required this.stickerBase,
     required this.boxBase,
     required this.boxMix,
     required this.barCap,
@@ -118,6 +122,17 @@ class AppColors extends ThemeExtension<AppColors> {
   /// The big total's flash: up when spending grows, down when it shrinks.
   final Color heroUp;
   final Color heroDown;
+
+  /// A category card's change sticker: up, down and new in the colours of
+  /// [heroUp], [heroDown] and [accent], deep enough (light) or pale enough
+  /// (dark) to read over their own faint tint on [stickerBase].
+  final Color changeUp;
+  final Color changeDown;
+  final Color changeNew;
+
+  /// Under a sticker's tint: clear on the light glass, a little darker on
+  /// the dark glass so the pale words stay readable.
+  final Color stickerBase;
 
   /// The amount box while recording: [boxMix] of the category's colour over
   /// [boxBase].
@@ -211,6 +226,10 @@ class AppColors extends ThemeExtension<AppColors> {
     noteChip: Color(0x66FFFFFF),
     heroUp: Color(0xFFC92A50),
     heroDown: Color(0xFF12855A),
+    changeUp: Color(0xFFAB2444),
+    changeDown: Color(0xFF0E6A48),
+    changeNew: Color(0xFF4E3DE6),
+    stickerBase: Color(0x00FFFFFF),
     boxBase: Color(0xFFFFFFFF),
     boxMix: 0.32,
     barCap: Color(0xFFD8323F),
@@ -261,6 +280,10 @@ class AppColors extends ThemeExtension<AppColors> {
     noteChip: Color(0x24100E24),
     heroUp: Color(0xFFFF8FA3),
     heroDown: Color(0xFF7CF2B0),
+    changeUp: Color(0xFFFF8FA3),
+    changeDown: Color(0xFF7CF2B0),
+    changeNew: Color(0xFFB8AFFF),
+    stickerBase: Color(0x59100E24),
     boxBase: Color(0xFF14162C),
     boxMix: 0.45,
     // Redder than Food's E9695B, so a capped bar isn't read as Food.
@@ -347,6 +370,10 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? noteChip,
     Color? heroUp,
     Color? heroDown,
+    Color? changeUp,
+    Color? changeDown,
+    Color? changeNew,
+    Color? stickerBase,
     Color? boxBase,
     double? boxMix,
     Color? barCap,
@@ -395,6 +422,10 @@ class AppColors extends ThemeExtension<AppColors> {
       noteChip: noteChip ?? this.noteChip,
       heroUp: heroUp ?? this.heroUp,
       heroDown: heroDown ?? this.heroDown,
+      changeUp: changeUp ?? this.changeUp,
+      changeDown: changeDown ?? this.changeDown,
+      changeNew: changeNew ?? this.changeNew,
+      stickerBase: stickerBase ?? this.stickerBase,
       boxBase: boxBase ?? this.boxBase,
       boxMix: boxMix ?? this.boxMix,
       barCap: barCap ?? this.barCap,
@@ -450,6 +481,10 @@ class AppColors extends ThemeExtension<AppColors> {
       noteChip: mix(noteChip, other.noteChip),
       heroUp: mix(heroUp, other.heroUp),
       heroDown: mix(heroDown, other.heroDown),
+      changeUp: mix(changeUp, other.changeUp),
+      changeDown: mix(changeDown, other.changeDown),
+      changeNew: mix(changeNew, other.changeNew),
+      stickerBase: mix(stickerBase, other.stickerBase),
       boxBase: mix(boxBase, other.boxBase),
       boxMix: mixD(boxMix, other.boxMix),
       barCap: mix(barCap, other.barCap),

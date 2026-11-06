@@ -44,7 +44,8 @@ class TotalCard extends ConsumerWidget {
         month.year == today.year && month.month == today.month;
     final legend = ref.watch(monthLegendProvider);
     final onHero = colors.onHero;
-    final folded = ref.watch(totalCardFoldedProvider);
+    final savedFold = ref.watch(totalCardFoldedProvider);
+    final folded = savedFold ?? false;
 
     return Entrance(
       offset: const Offset(0, 36),
@@ -53,7 +54,10 @@ class TotalCard extends ConsumerWidget {
       curve: AppMotion.pop,
       child: Transform.rotate(
         angle: AppSizes.heroTilt * math.pi / 180,
+        // Built afresh once the saved fold has loaded, so a card left
+        // folded starts folded instead of folding as the ledger opens.
         child: Stack(
+          key: ValueKey(savedFold != null),
           children: [
             HeroSurface(
               padding: const EdgeInsets.fromLTRB(

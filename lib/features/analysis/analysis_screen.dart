@@ -14,6 +14,7 @@ import '../../shared/widgets/rolling_amount.dart';
 import 'analysis_providers.dart';
 import 'widgets/category_breakdown_list.dart';
 import 'widgets/period_switcher.dart';
+import 'widgets/share_poster.dart';
 import 'widgets/insight_line.dart';
 import 'widgets/spend_pie_chart.dart';
 import 'widgets/trend_card.dart';
@@ -81,6 +82,7 @@ class AnalysisScreen extends ConsumerWidget {
                   key: ValueKey('list|$scope'),
                   totals: totals,
                 ),
+              if (totals.isNotEmpty) const SharePictureLink(),
             ],
             loading: () => const [],
             error: (error, _) => [

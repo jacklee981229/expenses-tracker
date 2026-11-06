@@ -190,6 +190,22 @@ class AnalysisDao extends DatabaseAccessor<AppDatabase>
           totalMinor: row.read(_total) ?? 0,
         );
 
+  /// What fixed monthly expenses came to between inclusive local dates,
+  /// limited to [categoryIds] when that is not empty.
+  Stream<int> watchFixedTotal({
+    required String start,
+    required String end,
+    Set<String> categoryIds = const {},
+  }) {
+    final query = selectOnly(transactions)
+      ..addColumns([_total])
+      ..where(
+        transactions.source.equals(TransactionSource.recurring) &
+            _filter(start, end, categoryIds)!,
+      );
+    return query.watchSingle().map((row) => row.read(_total) ?? 0);
+  }
+
   /// Every expense with its category between inclusive local dates (both
   /// null = all time), limited to [categoryIds] when that is not empty;
   /// newest first. The report's figures are worked out from these.

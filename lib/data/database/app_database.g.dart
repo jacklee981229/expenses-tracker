@@ -1851,12 +1851,27 @@ class $AppSettingsTable extends AppSettings
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _totalCardFoldedMeta = const VerificationMeta(
+    'totalCardFolded',
+  );
+  @override
+  late final GeneratedColumn<bool> totalCardFolded = GeneratedColumn<bool>(
+    'total_card_folded',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("total_card_folded" IN (0, 1))',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     firstDayOfWeek,
     themeMode,
     lastExportAt,
+    totalCardFolded,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1897,6 +1912,15 @@ class $AppSettingsTable extends AppSettings
         ),
       );
     }
+    if (data.containsKey('total_card_folded')) {
+      context.handle(
+        _totalCardFoldedMeta,
+        totalCardFolded.isAcceptableOrUnknown(
+          data['total_card_folded']!,
+          _totalCardFoldedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1922,6 +1946,10 @@ class $AppSettingsTable extends AppSettings
         DriftSqlType.int,
         data['${effectivePrefix}last_export_at'],
       ),
+      totalCardFolded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}total_card_folded'],
+      ),
     );
   }
 
@@ -1942,11 +1970,17 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
 
   /// Epoch milliseconds of the last successful export.
   final int? lastExportAt;
+
+  /// Whether the ledger's total card is folded down to the month's total.
+  /// Nullable, null meaning open, because a backup made before it has no
+  /// such field and `fromJson` would refuse a missing non-null one.
+  final bool? totalCardFolded;
   const AppSettingsData({
     required this.id,
     required this.firstDayOfWeek,
     required this.themeMode,
     this.lastExportAt,
+    this.totalCardFolded,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1956,6 +1990,9 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
     map['theme_mode'] = Variable<String>(themeMode);
     if (!nullToAbsent || lastExportAt != null) {
       map['last_export_at'] = Variable<int>(lastExportAt);
+    }
+    if (!nullToAbsent || totalCardFolded != null) {
+      map['total_card_folded'] = Variable<bool>(totalCardFolded);
     }
     return map;
   }
@@ -1968,6 +2005,9 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
       lastExportAt: lastExportAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastExportAt),
+      totalCardFolded: totalCardFolded == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalCardFolded),
     );
   }
 
@@ -1981,6 +2021,7 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
       firstDayOfWeek: serializer.fromJson<int>(json['firstDayOfWeek']),
       themeMode: serializer.fromJson<String>(json['themeMode']),
       lastExportAt: serializer.fromJson<int?>(json['lastExportAt']),
+      totalCardFolded: serializer.fromJson<bool?>(json['totalCardFolded']),
     );
   }
   @override
@@ -1991,6 +2032,7 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
       'firstDayOfWeek': serializer.toJson<int>(firstDayOfWeek),
       'themeMode': serializer.toJson<String>(themeMode),
       'lastExportAt': serializer.toJson<int?>(lastExportAt),
+      'totalCardFolded': serializer.toJson<bool?>(totalCardFolded),
     };
   }
 
@@ -1999,11 +2041,15 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
     int? firstDayOfWeek,
     String? themeMode,
     Value<int?> lastExportAt = const Value.absent(),
+    Value<bool?> totalCardFolded = const Value.absent(),
   }) => AppSettingsData(
     id: id ?? this.id,
     firstDayOfWeek: firstDayOfWeek ?? this.firstDayOfWeek,
     themeMode: themeMode ?? this.themeMode,
     lastExportAt: lastExportAt.present ? lastExportAt.value : this.lastExportAt,
+    totalCardFolded: totalCardFolded.present
+        ? totalCardFolded.value
+        : this.totalCardFolded,
   );
   AppSettingsData copyWithCompanion(AppSettingsCompanion data) {
     return AppSettingsData(
@@ -2015,6 +2061,9 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
       lastExportAt: data.lastExportAt.present
           ? data.lastExportAt.value
           : this.lastExportAt,
+      totalCardFolded: data.totalCardFolded.present
+          ? data.totalCardFolded.value
+          : this.totalCardFolded,
     );
   }
 
@@ -2024,13 +2073,15 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
           ..write('id: $id, ')
           ..write('firstDayOfWeek: $firstDayOfWeek, ')
           ..write('themeMode: $themeMode, ')
-          ..write('lastExportAt: $lastExportAt')
+          ..write('lastExportAt: $lastExportAt, ')
+          ..write('totalCardFolded: $totalCardFolded')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, firstDayOfWeek, themeMode, lastExportAt);
+  int get hashCode =>
+      Object.hash(id, firstDayOfWeek, themeMode, lastExportAt, totalCardFolded);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2038,7 +2089,8 @@ class AppSettingsData extends DataClass implements Insertable<AppSettingsData> {
           other.id == this.id &&
           other.firstDayOfWeek == this.firstDayOfWeek &&
           other.themeMode == this.themeMode &&
-          other.lastExportAt == this.lastExportAt);
+          other.lastExportAt == this.lastExportAt &&
+          other.totalCardFolded == this.totalCardFolded);
 }
 
 class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
@@ -2046,29 +2098,34 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
   final Value<int> firstDayOfWeek;
   final Value<String> themeMode;
   final Value<int?> lastExportAt;
+  final Value<bool?> totalCardFolded;
   const AppSettingsCompanion({
     this.id = const Value.absent(),
     this.firstDayOfWeek = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.lastExportAt = const Value.absent(),
+    this.totalCardFolded = const Value.absent(),
   });
   AppSettingsCompanion.insert({
     this.id = const Value.absent(),
     this.firstDayOfWeek = const Value.absent(),
     this.themeMode = const Value.absent(),
     this.lastExportAt = const Value.absent(),
+    this.totalCardFolded = const Value.absent(),
   });
   static Insertable<AppSettingsData> custom({
     Expression<int>? id,
     Expression<int>? firstDayOfWeek,
     Expression<String>? themeMode,
     Expression<int>? lastExportAt,
+    Expression<bool>? totalCardFolded,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (firstDayOfWeek != null) 'first_day_of_week': firstDayOfWeek,
       if (themeMode != null) 'theme_mode': themeMode,
       if (lastExportAt != null) 'last_export_at': lastExportAt,
+      if (totalCardFolded != null) 'total_card_folded': totalCardFolded,
     });
   }
 
@@ -2077,12 +2134,14 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
     Value<int>? firstDayOfWeek,
     Value<String>? themeMode,
     Value<int?>? lastExportAt,
+    Value<bool?>? totalCardFolded,
   }) {
     return AppSettingsCompanion(
       id: id ?? this.id,
       firstDayOfWeek: firstDayOfWeek ?? this.firstDayOfWeek,
       themeMode: themeMode ?? this.themeMode,
       lastExportAt: lastExportAt ?? this.lastExportAt,
+      totalCardFolded: totalCardFolded ?? this.totalCardFolded,
     );
   }
 
@@ -2101,6 +2160,9 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
     if (lastExportAt.present) {
       map['last_export_at'] = Variable<int>(lastExportAt.value);
     }
+    if (totalCardFolded.present) {
+      map['total_card_folded'] = Variable<bool>(totalCardFolded.value);
+    }
     return map;
   }
 
@@ -2110,7 +2172,8 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
           ..write('id: $id, ')
           ..write('firstDayOfWeek: $firstDayOfWeek, ')
           ..write('themeMode: $themeMode, ')
-          ..write('lastExportAt: $lastExportAt')
+          ..write('lastExportAt: $lastExportAt, ')
+          ..write('totalCardFolded: $totalCardFolded')
           ..write(')'))
         .toString();
   }
@@ -4240,6 +4303,7 @@ typedef $$AppSettingsTableCreateCompanionBuilder =
       Value<int> firstDayOfWeek,
       Value<String> themeMode,
       Value<int?> lastExportAt,
+      Value<bool?> totalCardFolded,
     });
 typedef $$AppSettingsTableUpdateCompanionBuilder =
     AppSettingsCompanion Function({
@@ -4247,6 +4311,7 @@ typedef $$AppSettingsTableUpdateCompanionBuilder =
       Value<int> firstDayOfWeek,
       Value<String> themeMode,
       Value<int?> lastExportAt,
+      Value<bool?> totalCardFolded,
     });
 
 class $$AppSettingsTableFilterComposer
@@ -4275,6 +4340,11 @@ class $$AppSettingsTableFilterComposer
 
   ColumnFilters<int> get lastExportAt => $composableBuilder(
     column: $table.lastExportAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get totalCardFolded => $composableBuilder(
+    column: $table.totalCardFolded,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4307,6 +4377,11 @@ class $$AppSettingsTableOrderingComposer
     column: $table.lastExportAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get totalCardFolded => $composableBuilder(
+    column: $table.totalCardFolded,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AppSettingsTableAnnotationComposer
@@ -4331,6 +4406,11 @@ class $$AppSettingsTableAnnotationComposer
 
   GeneratedColumn<int> get lastExportAt => $composableBuilder(
     column: $table.lastExportAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get totalCardFolded => $composableBuilder(
+    column: $table.totalCardFolded,
     builder: (column) => column,
   );
 }
@@ -4370,11 +4450,13 @@ class $$AppSettingsTableTableManager
                 Value<int> firstDayOfWeek = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
                 Value<int?> lastExportAt = const Value.absent(),
+                Value<bool?> totalCardFolded = const Value.absent(),
               }) => AppSettingsCompanion(
                 id: id,
                 firstDayOfWeek: firstDayOfWeek,
                 themeMode: themeMode,
                 lastExportAt: lastExportAt,
+                totalCardFolded: totalCardFolded,
               ),
           createCompanionCallback:
               ({
@@ -4382,11 +4464,13 @@ class $$AppSettingsTableTableManager
                 Value<int> firstDayOfWeek = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
                 Value<int?> lastExportAt = const Value.absent(),
+                Value<bool?> totalCardFolded = const Value.absent(),
               }) => AppSettingsCompanion.insert(
                 id: id,
                 firstDayOfWeek: firstDayOfWeek,
                 themeMode: themeMode,
                 lastExportAt: lastExportAt,
+                totalCardFolded: totalCardFolded,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

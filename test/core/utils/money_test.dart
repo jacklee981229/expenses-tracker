@@ -132,6 +132,17 @@ void main() {
     });
   });
 
+  group('formatShortWithSymbol', () {
+    test('drops the sign, and sen when there are none', () {
+      expect(formatShortWithSymbol(4500), 'RM45');
+      expect(formatShortWithSymbol(-4500), 'RM45');
+      expect(formatShortWithSymbol(-4550), 'RM45.50');
+      expect(formatShortWithSymbol(102000), 'RM1,020');
+      expect(formatShortWithSymbol(5), 'RM0.05');
+      expect(formatShortWithSymbol(0), 'RM0');
+    });
+  });
+
   group('averageMinor', () {
     test('divides in sen, rounding half up', () {
       expect(averageMinor(186300, 4), 46575);

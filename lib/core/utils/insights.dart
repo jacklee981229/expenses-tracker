@@ -1,3 +1,6 @@
+import '../constants/strings.dart';
+import 'money.dart';
+
 /// One category's spending in a period.
 typedef CategorySpend = ({String id, String name, int totalMinor});
 
@@ -48,17 +51,50 @@ final class BiggestDay extends Insight {
   final int totalMinor;
 }
 
+/// Where a running month's spending is heading ([projectMonth]).
+final class Projection extends Insight {
+  const Projection(this.totalMinor);
+
+  final int totalMinor;
+}
+
+/// The month's day from which it is projected: the first days' spending
+/// says too little about the pace.
+const int kProjectionFromDay = 3;
+
+/// The month's spending by its last day if everyday spending carries on at
+/// its pace over [daysSoFar] of [monthDays]. [fixedMinor], the fixed
+/// expenses, counts once: a month's are all added on its first day. Null
+/// before day [kProjectionFromDay], on or after the last day, or with
+/// nothing spent.
+int? projectMonth({
+  required int totalMinor,
+  required int fixedMinor,
+  required int daysSoFar,
+  required int monthDays,
+}) {
+  if (totalMinor <= 0 ||
+      daysSoFar < kProjectionFromDay ||
+      daysSoFar >= monthDays) {
+    return null;
+  }
+  final everyday = totalMinor - fixedMinor;
+  return fixedMinor + averageMinor(everyday * monthDays, daysSoFar);
+}
+
 /// The sentences the summary loops through, one per tap. First the most
 /// telling one: with spending in [previous] (the period before), the
 /// category whose spending moved the most in ringgit; with nothing to
 /// compare, or a move that rounds to 0%, [biggestDay]. Then every other
 /// category spent on now, biggest first (compared with [previous], or as a
-/// share when there is nothing to compare), then [biggestDay]. Empty when
-/// [current] has no spending.
+/// share when there is nothing to compare), then [biggestDay]. A
+/// [projectedMinor] goes before them all. Empty when [current] has no
+/// spending.
 List<Insight> insightLoop({
   required List<CategorySpend> current,
   List<CategorySpend>? previous,
   ({String localDate, int totalMinor})? biggestDay,
+  int? projectedMinor,
 }) {
   final total = _sum(current);
   if (total <= 0) return const [];
@@ -74,6 +110,7 @@ List<Insight> insightLoop({
   final spent = current.where((c) => c.totalMinor > 0).toList()
     ..sort((a, b) => _byRank(a, b, now));
   return [
+    if (projectedMinor != null) Projection(projectedMinor),
     if (first != null) first,
     for (final spend in spent)
       if (spend.id != moved?.id)
@@ -125,6 +162,45 @@ Insight _compare(
   if (change == null) return NewCategory(spend.name, nowMinor);
   if (change == 0) return SameAsBefore(spend.name);
   return CategoryChange(spend.name, change.abs(), up: change > 0);
+}
+
+/// Which way a category's spending went against the period before.
+enum ChangeKind { up, down, same, fresh }
+
+/// A category's change as its sticker shows it: [deltaMinor] signed, and
+/// [percent] as [changePercent] gives it (null for [ChangeKind.fresh]).
+typedef SpendChange = ({ChangeKind kind, int deltaMinor, int? percent});
+
+/// [now] against [was], judged as the summary line judges it: new with
+/// nothing before, the same when the change rounds to 0%.
+SpendChange spendChange(int now, int was) {
+  final percent = changePercent(now, was);
+  final kind = switch (percent) {
+    null => ChangeKind.fresh,
+    0 => ChangeKind.same,
+    > 0 => ChangeKind.up,
+    _ => ChangeKind.down,
+  };
+  return (kind: kind, deltaMinor: now - was, percent: percent);
+}
+
+/// A sticker's words for [change], in percent or in ringgit: `▲RM45`,
+/// `▼12%`, `New`; the same is `= RM0`, or `≈ RM3.50` for a move too small
+/// to reach 1%, and `0%`.
+String changeLabel(SpendChange change, {required bool percent}) {
+  final figure = percent
+      ? AppStrings.changePercent(change.percent?.abs() ?? 0)
+      : formatShortWithSymbol(change.deltaMinor);
+  return switch (change.kind) {
+    ChangeKind.fresh => AppStrings.changeNew,
+    ChangeKind.same when percent => figure,
+    ChangeKind.same when change.deltaMinor == 0 => AppStrings.changeSame(
+      figure,
+    ),
+    ChangeKind.same => AppStrings.changeAbout(figure),
+    ChangeKind.up => AppStrings.changeUp(figure),
+    ChangeKind.down => AppStrings.changeDown(figure),
+  };
 }
 
 /// [now] against [was] in whole percent, signed (+ more, - less); null when

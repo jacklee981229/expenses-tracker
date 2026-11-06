@@ -151,6 +151,7 @@ void main() {
   });
 
   test('formatDateRange shortens same-month and same-year ranges', () {
+    expect(formatDateRange('2026-10-01', '2026-10-01'), '1 Oct 2026');
     expect(formatDateRange('2026-09-01', '2026-09-07'), '1–7 Sep 2026');
     expect(formatDateRange('2026-09-28', '2026-10-04'), '28 Sep – 4 Oct 2026');
     expect(

@@ -21,6 +21,11 @@ class AppSettings extends Table {
   /// Epoch milliseconds of the last successful export.
   IntColumn get lastExportAt => integer().nullable()();
 
+  /// Whether the ledger's total card is folded down to the month's total.
+  /// Nullable, null meaning open, because a backup made before it has no
+  /// such field and `fromJson` would refuse a missing non-null one.
+  BoolColumn get totalCardFolded => boolean().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

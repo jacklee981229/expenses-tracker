@@ -12,6 +12,10 @@ import '../../../core/utils/report.dart';
 import '../../../core/utils/report_brief.dart';
 import '../../../data/data_providers.dart';
 import '../../../data/database/daos/analysis_dao.dart';
+import '../../../data/services/picture_share.dart';
+import '../../../shared/today_provider.dart';
+import '../../../shared/widgets/circle_icon_button.dart';
+import '../../../shared/widgets/colour_field.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/receipt_card.dart';
 import '../analysis_providers.dart';
@@ -37,7 +41,6 @@ class _ReportSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
     final report = ref.watch(reportProvider);
     final selection = ref.watch(periodSelectionProvider);
     final filter = ref.watch(categoryFilterProvider);
@@ -72,24 +75,39 @@ class _ReportSheet extends ConsumerWidget {
               AppSpacing.sm,
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(
-                  AppStrings.report,
-                  style: AppTextStyles.title2.copyWith(color: colors.label),
+                Expanded(
+                  child: _Heading(
+                    AppStrings.reportPeriod(period, filter.length),
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    AppStrings.reportPeriod(period, filter.length),
-                    textAlign: TextAlign.end,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.footnote.copyWith(
-                      color: colors.labelSecondary,
-                    ),
-                  ),
+                // There from the start, so the heading keeps its height
+                // when the report comes in.
+                CircleIconButton(
+                  icon: Icons.ios_share_rounded,
+                  tooltip: AppStrings.shareReport,
+                  onPressed: report == null
+                      ? null
+                      : () => shareOffscreen(
+                          context,
+                          _ReportPicture(
+                            spots: ref.read(analysisFieldProvider),
+                            period: AppStrings.reportPeriod(
+                              period,
+                              filter.length,
+                            ),
+                            printed: ref.read(todayProvider),
+                            statement: _Statement(
+                              report: report,
+                              word: word,
+                              colours: colours,
+                              animate: false,
+                            ),
+                          ),
+                          width: MediaQuery.sizeOf(context).width,
+                          fileName: AppStrings.reportFileName,
+                        ),
                 ),
               ],
             ),
@@ -139,14 +157,119 @@ class _ReportSheet extends ConsumerWidget {
   }
 }
 
-/// The statement's lines, each printing in a little after the one above.
+/// `Report` and, after it, [period] (with the filter's categories).
+class _Heading extends StatelessWidget {
+  const _Heading(this.period);
+
+  final String period;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Text(
+          AppStrings.report,
+          style: AppTextStyles.title2.copyWith(color: colors.label),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            period,
+            textAlign: TextAlign.end,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.footnote.copyWith(
+              color: colors.labelSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The report as a picture to share: the receipt upright on the month's
+/// colour field, with the heading at its top and, at its foot, the day it
+/// was printed and the app's name. Claude's take stays out: it is Claude's,
+/// not the report's.
+class _ReportPicture extends StatelessWidget {
+  const _ReportPicture({
+    required this.spots,
+    required this.period,
+    required this.printed,
+    required this.statement,
+  });
+
+  final List<FieldSpot> spots;
+  final String period;
+  final DateTime printed;
+  final Widget statement;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final foot = AppTextStyles.footnote.copyWith(color: colors.labelSecondary);
+    return ColourField(
+      spots: spots,
+      child: Padding(
+        // Room enough for the month's colours to frame the receipt.
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: ReceiptCard(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Heading(period),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: DashedLine(),
+                ),
+                statement,
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: DashedLine(),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      AppStrings.printedOn(formatShortDate(printed)),
+                      style: foot,
+                    ),
+                    const Spacer(),
+                    Text(AppStrings.appTitle, style: foot),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The statement's lines, each printing in a little after the one above
+/// unless [animate] is off.
 class _Statement extends StatelessWidget {
   const _Statement({
     required this.report,
     required this.word,
     required this.colours,
     this.claude,
+    this.animate = true,
   });
+
+  /// False shows every line at once, as the shared picture needs.
+  final bool animate;
 
   final Report report;
 
@@ -297,6 +420,7 @@ class _Statement extends StatelessWidget {
       children: [
         for (final (index, row) in rows.indexed)
           Entrance(
+            animate: animate,
             delay: AppMotion.normal + staggerDelay(index, cap: 16),
             offset: const Offset(0, -6),
             fromTilt: 0,

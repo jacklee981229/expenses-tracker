@@ -58,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Any schema change bumps this and adds a step to [migration].
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -73,6 +73,8 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) await m.createTable(receiptKinds);
       // 3: notes taken out of the history chips.
       if (from < 3) await m.createTable(hiddenNotes);
+      // 4: the folded total card, remembered.
+      if (from < 4) await m.addColumn(appSettings, appSettings.totalCardFolded);
     },
     beforeOpen: (details) async {
       // SQLite leaves foreign keys off unless enabled on every connection.

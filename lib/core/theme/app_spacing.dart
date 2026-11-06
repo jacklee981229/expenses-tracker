@@ -323,6 +323,27 @@ abstract final class AppSizes {
 
   static const double shareBarHeight = 8;
 
+  /// A category card's share tag leans [shareTagTilt] degrees; the change
+  /// sticker under it leans [changeTilt] the other way, its colour at
+  /// [changeTint] behind the words and glowing at [changeGlow] over
+  /// [changeGlowBlur].
+  static const double shareTagTilt = 4.6;
+  static const double changeTilt = -3.5;
+  static const double changeTint = 0.1;
+  static const double changeGlow = 0.3;
+  static const double changeGlowBlur = 12;
+
+  /// The gap between the share tag and the change sticker.
+  static const double tagGap = 5;
+
+  /// The cards' tag column and the poster's sticker slot: wide enough for
+  /// `▲RM58.90`, so the amounts keep one edge whatever the stickers say.
+  static const double tagColumn = 80;
+
+  /// The shared picture's small donut beside its total: the Analysis ring,
+  /// glow and all, scaled down to fit this square.
+  static const double posterDonut = 112;
+
   static const double disabledOpacity = 0.35;
   static const double dimOpacity = 0.4;
   static const double pausedOpacity = 0.45;

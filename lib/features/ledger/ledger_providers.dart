@@ -303,17 +303,27 @@ class ExportNudgeDismissedNotifier extends Notifier<bool> {
   void dismiss() => state = true;
 }
 
-/// Whether the total card is folded down to the month's total. In memory:
-/// remembering it across restarts would need a database change.
-final totalCardFoldedProvider = NotifierProvider<TotalCardFoldedNotifier, bool>(
-  TotalCardFoldedNotifier.new,
-);
+/// Whether the total card is folded down to the month's total, kept in the
+/// settings. Null until they load, so the card can start as it was left
+/// instead of playing the fold.
+final totalCardFoldedProvider =
+    NotifierProvider<TotalCardFoldedNotifier, bool?>(
+      TotalCardFoldedNotifier.new,
+    );
 
-class TotalCardFoldedNotifier extends Notifier<bool> {
+class TotalCardFoldedNotifier extends Notifier<bool?> {
   @override
-  bool build() => false;
+  bool? build() {
+    final settings = ref.watch(settingsProvider).valueOrNull;
+    return settings == null ? null : settings.totalCardFolded ?? false;
+  }
 
-  void toggle() => state = !state;
+  /// Folds or opens at once, without waiting for the save to come back.
+  Future<void> toggle() {
+    final folded = !(state ?? false);
+    state = folded;
+    return ref.read(settingsDaoProvider).setTotalCardFolded(folded);
+  }
 }
 
 @immutable

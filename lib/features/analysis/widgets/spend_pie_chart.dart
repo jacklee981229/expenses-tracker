@@ -61,7 +61,12 @@ class SpendPieChart extends ConsumerWidget {
                     alignment: Alignment.center,
                     children: [
                       GlowRing(
-                        arcs: _arcs(slices, sweeps, touched, colors.chartOther),
+                        arcs: ringArcs(
+                          slices,
+                          sweeps,
+                          touched,
+                          colors.chartOther,
+                        ),
                         glow: colors.chartGlow,
                         onTap: (index) {
                           final slices = ref.read(
@@ -118,7 +123,8 @@ class SpendPieChart extends ConsumerWidget {
 Color _sliceColor(PieSlice slice, Color other) =>
     slice.isOther ? other : colorFromHex(slice.category!.colorHex);
 
-List<RingArc> _arcs(
+/// The ring's slices as drawn, the [touched] one standing out.
+List<RingArc> ringArcs(
   List<PieSlice> slices,
   List<double> sweeps,
   int? touched,

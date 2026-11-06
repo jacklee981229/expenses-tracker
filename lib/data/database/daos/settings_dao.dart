@@ -33,6 +33,9 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
   Future<void> setThemeMode(String mode) =>
       _write(AppSettingsCompanion(themeMode: Value(mode)));
 
+  Future<void> setTotalCardFolded(bool folded) =>
+      _write(AppSettingsCompanion(totalCardFolded: Value(folded)));
+
   Future<void> setLastExportAt(int epochMs) =>
       _write(AppSettingsCompanion(lastExportAt: Value(epochMs)));
 

@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:expense_tracker/data/database/app_database.dart';
 import 'package:expense_tracker/data/database/daos/analysis_dao.dart';
 import 'package:expense_tracker/data/database/daos/transaction_dao.dart';
+import 'package:expense_tracker/data/database/tables/transactions_table.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -244,6 +245,30 @@ void main() {
       await db.analysisDao.biggestDay(start: '2026-07-01', end: '2026-07-31'),
       isNull,
     );
+  });
+
+  test('sums fixed expenses only, in bounds and filtered', () async {
+    Future<void> fixed(String categoryId, int amountMinor, DateTime at) =>
+        db.transactionDao.insertExpense(
+          amountMinor: amountMinor,
+          categoryId: categoryId,
+          occurredAt: at,
+          source: TransactionSource.recurring,
+        );
+    await fixed(rent, 88000, DateTime(2026, 9, 25));
+    await fixed(transport, 5000, DateTime(2026, 9, 1));
+    await fixed(rent, 88000, DateTime(2026, 10, 25));
+
+    Future<int> total([Set<String> ids = const {}]) => db.analysisDao
+        .watchFixedTotal(
+          start: '2026-09-01',
+          end: '2026-09-30',
+          categoryIds: ids,
+        )
+        .first;
+    expect(await total(), 93000);
+    expect(await total({rent}), 88000);
+    expect(await total({food}), 0);
   });
 
   test('the later day wins a tie for the biggest day', () async {

@@ -72,6 +72,30 @@ void main() {
       expect(data.transactions, hasLength(1));
     });
 
+    test('the folded card comes back', () async {
+      await backupPhone.settingsDao.setTotalCardFolded(true);
+
+      await importInto(
+        phone,
+        await exportFrom(backupPhone),
+        ImportMode.replace,
+      );
+      final settings = await phone.settingsDao.get();
+      expect(settings.totalCardFolded, isTrue);
+    });
+
+    test('a backup from before the folded card still imports', () async {
+      final json = await ExportService(backupPhone).buildJson();
+      final settings = json['settings']! as Map<String, Object?>
+        ..remove('totalCardFolded');
+      expect(settings, isNot(contains('totalCardFolded')));
+
+      final data = ImportService(phone).parse(utf8.encode(jsonEncode(json)));
+      await ImportService(phone).apply(data, ImportMode.replace);
+      final restored = await phone.settingsDao.get();
+      expect(restored.totalCardFolded, isNull);
+    });
+
     test('a file that is not a backup is refused', () {
       final importer = ImportService(phone);
       final notBackups = <List<int>>[

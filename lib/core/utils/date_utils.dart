@@ -145,15 +145,20 @@ String formatShortDate(DateTime date) => DateFormat('d MMM yyyy').format(date);
 /// `September 2026`
 String formatMonthYear(DateTime date) => DateFormat('MMMM yyyy').format(date);
 
+/// `September`
+String formatMonthName(DateTime date) => DateFormat('MMMM').format(date);
+
 /// `'2026-09'` -> `Sep 2026`
 String formatMonthKey(String monthKey) =>
     DateFormat('MMM yyyy').format(monthKeyToDate(monthKey));
 
 /// Inclusive local-date bounds as a label: `1–7 Sep 2026`,
-/// `29 Sep – 5 Oct 2026`, `29 Dec 2025 – 4 Jan 2026`.
+/// `29 Sep – 5 Oct 2026`, `29 Dec 2025 – 4 Jan 2026`, or `1 Oct 2026` for a
+/// single day.
 String formatDateRange(String start, String end) {
   final from = parseLocalDate(start);
   final to = parseLocalDate(end);
+  if (from == to) return formatShortDate(from);
   if (from.year != to.year) {
     return '${formatShortDate(from)} – ${formatShortDate(to)}';
   }

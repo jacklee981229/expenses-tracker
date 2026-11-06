@@ -1,5 +1,6 @@
 import 'package:expense_tracker/core/constants/category_colors.dart';
 import 'package:expense_tracker/core/theme/app_colors.dart';
+import 'package:expense_tracker/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -54,6 +55,30 @@ void main() {
         (b) => Color.alphaBlend(c.surfaceTop, field(b)),
         panelTexts,
       );
+      // A category card's change sticker: its colour faintly behind its
+      // words, on the sticker's base on the card's glass; the same sits on
+      // the neutral fill, as the share tag does.
+      Color card(Color b) => Color.alphaBlend(c.surface, field(b));
+      for (final (sticker, colour) in [
+        ('up', c.changeUp),
+        ('down', c.changeDown),
+        ('new', c.changeNew),
+      ]) {
+        check(
+          '$sticker sticker',
+          (b) => Color.alphaBlend(
+            colour.withValues(alpha: AppSizes.changeTint),
+            Color.alphaBlend(c.stickerBase, card(b)),
+          ),
+          {sticker: colour},
+        );
+      }
+      check(
+        'same sticker and share tag',
+        (b) => Color.alphaBlend(c.fill, card(b)),
+        {'label': c.label},
+      );
+      check('change pill', card, {'changeNew': c.changeNew});
       check('tab bar', (b) => Color.alphaBlend(c.tabBar, field(b)), {
         'label': c.label,
         'labelSecondary': c.labelSecondary,

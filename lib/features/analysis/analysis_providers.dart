@@ -188,6 +188,17 @@ final dailyExpenseProvider = Provider<int>(
   ),
 );
 
+/// The period before as the shared picture names it (`October 2026`); null
+/// for All.
+final previousPeriodLabelProvider = Provider<String?>((ref) {
+  final before = ref.watch(previousPeriodBoundsProvider);
+  if (before == null) return null;
+  return periodLabel(
+    shiftPeriod(ref.watch(periodSelectionProvider), -1),
+    before,
+  );
+});
+
 /// Spending per category in the period before, limited to the filter;
 /// null for All.
 final previousCategoryTotalsProvider = StreamProvider<List<CategoryTotal>?>((
@@ -202,6 +213,21 @@ final previousCategoryTotalsProvider = StreamProvider<List<CategoryTotal>?>((
         end: bounds.end,
         categoryIds: ref.watch(categoryFilterProvider),
       );
+});
+
+/// Each category's change against the whole period before, by category
+/// id; null for All, while loading, or when the period before had no
+/// spending at all (as the summary line and the report then compare
+/// nothing).
+final categoryChangesProvider = Provider<Map<String, SpendChange>?>((ref) {
+  final now = ref.watch(filteredCategoryTotalsProvider).valueOrNull;
+  final before = ref.watch(previousCategoryTotalsProvider).valueOrNull;
+  if (now == null || before == null || sumTotals(before) <= 0) return null;
+  final was = {for (final t in before) t.category.id: t.totalMinor};
+  return {
+    for (final t in now)
+      t.category.id: spendChange(t.totalMinor, was[t.category.id] ?? 0),
+  };
 });
 
 /// The period's day with the most (filtered) spending.
@@ -230,6 +256,43 @@ final insightLoopProvider = Provider<List<Insight>>((ref) {
     current: _spends(current.value!),
     previous: before == null ? null : _spends(before),
     biggestDay: biggestDay.value,
+    projectedMinor: ref.watch(monthProjectionProvider),
+  );
+});
+
+/// Fixed monthly expenses in the period, following the filter; 0 for All.
+final periodFixedTotalProvider = StreamProvider<int>((ref) {
+  final bounds = ref.watch(periodBoundsProvider);
+  if (bounds == null) return Stream.value(0);
+  return ref
+      .watch(analysisDaoProvider)
+      .watchFixedTotal(
+        start: bounds.start,
+        end: bounds.end,
+        categoryIds: ref.watch(categoryFilterProvider),
+      );
+});
+
+/// Where the month on screen is heading while it runs ([projectMonth]);
+/// null for other periods and while the fixed expenses load.
+final monthProjectionProvider = Provider<int?>((ref) {
+  final bounds = ref.watch(periodBoundsProvider);
+  final fixed = ref.watch(periodFixedTotalProvider).valueOrNull;
+  if (ref.watch(periodSelectionProvider).period != AnalysisPeriod.month ||
+      bounds == null ||
+      fixed == null) {
+    return null;
+  }
+  return projectMonth(
+    totalMinor: ref.watch(filteredTotalProvider),
+    fixedMinor: fixed,
+    daysSoFar: ref.watch(periodDaysSoFarProvider),
+    monthDays:
+        calendarDaysBetween(
+          parseLocalDate(bounds.start),
+          parseLocalDate(bounds.end),
+        ) +
+        1,
   );
 });
 

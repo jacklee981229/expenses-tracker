@@ -76,6 +76,15 @@ int? evaluateAmountExpression(String expression) {
   return position == text.length ? total : null;
 }
 
+/// A change sticker's amount, its sign dropped and whole ringgit without
+/// sen: `4500` -> `'RM45'`, `-4550` -> `'RM45.50'`, `102000` -> `'RM1,020'`.
+String formatShortWithSymbol(int minor) {
+  final text = formatMinor(minor.abs());
+  return AppStrings.withCurrency(
+    text.endsWith('.00') ? text.substring(0, text.length - 3) : text,
+  );
+}
+
 /// An expense as lists show it: `1250` -> `'-RM12.50'`.
 String formatExpense(int minor) => '-${formatWithSymbol(minor)}';
 
