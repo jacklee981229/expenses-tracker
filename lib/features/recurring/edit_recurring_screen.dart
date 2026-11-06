@@ -323,6 +323,7 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
   Future<void> _save(String categoryId) async {
     final amount = _amountMinor;
     if (amount == null) return;
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _saving = true);
     await ref
         .read(recurringActionsProvider)
@@ -338,6 +339,11 @@ class _EditRecurringScreenState extends ConsumerState<EditRecurringScreen> {
           isActive: _isActive,
         );
     if (mounted) Navigator.of(context).pop();
+    if (widget.existing == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.savedAsFixedExpense)),
+      );
+    }
   }
 
   Future<void> _delete(RecurringRule rule) async {

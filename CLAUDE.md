@@ -74,8 +74,9 @@ per-category colours inside the total card's bars; plain line icons for
 categories; a category block that fills the middle of the ledger; a mostly
 blank Undo row with a small button (the deleted row becomes a full dark bar);
 a receipt that brightens itself when picked out (it is lit from behind
-instead); a toast floating over the + button (a change shows on the row
-itself, like the fixed mark popping in).
+instead); a toast floating over the + button (toasts sit above the bottom
+bar, and a change also shows on the row itself, like the fixed mark
+popping in).
 
 ## Hard constraints
 

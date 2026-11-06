@@ -223,6 +223,7 @@ abstract final class AppStrings {
   static const String noFixedExpenses = 'No fixed monthly expenses';
   static const String addFixedExpense = 'Add Fixed Expense';
   static const String setAsFixedExpense = 'Set as Fixed Expense';
+  static const String savedAsFixedExpense = 'Saved as fixed expense';
   static String everyMonthOn(int day) => 'Monthly on the ${_ordinal(day)}';
   static String categoryAndSchedule(String category, String schedule) =>
       '$category · $schedule';
