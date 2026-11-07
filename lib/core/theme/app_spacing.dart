@@ -216,11 +216,30 @@ abstract final class AppSizes {
   static const double receiptTilt = 0.6;
 
   /// The report sheet: its tallest share of the screen, and the colour
-  /// square before each category's line (its top lines it up with the text).
+  /// square before each of Claude's points (its top lines it up with the
+  /// text).
   static const double reportMaxHeight = 0.9;
   static const double reportDot = 10;
-  static const double reportDotTop = 7;
+  static const double reportDotTop = 6;
   static const double reportIcon = 26;
+
+  /// Claude's sparkle beside its name over the take.
+  static const double takeMarkIcon = 14;
+
+  /// The soft bars where Claude's words will be: two headline bars, then
+  /// four point bars, each a share of the width; the violet light sweeping
+  /// over them is at most [takeSweepPeak] strong.
+  static const double takeHeadlineBar = 18;
+  static const double takePointBar = 12;
+  static const List<double> takeHeadlineBars = [0.96, 0.64];
+  static const List<double> takePointBars = [1, 0.86, 0.94, 0.7];
+  static const double takeSweepPeak = 0.45;
+
+  /// A category row's bare icon, and the others row's 2×2 grid of colours
+  /// in the same square.
+  static const double reportRowIcon = 24;
+  static const double othersGridGap = 3;
+  static const double othersGridRadius = 3;
   static const double receiptTooth = 14;
 
   /// The light behind a receipt a total card bar brought up.

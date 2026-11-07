@@ -17,6 +17,7 @@ import 'services/export_service.dart';
 import 'services/import_service.dart';
 import 'services/receipt_reader.dart';
 import 'services/recurring_generator.dart';
+import 'services/report_take_store.dart';
 
 /// Overridden in `main()` with the on-device database, and in tests with an
 /// in-memory one.
@@ -65,6 +66,10 @@ final importServiceProvider = Provider<ImportService>(
 );
 
 final claudeApiProvider = Provider<ClaudeApi>((ref) => ClaudeApi());
+
+final reportTakeStoreProvider = Provider<ReportTakeStore>(
+  (ref) => ReportTakeStore(),
+);
 
 final claudeKeyStoreProvider = Provider<ClaudeKeyStore>(
   (ref) => const ClaudeKeyStore(),

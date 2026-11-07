@@ -1,9 +1,6 @@
-import 'dart:math' as math;
-
 import 'insights.dart';
-import 'money.dart';
 
-/// One expense of the period, as the report needs it.
+/// One expense of the period, as the report and Claude's brief need it.
 typedef ReportExpense = ({
   String categoryId,
   String categoryName,
@@ -13,127 +10,77 @@ typedef ReportExpense = ({
   bool fixed,
 });
 
-/// A category's line: its spending, share of the period in whole percent,
-/// and [change] against the period before ([changePercent]).
+/// A category's row: its spending and its change against the period
+/// before (null when there is nothing to compare with).
 typedef ReportCategory = ({
   String id,
   String name,
   int totalMinor,
-  int percent,
-  int? change,
+  SpendChange? change,
 });
 
-/// A note seen more than once: how often, and what it came to.
-typedef ReportNote = ({String note, int count, int totalMinor});
+/// The categories under the rows, as one: how many, what they came to, and
+/// the ids of the biggest [kOthersGrid], biggest first, for their colours.
+typedef ReportOthers = ({int count, int totalMinor, List<String> ids});
 
-/// The Analysis report for one period, following the category filter.
+/// The short report for one period, following the category filter.
 class Report {
   const Report({
     required this.totalMinor,
-    required this.compared,
-    required this.totalChange,
+    required this.change,
     required this.totalBeforeMinor,
-    required this.perDayMinor,
-    required this.perDayBeforeMinor,
-    required this.perDayChange,
-    required this.categories,
-    required this.fixedMinor,
-    required this.biggestDay,
-    required this.biggestExpense,
     required this.count,
-    required this.noSpendDays,
-    required this.notes,
+    required this.rows,
+    required this.others,
   });
 
   final int totalMinor;
 
-  /// Whether the period before had spending to compare with. When it did, a
-  /// null change means new spending; when not, there is no change to show.
-  final bool compared;
-  final int? totalChange;
+  /// Against the whole period before; null under All or when the period
+  /// before had no spending.
+  final SpendChange? change;
 
-  /// The period before's total and per day, for "than last month's RM…".
+  /// The period before's total, for `vs last month's RM…`.
   final int totalBeforeMinor;
-  final int perDayMinor;
-  final int perDayBeforeMinor;
-  final int? perDayChange;
 
-  /// Biggest first, then by name.
-  final List<ReportCategory> categories;
-
-  /// Spending made by fixed monthly expenses; the rest is everyday.
-  final int fixedMinor;
-  int get everydayMinor => totalMinor - fixedMinor;
-
-  /// The later day wins a tie, as the summary line's biggest day.
-  final ({String localDate, int totalMinor}) biggestDay;
-
-  /// The later one wins a tie.
-  final ReportExpense biggestExpense;
+  /// How many expenses, for `Claude is reading N expenses…`.
   final int count;
 
-  /// Days so far with nothing spent (on the filtered categories).
-  final int noSpendDays;
+  /// The biggest [kReportRows] categories, biggest first, then by name; all
+  /// four when there are exactly four.
+  final List<ReportCategory> rows;
 
-  /// At most [kReportNotes], most often first, then the bigger total.
-  final List<ReportNote> notes;
+  /// The rest as one row; null when every category has a row of its own.
+  final ReportOthers? others;
 }
 
-/// How many notes the report lists.
-const int kReportNotes = 3;
+/// How many categories get a row of their own.
+const int kReportRows = 3;
 
-/// The report for [current], the period's expenses. [previous] is the period
-/// before's spending per category (null for All); a period still running is
-/// compared with the whole period before, as the summary line is.
-/// [daysSoFar] is the period's calendar days up to today and [previousDays]
-/// the period before's full length, the two per day figures' divisors.
-/// [kindNames] are the named kinds of receipt page: notes from one kind
-/// (`Food App - Kedai Ali`, `Food App - Kedai Abu`) count as one.
-/// Null when nothing was spent.
+/// How many of the others' colours the others row shows.
+const int kOthersGrid = 4;
+
+/// The report for [current], the period's expenses. [previous] is the
+/// period before's spending per category (null for All); a period still
+/// running is compared with the whole period before, as the summary line
+/// is. Null when nothing was spent.
 Report? buildReport({
   required List<ReportExpense> current,
   List<CategorySpend>? previous,
-  required int daysSoFar,
-  int previousDays = 0,
-  Iterable<String> kindNames = const [],
 }) {
   final total = current.fold(0, (sum, e) => sum + e.amountMinor);
   if (total <= 0) return null;
   final before = previous ?? const <CategorySpend>[];
   final totalBefore = before.fold(0, (sum, c) => sum + c.totalMinor);
   final compared = totalBefore > 0;
-  final perDay = averageMinor(total, daysSoFar);
-  final perDayBefore = averageMinor(totalBefore, previousDays);
 
   final byCategory = <String, ({String name, int totalMinor})>{};
-  final byDay = <String, int>{};
-  final notes = <String, ({String note, int count, int totalMinor})>{};
-  var fixed = 0;
-  var biggest = current.first;
   for (final e in current) {
     final category = byCategory[e.categoryId];
     byCategory[e.categoryId] = (
       name: e.categoryName,
       totalMinor: (category?.totalMinor ?? 0) + e.amountMinor,
     );
-    byDay[e.localDate] = (byDay[e.localDate] ?? 0) + e.amountMinor;
-    if (e.fixed) fixed += e.amountMinor;
-    if (e.amountMinor > biggest.amountMinor ||
-        (e.amountMinor == biggest.amountMinor &&
-            e.localDate.compareTo(biggest.localDate) > 0)) {
-      biggest = e;
-    }
-    final note = _kindOf(_tidy(e.note), kindNames);
-    if (note.isNotEmpty) {
-      final key = note.toLowerCase();
-      final seen = notes[key];
-      notes[key] = (
-        // The first spelling met stands for the rest.
-        note: seen?.note ?? note,
-        count: (seen?.count ?? 0) + 1,
-        totalMinor: (seen?.totalMinor ?? 0) + e.amountMinor,
-      );
-    }
   }
 
   final was = {for (final c in before) c.id: c.totalMinor};
@@ -145,9 +92,8 @@ Report? buildReport({
               id: key,
               name: value.name,
               totalMinor: value.totalMinor,
-              percent: (value.totalMinor * 100 / total).round(),
               change: compared
-                  ? changePercent(value.totalMinor, was[key] ?? 0)
+                  ? spendChange(value.totalMinor, was[key] ?? 0)
                   : null,
             ),
       ]..sort((a, b) {
@@ -155,59 +101,24 @@ Report? buildReport({
         return byTotal != 0 ? byTotal : a.name.compareTo(b.name);
       });
 
-  var biggestDay = byDay.entries.first;
-  for (final day in byDay.entries) {
-    if (day.value > biggestDay.value ||
-        (day.value == biggestDay.value &&
-            day.key.compareTo(biggestDay.key) > 0)) {
-      biggestDay = day;
-    }
-  }
-
-  final repeated = notes.values.where((n) => n.count > 1).toList()
-    ..sort((a, b) {
-      final byCount = b.count.compareTo(a.count);
-      if (byCount != 0) return byCount;
-      final byTotal = b.totalMinor.compareTo(a.totalMinor);
-      return byTotal != 0 ? byTotal : a.note.compareTo(b.note);
-    });
+  // "1 other" would take a row to name one category: it gets its own.
+  final shown = categories.length == kReportRows + 1
+      ? categories.length
+      : kReportRows;
+  final rest = categories.skip(shown).toList();
 
   return Report(
     totalMinor: total,
-    compared: compared,
-    totalChange: compared ? changePercent(total, totalBefore) : null,
+    change: compared ? spendChange(total, totalBefore) : null,
     totalBeforeMinor: totalBefore,
-    perDayMinor: perDay,
-    perDayBeforeMinor: perDayBefore,
-    perDayChange: compared && previousDays > 0
-        ? changePercent(perDay, perDayBefore)
-        : null,
-    categories: categories,
-    fixedMinor: fixed,
-    biggestDay: (localDate: biggestDay.key, totalMinor: biggestDay.value),
-    biggestExpense: biggest,
     count: current.length,
-    // shortcut: a future-dated expense counts as a spending day so far, one
-    // too few no-spend days; pass today in if that ever matters.
-    noSpendDays: math.max(0, daysSoFar - byDay.length),
-    notes: repeated.take(kReportNotes).toList(),
+    rows: categories.take(shown).toList(),
+    others: rest.isEmpty
+        ? null
+        : (
+            count: rest.length,
+            totalMinor: rest.fold(0, (sum, c) => sum + c.totalMinor),
+            ids: [for (final c in rest.take(kOthersGrid)) c.id],
+          ),
   );
-}
-
-final RegExp _spaces = RegExp(r'\s+');
-
-String _tidy(String? note) => (note ?? '').trim().replaceAll(_spaces, ' ');
-
-/// The kind [note] was read from (`Food App` for `Food App - Kedai Ali`),
-/// or the note itself.
-String _kindOf(String note, Iterable<String> kindNames) {
-  final lower = note.toLowerCase();
-  for (final name in kindNames) {
-    final kind = _tidy(name);
-    final key = kind.toLowerCase();
-    if (key.isNotEmpty && (lower == key || lower.startsWith('$key - '))) {
-      return kind;
-    }
-  }
-  return note;
 }

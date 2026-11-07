@@ -101,23 +101,52 @@ abstract final class AppTextStyles {
     fontVariations: [FontVariation('wght', 700), FontVariation('opsz', 11)],
   );
 
-  /// A sentence of the report: body size, with room between lines.
-  static const TextStyle reportLine = TextStyle(
+  /// Claude's headline at the top of the report: its one hero.
+  static const TextStyle takeHeadline = TextStyle(
     fontFamily: family,
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-    fontVariations: [FontVariation('wght', 500), FontVariation('opsz', 16)],
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.2,
+    height: 1.22,
+    fontVariations: [FontVariation('wght', 750), FontVariation('opsz', 22)],
   );
 
-  /// A name or figure inside a report sentence.
-  static const TextStyle reportStrong = TextStyle(
+  /// One of Claude's points under the headline: quieter and smaller.
+  static const TextStyle takePoint = TextStyle(
     fontFamily: family,
-    fontSize: 16,
+    fontSize: 14.5,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    fontVariations: [FontVariation('wght', 500), FontVariation('opsz', 14.5)],
+  );
+
+  /// An amount inside one of Claude's points.
+  static const TextStyle takeAmount = TextStyle(
+    fontFamily: family,
+    fontSize: 14.5,
     fontWeight: FontWeight.w800,
     height: 1.4,
     fontFeatures: _tabular,
-    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 16)],
+    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 14.5)],
+  );
+
+  /// The report's total: big, but under Claude's headline.
+  static const TextStyle reportTotal = TextStyle(
+    fontFamily: family,
+    fontSize: 30,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.9,
+    fontFeatures: _tabular,
+    fontVariations: [FontVariation('wght', 800), FontVariation('opsz', 30)],
+  );
+
+  /// The others row's name and amount: quieter than a category's.
+  static const TextStyle reportOthers = TextStyle(
+    fontFamily: family,
+    fontSize: 15.5,
+    fontWeight: FontWeight.w600,
+    fontFeatures: _tabular,
+    fontVariations: [FontVariation('wght', 600), FontVariation('opsz', 15.5)],
   );
 
   /// The day's total beside the stamp.

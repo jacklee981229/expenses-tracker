@@ -25,6 +25,13 @@ http.Response ok(Map<String, Object?> answer) => http.Response(
   200,
 );
 
+const Map<String, Object?> take = {
+  'headline': 'Rent led the month.',
+  'points': [
+    {'text': 'Mamak 3 times.', 'category': 'Food'},
+  ],
+};
+
 const Map<String, Object?> answer = {
   'amount_sen': 3186,
   'merchant': 'Kedai Ali',
@@ -59,7 +66,20 @@ void main() {
     expect(base64Decode(image['source']['data'] as String), png);
   });
 
-  test('a report review sends the brief and returns the text', () async {
+  test('sends the picture with max_tokens 4000', () async {
+    late http.Request sent;
+    final api = ClaudeApi(
+      client: MockClient((request) async {
+        sent = request;
+        return ok(answer);
+      }),
+    );
+    await api.readReceipt(key: 'k', image: png);
+    final body = jsonDecode(sent.body) as Map<String, dynamic>;
+    expect(body['max_tokens'], 4000);
+  });
+
+  test('a report take: Sonnet at medium, the schema, fallbacks', () async {
     late http.Request sent;
     final api = ClaudeApi(
       client: MockClient((request) async {
@@ -69,40 +89,115 @@ void main() {
             'stop_reason': 'end_turn',
             'content': [
               {'type': 'thinking', 'thinking': ''},
-              {'type': 'text', 'text': '  Food led the month.\n'},
+              {'type': 'text', 'text': jsonEncode(take)},
             ],
           }),
           200,
         );
       }),
     );
-    final review = await api.reviewReport(key: 'k', brief: 'Spent: RM1.00');
+    final review = await api.reviewReport(
+      key: 'sk-test',
+      brief: 'Period: November 2026',
+      categories: {'Food', 'Rent'},
+    );
 
-    expect(review, 'Food led the month.');
+    expect(review?.headline, 'Rent led the month.');
+    expect(review?.points.single, (text: 'Mamak 3 times.', category: 'Food'));
+    expect(sent.headers['x-api-key'], 'sk-test');
+    expect(sent.headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
     final body = jsonDecode(sent.body) as Map<String, dynamic>;
-    expect(body['messages'][0]['content'], 'Spent: RM1.00');
-    expect(body['output_config'], {'effort': 'low'});
+    expect(body['model'], 'claude-sonnet-5-5');
+    expect(body['max_tokens'], 16000);
+    expect(body['fallbacks'], 'default');
+    expect(body.containsKey('thinking'), isFalse);
+    expect(body['messages'], [
+      {'role': 'user', 'content': 'Period: November 2026'},
+    ]);
+    final config = body['output_config'] as Map<String, dynamic>;
+    expect(config['effort'], 'medium');
+    expect(config['format']['type'], 'json_schema');
+    final schema = config['format']['schema'] as Map<String, dynamic>;
+    expect(schema['required'], ['headline', 'points']);
+    expect(schema['properties']['points']['items']['properties']['category'], {
+      'type': 'string',
+      'enum': ['Food', 'Rent', 'none'],
+    });
   });
 
-  test('a review that was refused or empty gives nothing', () async {
-    for (final reply in [
-      {
-        'stop_reason': 'refusal',
-        'content': [
-          {'type': 'text', 'text': 'x'},
-        ],
-      },
-      {
-        'stop_reason': 'end_turn',
-        'content': [
-          {'type': 'text', 'text': '  '},
-        ],
-      },
+  test(
+    'a take that was refused, cut off or off the schema gives nothing',
+    () async {
+      for (final reply in [
+        {
+          'stop_reason': 'refusal',
+          'stop_details': {'type': 'refusal', 'category': 'general_harms'},
+          'content': <Object>[],
+        },
+        {
+          'stop_reason': 'max_tokens',
+          'content': [
+            {'type': 'text', 'text': '{"headline": "Rent'},
+          ],
+        },
+        {
+          'stop_reason': 'end_turn',
+          'content': [
+            {'type': 'text', 'text': 'Rent led the month.'},
+          ],
+        },
+      ]) {
+        final api = ClaudeApi(
+          client: MockClient(
+            (_) async => http.Response(jsonEncode(reply), 200),
+          ),
+        );
+        expect(
+          await api.reviewReport(key: 'k', brief: 'b', categories: {'Food'}),
+          isNull,
+        );
+      }
+    },
+  );
+
+  test('a take after a fallback reads the answer, not the switch', () async {
+    final api = ClaudeApi(
+      client: MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'stop_reason': 'end_turn',
+            'model': 'claude-sonnet-5',
+            'content': [
+              {
+                'type': 'fallback',
+                'from': {'model': 'claude-sonnet-5-5'},
+                'to': {'model': 'claude-sonnet-5'},
+              },
+              {'type': 'text', 'text': jsonEncode(take)},
+            ],
+          }),
+          200,
+        ),
+      ),
+    );
+    final review = await api.reviewReport(
+      key: 'k',
+      brief: 'b',
+      categories: {'Food'},
+    );
+    expect(review?.headline, 'Rent led the month.');
+  });
+
+  test('a take with an error status or no network gives nothing', () async {
+    for (final client in [
+      MockClient((_) async => http.Response('{}', 529)),
+      MockClient((_) async => throw http.ClientException('offline')),
     ]) {
-      final api = ClaudeApi(
-        client: MockClient((_) async => http.Response(jsonEncode(reply), 200)),
+      final api = ClaudeApi(client: client);
+      expect(
+        await api.reviewReport(key: 'k', brief: 'b', categories: {'Food'}),
+        isNull,
       );
-      expect(await api.reviewReport(key: 'k', brief: 'b'), isNull);
     }
   });
 
@@ -152,15 +247,45 @@ void main() {
     expect(calls, 0);
   });
 
-  test('a reply slower than the timeout is dropped', () async {
+  test('each call drops a reply slower than its own timeout', () async {
     final api = ClaudeApi(
       client: MockClient((_) => Completer<http.Response>().future),
-      timeout: const Duration(milliseconds: 50),
+      receiptTimeout: const Duration(milliseconds: 50),
+      reportTimeout: const Duration(milliseconds: 50),
     );
     expect(await api.readReceipt(key: 'k', image: png), isNull);
+    expect(
+      await api.reviewReport(key: 'k', brief: 'b', categories: {'Food'}),
+      isNull,
+    );
   });
 
-  test('the app waits 15 seconds', () {
-    expect(ClaudeApi().timeout, const Duration(seconds: 15));
+  test('screenshots wait 15 seconds, the report 60', () {
+    final api = ClaudeApi();
+    expect(api.receiptTimeout, const Duration(seconds: 15));
+    expect(api.reportTimeout, const Duration(seconds: 60));
+  });
+
+  test('a slow take still comes within the report timeout', () async {
+    final api = ClaudeApi(
+      client: MockClient((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        return http.Response(
+          jsonEncode({
+            'stop_reason': 'end_turn',
+            'content': [
+              {'type': 'text', 'text': jsonEncode(take)},
+            ],
+          }),
+          200,
+        );
+      }),
+      receiptTimeout: const Duration(milliseconds: 20),
+      reportTimeout: const Duration(seconds: 5),
+    );
+    expect(
+      await api.reviewReport(key: 'k', brief: 'b', categories: {'Food'}),
+      isNotNull,
+    );
   });
 }

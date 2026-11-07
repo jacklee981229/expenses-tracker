@@ -118,11 +118,13 @@ These are correctness issues, not style preferences.
   statistics to Google; ML Kit keeps pictures and their text on the phone.
 - With a Claude API key set (Settings), each scanned screenshot also goes to
   the Claude API (`data/services/claude_api.dart`, raw HTTP: no Dart SDK),
-  and the report's figures go when Jack asks for Claude's take. The key lives
-  only in the Keychain / Keystore (`ClaudeKeyStore`), never in the database,
-  so never in a backup, the repo or the GitHub build; the laptop checks read
-  it from the gitignored `.env`. `flutter_secure_storage` needs Android
-  `minSdk = 23`.
+  and each report opened sends that period's expenses, notes included (asked
+  once per period, filter and expenses; the takes are kept in
+  `report_takes.json` in the app's support folder, not in the backup). The
+  key lives only in the Keychain / Keystore (`ClaudeKeyStore`), never in the
+  database, so never in a backup, the repo or the GitHub build; the laptop
+  checks read it from the gitignored `.env`. `flutter_secure_storage` needs
+  Android `minSdk = 23`.
 - With cloud backup on, every backup (the whole Export Backup file, notes
   included) goes to Jack's Cloudflare Worker, `backup-worker/` (its README
   has the set-up and commands; `npm test` there runs its tests), kept in
@@ -174,7 +176,9 @@ Unit tests are required for, and only for:
 - `core/utils/claude_receipt.dart` and `data/services/claude_api.dart` —
   Claude's reply, merging it with the phone's reading, every failure falling
   back
-- `core/utils/report_brief.dart` — the report figures sent to Claude
+- `core/utils/report_brief.dart` — the expenses sent to Claude, its take read
+  back, and the fingerprint that decides when to ask again
+- `data/services/report_take_store.dart` — the saved takes
 - `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
 - `HiddenNoteDao` with `TransactionDao.watchNoteUses` — chips taken away and brought back
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares

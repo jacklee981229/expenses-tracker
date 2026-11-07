@@ -176,45 +176,21 @@ abstract final class AppStrings {
         1 => '$period · 1 category',
         _ => '$period · $categories categories',
       };
-  static const String reportSpent = 'SPENT';
-  static const String reportByCategory = 'BY CATEGORY';
-  static const String reportFixed = 'FIXED AND EVERYDAY';
-  static const String reportHighlights = 'HIGHLIGHTS';
-  static const String reportMostOften = 'MOST OFTEN';
-  static const String reportClaude = 'CLAUDE';
-  static const String reportAskClaude = 'Ask Claude what stands out.';
-  static const String reportClaudeWriting =
-      'Claude is reading the report\u{2026}';
+
+  /// The small mark over Claude's words.
+  static const String reportClaude = 'Claude';
+  static String reportClaudeReading(int count) =>
+      'Claude is reading ${count == 1 ? '1 expense' : '$count expenses'}'
+      '\u{2026}';
   static const String reportClaudeFailed =
       "Claude didn't answer. Tap to try again.";
-  static String reportMore(int percent) => '$percent% more';
-  static String reportLess(int percent) => '$percent% less';
-  static const String reportVsLast = "{} than last {}'s {}.";
-  static const String reportSameAsLast = 'Same as last {}.';
-  static const String reportPerDay = '{} a day.';
-  static const String reportPerDayVs = "{} a day, {} than last {}'s {}.";
-  static const String reportPerDaySame = '{} a day, same as last {}.';
-  static const String reportCategory = '{} took {}, {}.';
-  static const String reportCategoryVs = '{} took {}, {}, {}.';
-  static const String reportCategorySame = '{} took {}, {}, same.';
-  static const String reportCategoryNew = '{} took {}, {}, new.';
-  static const String reportFixedSplit =
-      'Fixed expenses were {} ({}); everyday spending {}.';
-  static const String reportNoFixed =
-      'No fixed expenses: all of it was everyday.';
-  static const String reportBiggestDay = 'Your biggest day was {}, {}.';
-  static const String reportBiggestExpense =
-      'The biggest expense was {} in {}, {}.';
-  static const String reportBiggestExpenseNoNote =
-      'The biggest expense was {} in {}.';
-  static const String reportCounts = '{}, and {}.';
-  static const String reportCountsEveryDay = '{}, with spending every day.';
-  static String reportExpenses(int count) =>
-      count == 1 ? '1 expense' : '$count expenses';
-  static String reportNoSpendDays(int days) =>
-      days == 1 ? '1 day with no spending' : '$days days with no spending';
-  static const String reportNote = '{} {}, {}.';
-  static String reportTimes(int count) => '$count times';
+
+  /// Under the total: `vs last month's RM1,449.85`.
+  static String reportVsLast(String word, String amount) =>
+      "vs last $word's $amount";
+
+  /// The row under the biggest categories: `5 others`.
+  static String reportOthers(int count) => '$count others';
   static const String periodWeek = 'Week';
   static const String periodMonth = 'Month';
   static const String periodYear = 'Year';
@@ -286,7 +262,7 @@ abstract final class AppStrings {
   static const String sectionData = 'Data';
   static const String sectionPreferences = 'Preferences';
   static const String sectionBackup = 'Backup';
-  static const String sectionClaude = 'Reading screenshots';
+  static const String sectionClaude = 'Claude';
   static const String sectionAbout = 'About';
   static const String firstDayOfWeek = 'First day of week';
   static const String appearance = 'Appearance';
@@ -301,8 +277,9 @@ abstract final class AppStrings {
       '\u{2022}\u{2022}\u{2022}\u{2022}'
       '${key.length > 4 ? key.substring(key.length - 4) : ''}';
   static const String claudeFooter =
-      'With a key, Claude also reads each screenshot you scan. Without one, '
-      'screenshots are read on the phone only.';
+      'With a key, Claude reads each screenshot you scan and the expenses of '
+      'each report you open, notes included. Without one, screenshots are '
+      'read on the phone only.';
   static const String claudeKeyMessage =
       "Kept in this phone's keychain, never in a backup.";
   static const String claudeKeyPlaceholder = 'sk-ant-\u{2026}';

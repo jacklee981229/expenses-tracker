@@ -6,6 +6,7 @@ import '../../core/utils/date_utils.dart';
 import '../../core/utils/insights.dart';
 import '../../core/utils/money.dart';
 import '../../core/utils/report.dart';
+import '../../core/utils/report_brief.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/analysis_dao.dart';
@@ -308,43 +309,35 @@ final periodExpensesProvider = StreamProvider.autoDispose((ref) {
       );
 });
 
+/// The period's expenses as the report and Claude read them, oldest first;
+/// null while loading.
+final _reportExpensesProvider = Provider.autoDispose<List<ReportExpense>?>((
+  ref,
+) {
+  final expenses = ref.watch(periodExpensesProvider).valueOrNull;
+  if (expenses == null) return null;
+  return [
+    for (final item in expenses.reversed)
+      (
+        categoryId: item.category.id,
+        categoryName: item.category.name,
+        amountMinor: item.expense.amountMinor,
+        localDate: item.expense.localDate,
+        note: item.expense.note,
+        fixed: item.expense.source == TransactionSource.recurring,
+      ),
+  ];
+});
+
 /// The report sheet's figures; null while loading or with nothing spent.
 /// Both stop watching once the sheet closes.
 final reportProvider = Provider.autoDispose<Report?>((ref) {
-  final expenses = ref.watch(periodExpensesProvider).valueOrNull;
+  final expenses = ref.watch(_reportExpensesProvider);
   final previous = ref.watch(previousCategoryTotalsProvider);
-  final kinds = ref.watch(receiptKindsProvider);
-  if (expenses == null || !previous.hasValue || kinds.isLoading) return null;
-  // All counts its days from the first expense: wait for it, or the per
-  // day shows RM0.00 for a moment.
-  if (ref.watch(periodBoundsProvider) == null &&
-      !ref.watch(firstExpenseDateProvider).hasValue) {
-    return null;
-  }
-  final before = ref.watch(previousPeriodBoundsProvider);
+  if (expenses == null || !previous.hasValue) return null;
   return buildReport(
-    current: [
-      for (final item in expenses)
-        (
-          categoryId: item.category.id,
-          categoryName: item.category.name,
-          amountMinor: item.expense.amountMinor,
-          localDate: item.expense.localDate,
-          note: item.expense.note,
-          fixed: item.expense.source == TransactionSource.recurring,
-        ),
-    ],
+    current: expenses,
     previous: previous.value == null ? null : _spends(previous.value!),
-    daysSoFar: ref.watch(periodDaysSoFarProvider),
-    previousDays: before == null
-        ? 0
-        : calendarDaysBetween(
-                parseLocalDate(before.start),
-                parseLocalDate(before.end),
-              ) +
-              1,
-    // A failed read only stops kinds counting as one.
-    kindNames: [for (final kind in kinds.valueOrNull ?? []) kind.name],
   );
 });
 
@@ -352,6 +345,126 @@ final reportProvider = Provider.autoDispose<Report?>((ref) {
 final receiptKindsProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(receiptKindDaoProvider).getAll(),
 );
+
+/// What Claude is asked about one report. Two requests are the same while
+/// the period and filter ([key]), the expenses and the period before's
+/// totals ([fingerprint]) and the API key are, so reopening the sheet finds
+/// the take already asked for.
+@immutable
+class TakeRequest {
+  const TakeRequest({
+    required this.key,
+    required this.fingerprint,
+    required this.brief,
+    required this.categories,
+    required this.apiKey,
+  });
+
+  final String key;
+  final String fingerprint;
+  final String brief;
+
+  /// The period's category names, the only ones a point may name.
+  final Set<String> categories;
+  final String apiKey;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TakeRequest &&
+      other.key == key &&
+      other.fingerprint == fingerprint &&
+      other.apiKey == apiKey;
+
+  @override
+  int get hashCode => Object.hash(key, fingerprint, apiKey);
+}
+
+/// What Claude would be asked about the report on screen; null without a
+/// key, while loading, or with nothing spent.
+final takeRequestProvider = Provider.autoDispose<TakeRequest?>((ref) {
+  final apiKey = ref.watch(claudeKeyProvider).valueOrNull;
+  if (apiKey == null || ref.watch(reportProvider) == null) return null;
+  final expenses = ref.watch(_reportExpensesProvider)!;
+  final previous = ref.watch(previousCategoryTotalsProvider).value;
+  final kinds = ref.watch(receiptKindsProvider);
+  final bounds = ref.watch(periodBoundsProvider);
+  // All counts its days from the first expense: wait for it.
+  if (kinds.isLoading ||
+      (bounds == null && !ref.watch(firstExpenseDateProvider).hasValue)) {
+    return null;
+  }
+  final selection = ref.watch(periodSelectionProvider);
+  final daysSoFar = ref.watch(periodDaysSoFarProvider);
+  final today = toLocalDateString(ref.watch(todayProvider));
+  final brief = reportBrief(
+    expenses: expenses,
+    previous: previous == null ? null : _spends(previous),
+    period: periodLabel(selection, bounds),
+    word: bounds == null ? null : selection.period.name,
+    daysSoFar: daysSoFar,
+    periodDays: bounds == null
+        ? daysSoFar
+        : calendarDaysBetween(
+                parseLocalDate(bounds.start),
+                parseLocalDate(bounds.end),
+              ) +
+              1,
+    running:
+        bounds == null ||
+        (bounds.start.compareTo(today) <= 0 &&
+            bounds.end.compareTo(today) >= 0),
+    // A failed read only stops kinds counting as one.
+    kindNames: [for (final kind in kinds.valueOrNull ?? []) kind.name],
+  );
+  return TakeRequest(
+    key: [
+      bounds?.start ?? 'all',
+      bounds?.end ?? '',
+      ...ref.watch(categoryFilterProvider).toList()..sort(),
+    ].join('|'),
+    fingerprint: brief.fingerprint,
+    brief: brief.text,
+    categories: {for (final e in expenses) e.categoryName},
+    apiKey: apiKey,
+  );
+});
+
+/// Claude's take for [TakeRequest]: the one saved on the phone, or asked
+/// for. Null when Claude didn't answer. It outlives the sheet, so a reply
+/// that comes after the sheet closed is still there when it opens again,
+/// and an opening while Claude reads joins that request. A failure lets go
+/// once the sheet closes, so the next opening asks again on its own.
+final reportTakeProvider = FutureProvider.autoDispose
+    .family<ClaudeTake?, TakeRequest>((ref, request) async {
+      final link = ref.keepAlive();
+      final store = ref.read(reportTakeStoreProvider);
+      try {
+        final saved = await store.find(request.key, request.fingerprint);
+        if (saved != null) return saved;
+      } on Exception {
+        // A support folder the phone won't give: ask Claude instead.
+      }
+      ClaudeTake? take;
+      try {
+        take = await ref
+            .read(claudeApiProvider)
+            .reviewReport(
+              key: request.apiKey,
+              brief: request.brief,
+              categories: request.categories,
+            );
+      } finally {
+        // Whatever went wrong, even an error thrown, is not kept.
+        if (take == null) link.close();
+      }
+      if (take == null) return null;
+      try {
+        await store.save(request.key, request.fingerprint, take);
+      } on Exception {
+        // Not saved: the take still shows, and is asked again next launch.
+      }
+      return take;
+    });
 
 List<CategorySpend> _spends(List<CategoryTotal> totals) => [
   for (final total in totals)
