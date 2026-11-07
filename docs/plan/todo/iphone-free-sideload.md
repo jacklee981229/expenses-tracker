@@ -14,11 +14,12 @@ OK先走免费test 7天的路。就照这个开始吧。
   installed from Windows with Sideloadly and Jack's own Apple ID. Anything
   that needs the friend's account is on hold.
 
-- D2. Blocked 2026-10-25: Sideloadly fails with "Login failed (-80046)" on
-  Local, Fake and freshly downloaded Anisette. Since about 2026-10-21 Apple's
-  sign-in change breaks free sideloading in AltStore, SideStore and
-  Sideloadly alike; fixes are in progress upstream. Wait for a Sideloadly
-  update rather than third-party workarounds that take the Apple ID password.
+- D2. Since about 2026-10-21 Apple's sign-in change made free sideloading
+  fail with "Login failed (-80046)" in AltStore, SideStore and Sideloadly;
+  Jack's v0.71.1 failed on 2026-10-25 with Local, Fake and fresh Anisette.
+  Sideloadly v0.72 (sideloadly.io's installer of 2026-10-30) fixes it: Jack
+  signed and installed on 2026-11-05. Use Sideloadly's own updates only,
+  never third-party workarounds that take the Apple ID password.
 
 ## Tasks
 
@@ -31,8 +32,9 @@ OK先走免费test 7天的路。就照这个开始吧。
       needs.)
 - [x] 3. GitHub Actions workflow builds an unsigned `.ipa` on macOS with
       Flutter 3.32.0 and keeps it as a download.
-- [ ] 4. Jack installs Sideloadly and Apple's iPhone driver on Windows.
-- [ ] 5. Jack signs and installs the `.ipa` with his Apple ID; Developer Mode
+- [x] 4. Jack installs Sideloadly and Apple's iPhone driver on Windows.
+      (Sideloadly v0.72; the driver comes with the Apple Devices app.)
+- [x] 5. Jack signs and installs the `.ipa` with his Apple ID; Developer Mode
       on, profile trusted; app opens on the iPhone.
 - [ ] 6. Re-sign routine every 7 days, with an Export JSON backup first.
 - [ ] 7. On the iPhone, check what the emulator can't: the Bricolage
