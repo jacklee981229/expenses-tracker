@@ -9,12 +9,15 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/date_utils.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/tables/app_settings_table.dart';
+import '../../data/services/cloud_backup.dart';
+import '../../data/services/cloud_backup_api.dart';
 import '../../data/services/import_service.dart';
 import '../../shared/widgets/inset_group.dart';
 import '../../shared/widgets/inset_row.dart';
 import '../../shared/widgets/sheets.dart';
 import '../../shared/widgets/large_title.dart';
 import '../categories/manage_categories_screen.dart';
+import '../ledger/ledger_providers.dart';
 import '../recurring/recurring_list_screen.dart';
 import 'settings_providers.dart';
 
@@ -30,6 +33,7 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = settings?.themeMode ?? ThemeModeSetting.system;
     final lastExportAt = settings?.lastExportAt;
     final claudeKey = ref.watch(claudeKeyProvider).valueOrNull;
+    final cloud = ref.watch(cloudBackupStatusProvider).valueOrNull;
 
     return SafeArea(
       bottom: false,
@@ -102,6 +106,14 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
             children: [
+              InsetRow(
+                title: AppStrings.cloudBackup,
+                trailing: _Value(_cloudValue(cloud)),
+                showChevron: true,
+                onTap: cloud == null
+                    ? null
+                    : () => _cloudBackup(context, ref, cloud),
+              ),
               InsetRow(
                 title: AppStrings.exportCsv,
                 titleColor: colors.accent,
@@ -246,11 +258,22 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _import(BuildContext context, WidgetRef ref) async {
-    final actions = ref.read(backupActionsProvider);
-    final messenger = ScaffoldMessenger.of(context);
-    final BackupData? data;
+    final data = await _readBackup(
+      context,
+      ref.read(backupActionsProvider).pickBackup,
+    );
+    if (data == null || !context.mounted) return;
+    await _chooseAndRestore(context, ref, data);
+  }
+
+  /// Runs [read]; null when it gives nothing or, after saying why, for a
+  /// file that is not a backup this app reads.
+  Future<BackupData?> _readBackup(
+    BuildContext context,
+    Future<BackupData?> Function() read,
+  ) async {
     try {
-      data = await actions.pickBackup();
+      return await read();
     } on UnsupportedBackupVersionException catch (error) {
       if (context.mounted) {
         await _importFailed(
@@ -258,15 +281,24 @@ class SettingsScreen extends ConsumerWidget {
           AppStrings.importUnsupportedVersion(error.version),
         );
       }
-      return;
     } on InvalidBackupException {
       if (context.mounted) {
         await _importFailed(context, AppStrings.importInvalidFile);
       }
-      return;
     }
-    if (data == null || !context.mounted) return;
+    return null;
+  }
 
+  /// Asks Merge or Replace, then restores; [afterRestore] runs once it is
+  /// done.
+  Future<void> _chooseAndRestore(
+    BuildContext context,
+    WidgetRef ref,
+    BackupData data, {
+    Future<void> Function()? afterRestore,
+  }) async {
+    final actions = ref.read(backupActionsProvider);
+    final messenger = ScaffoldMessenger.of(context);
     final mode = await showOptionsSheet<ImportMode>(
       context,
       title: AppStrings.importTitle,
@@ -287,6 +319,7 @@ class SettingsScreen extends ConsumerWidget {
     if (mode == null) return;
     try {
       await actions.restore(data, mode);
+      await afterRestore?.call();
       messenger.showSnackBar(
         SnackBar(
           content: Text(AppStrings.importDone(data.transactions.length)),
@@ -300,6 +333,172 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  static String _cloudValue(CloudBackupStatus? status) {
+    if (status == null) return '';
+    if (!status.hasToken) return AppStrings.cloudBackupOff;
+    if (!status.state.setUp) return AppStrings.cloudBackupNotSetUp;
+    final lastGoodAt = status.state.lastGoodAt;
+    if (lastGoodAt == null) return AppStrings.cloudBackupOn;
+    final at = DateTime.fromMillisecondsSinceEpoch(lastGoodAt);
+    return '${formatDayMonth(at)}, ${formatTime(at)}';
+  }
+
+  /// Off: asks for the token. Otherwise the choices for this phone.
+  Future<void> _cloudBackup(
+    BuildContext context,
+    WidgetRef ref,
+    CloudBackupStatus status,
+  ) async {
+    if (!status.hasToken) return _cloudTurnOn(context, ref, ask: true);
+    final choice = await showOptionsSheet<_CloudChoice>(
+      context,
+      title: AppStrings.cloudBackup,
+      options: [
+        if (status.state.setUp)
+          const SheetOption(AppStrings.backUpNow, _CloudChoice.backUpNow),
+        const SheetOption(AppStrings.restoreFromCloud, _CloudChoice.restore),
+        if (!status.state.setUp)
+          const SheetOption(AppStrings.cloudTurnOn, _CloudChoice.turnOn),
+        const SheetOption(
+          AppStrings.cloudTurnOff,
+          _CloudChoice.turnOff,
+          destructive: true,
+        ),
+      ],
+    );
+    if (choice == null || !context.mounted) return;
+    switch (choice) {
+      case _CloudChoice.backUpNow:
+        await _cloudBackUpNow(context, ref);
+      case _CloudChoice.restore:
+        await _cloudRestore(context, ref);
+      case _CloudChoice.turnOn:
+        await _cloudTurnOn(context, ref, ask: false);
+      case _CloudChoice.turnOff:
+        await ref.read(cloudBackupProvider).turnOff();
+        ref.invalidate(cloudBackupStatusProvider);
+    }
+  }
+
+  /// Checks the token (typed when [ask], else the one kept from an earlier
+  /// install) and sets this phone up. An empty phone, a new install, is
+  /// offered the cloud's copies at once, before anything of its own goes up.
+  Future<void> _cloudTurnOn(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool ask,
+  }) async {
+    String? typed;
+    if (ask) {
+      typed = await showTextInputDialog(
+        context,
+        title: AppStrings.cloudBackup,
+        message: AppStrings.cloudTokenMessage,
+        placeholder: AppStrings.cloudTokenPlaceholder,
+      );
+      if (typed == null) return;
+    }
+    final result = await ref.read(cloudBackupProvider).turnOn(typed);
+    ref.invalidate(cloudBackupStatusProvider);
+    if (!context.mounted) return;
+    final listing = result.value;
+    if (listing == null) return _cloudFailed(context, result.failure!);
+    final expenses = await ref.read(expenseCountProvider.future);
+    if (expenses == 0 && listing.restorable.isNotEmpty && context.mounted) {
+      await _cloudRestoreFrom(context, ref, listing);
+    }
+  }
+
+  Future<void> _cloudBackUpNow(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref.read(cloudBackupProvider).uploadNow();
+    ref.invalidate(cloudBackupStatusProvider);
+    final uploaded = result.value;
+    if (uploaded == null) {
+      if (context.mounted) await _cloudFailed(context, result.failure!);
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          uploaded ? AppStrings.backedUp : AppStrings.nothingToBackUp,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _cloudRestore(BuildContext context, WidgetRef ref) async {
+    final result = await ref.read(cloudBackupProvider).list();
+    if (!context.mounted) return;
+    final listing = result.value;
+    if (listing == null) return _cloudFailed(context, result.failure!);
+    if (listing.restorable.isEmpty) {
+      return showAlert(
+        context,
+        title: AppStrings.restoreFromCloud,
+        message: AppStrings.cloudNoCopies,
+      );
+    }
+    await _cloudRestoreFrom(context, ref, listing);
+  }
+
+  /// Picks a kept day, fetches it and restores it as Import does; this
+  /// phone is then set up.
+  Future<void> _cloudRestoreFrom(
+    BuildContext context,
+    WidgetRef ref,
+    CloudListing listing,
+  ) async {
+    final copy = await showOptionsSheet<CloudCopy>(
+      context,
+      title: AppStrings.restoreFromCloud,
+      message: AppStrings.cloudCopiesLag,
+      options: [
+        for (final copy in listing.restorable)
+          SheetOption(
+            AppStrings.cloudCopy(
+              formatWeekdayDayMonth(parseLocalDate(copy.day)),
+              copy.count,
+            ),
+            copy,
+          ),
+      ],
+    );
+    if (copy == null || !context.mounted) return;
+    final cloud = ref.read(cloudBackupProvider);
+    CloudFailure? failure;
+    final data = await _readBackup(context, () async {
+      final fetched = await cloud.fetch(listing, copy);
+      failure = fetched.failure;
+      return fetched.value;
+    });
+    if (!context.mounted) return;
+    final reason = failure;
+    if (reason != null) return _cloudFailed(context, reason);
+    if (data == null) return;
+    await _chooseAndRestore(
+      context,
+      ref,
+      data,
+      afterRestore: () async {
+        await cloud.markSetUp();
+        ref.invalidate(cloudBackupStatusProvider);
+      },
+    );
+  }
+
+  Future<void> _cloudFailed(BuildContext context, CloudFailure failure) {
+    return showAlert(
+      context,
+      title: AppStrings.cloudFailedTitle,
+      message: switch (failure) {
+        CloudFailure.wrongToken => AppStrings.cloudWrongToken,
+        CloudFailure.noConnection => AppStrings.cloudNoConnection,
+        CloudFailure.noAnswer => AppStrings.cloudNoAnswer,
+      },
+    );
+  }
+
   Future<void> _importFailed(BuildContext context, String reason) {
     return showAlert(
       context,
@@ -308,6 +507,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
+
+enum _CloudChoice { backUpNow, restore, turnOn, turnOff }
 
 class _Value extends StatelessWidget {
   const _Value(this.text);

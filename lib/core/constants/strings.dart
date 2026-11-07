@@ -335,6 +335,30 @@ abstract final class AppStrings {
   static String importFailure(String reason) => '$reason $importNothingChanged';
   static const String exportFailedTitle = 'Export failed';
   static const String exported = 'Exported';
+
+  // Cloud backup
+  static const String cloudBackup = 'Cloud Backup';
+  static const String cloudBackupOff = 'Off';
+  static const String cloudBackupOn = 'On';
+  static const String cloudBackupNotSetUp = 'Not set up on this phone';
+  static const String cloudTokenMessage =
+      'Type the backup token shown on the laptop.';
+  static const String cloudTokenPlaceholder = 'Token';
+  static const String backUpNow = 'Back Up Now';
+  static const String restoreFromCloud = 'Restore from Cloud';
+  static const String cloudTurnOn = 'Turn On';
+  static const String cloudTurnOff = 'Turn Off';
+  static String cloudCopy(String day, int expenses) =>
+      '$day — ${_count(expenses, 'expense', 'expenses')}';
+  static const String cloudCopiesLag =
+      'A backup can take a minute to show here.';
+  static const String cloudNoCopies = 'No backups in the cloud yet.';
+  static const String backedUp = 'Backed up';
+  static const String nothingToBackUp = 'No expenses to back up yet.';
+  static const String cloudFailedTitle = 'Cloud backup failed';
+  static const String cloudWrongToken = 'Wrong token.';
+  static const String cloudNoConnection = 'No connection.';
+  static const String cloudNoAnswer = "The cloud didn't answer.";
 }
 
 String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';

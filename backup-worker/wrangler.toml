@@ -1,0 +1,9 @@
+# The Expenses app's cloud backup (index.js). README.md has the commands; the secret is in .dev.vars.example.
+name = "expenses-backup"
+main = "index.js"
+compatibility_date = "2026-04-01"
+
+# The backups: one key per day (expiring after 60 days) and `latest`.
+[[kv_namespaces]]
+binding = "BACKUPS"
+id = "237540b23d1b47f29c3064a048649244"

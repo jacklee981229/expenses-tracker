@@ -10,6 +10,9 @@ import 'database/daos/settings_dao.dart';
 import 'database/daos/transaction_dao.dart';
 import 'services/claude_api.dart';
 import 'services/claude_key_store.dart';
+import 'services/cloud_backup.dart';
+import 'services/cloud_backup_api.dart';
+import 'services/cloud_backup_store.dart';
 import 'services/export_service.dart';
 import 'services/import_service.dart';
 import 'services/receipt_reader.dart';
@@ -70,6 +73,24 @@ final claudeKeyStoreProvider = Provider<ClaudeKeyStore>(
 /// The Claude API key, or null when none is set. Invalidate after a change.
 final claudeKeyProvider = FutureProvider<String?>(
   (ref) => ref.watch(claudeKeyStoreProvider).read(),
+);
+
+final cloudBackupProvider = Provider<CloudBackup>(
+  (ref) => CloudBackup(
+    api: CloudBackupApi(),
+    tokens: const CloudBackupTokenStore(),
+    states: CloudBackupStateStore(),
+    exporter: ref.watch(exportServiceProvider),
+    importer: ref.watch(importServiceProvider),
+    settings: ref.watch(settingsDaoProvider),
+    transactions: ref.watch(transactionDaoProvider),
+  ),
+);
+
+/// Cloud backup on this phone, for Settings. Invalidate after a change or
+/// an upload.
+final cloudBackupStatusProvider = FutureProvider<CloudBackupStatus>(
+  (ref) => ref.watch(cloudBackupProvider).status(),
 );
 
 final receiptReaderProvider = Provider<ReceiptReader>(

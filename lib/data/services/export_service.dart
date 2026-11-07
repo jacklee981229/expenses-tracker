@@ -74,8 +74,18 @@ class ExportService {
   /// The backup file's bytes: compact JSON, gzipped. gzip comes with
   /// `dart:io`, so it costs no package or app size, and cuts the file to
   /// about a seventh.
-  Future<List<int>> buildBackupBytes() async =>
-      gzip.encode(utf8.encode(jsonEncode(await buildJson())));
+  Future<List<int>> buildBackupBytes() async => (await buildBackup()).bytes;
+
+  /// The backup's bytes with what the cloud copy is listed by: its export
+  /// time and how many expenses it holds.
+  Future<({List<int> bytes, int exportedAt, int count})> buildBackup() async {
+    final json = await buildJson();
+    return (
+      bytes: gzip.encode(utf8.encode(jsonEncode(json))),
+      exportedAt: json['exportedAt']! as int,
+      count: (json['transactions']! as List).length,
+    );
+  }
 
   Future<File> writeCsvFile() async =>
       (await _file('csv')).writeAsString(await buildCsv(), flush: true);

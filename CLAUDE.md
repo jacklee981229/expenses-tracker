@@ -123,6 +123,16 @@ These are correctness issues, not style preferences.
   so never in a backup, the repo or the GitHub build; the laptop checks read
   it from the gitignored `.env`. `flutter_secure_storage` needs Android
   `minSdk = 23`.
+- With cloud backup on, every backup (the whole Export Backup file, notes
+  included) goes to Jack's Cloudflare Worker, `backup-worker/` (its README
+  has the set-up and commands; `npm test` there runs its tests), kept in
+  Workers KV. The token is only in the Keychain / Keystore
+  (`CloudBackupTokenStore`) and on an iPhone outlives deleting the app, so
+  a phone uploads only once `cloud_backup.json` (support folder) says it
+  was set up or restored there: an empty reinstall must never write over
+  the good copies. Laptop runs point the app at a local Worker with
+  `--dart-define=BACKUP_URL=http://10.0.2.2:8793`; Android lets that plain
+  `http` through.
 - A launch through `expenses://app/scan` arrives as the first route: the whole
   link on Android, so compare `Uri.path`, never the route string.
 - Sheets take their background from `bottomSheetTheme`. Passing a colour read
@@ -171,6 +181,11 @@ Unit tests are required for, and only for:
 - `core/utils/bar_scale.dart` — the spending bars' cap
 - `data/services/export_service.dart` and `import_service.dart` — the backup's
   gzip round trip, old plain-JSON files, and merging categories by name
+- `core/utils/backup_timing.dart`, `data/services/cloud_backup_api.dart` and
+  `data/services/cloud_backup.dart` — when a cloud backup goes up, the
+  Worker's replies and failures, and that a phone not set up never uploads
+- `backup-worker/backup.js` (`node --test`) — the token, the day keys and
+  their expiry
 - the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.

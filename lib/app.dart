@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/strings.dart';
 import 'core/theme/app_spacing.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/backup_timing.dart';
 import 'core/utils/icon_registry.dart';
 import 'data/data_providers.dart';
 import 'features/add_expense/add_expense_sheet.dart';
@@ -85,10 +86,16 @@ class _RootShellState extends ConsumerState<RootShell> {
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _onResume);
+    _lifecycle = AppLifecycleListener(
+      onResume: _onResume,
+      // shortcut: no iOS background task, so an upload gets the few seconds
+      // iOS gives a hidden app (plenty for ~100 KB) and one cut off waits
+      // for the next moment; add one if backups are seen missing.
+      onHide: () => _backUp(BackupMoment.hidden),
+    );
     scanLinkTicks.addListener(_scanClipboard);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _catchUp();
+      _catchUpThenBackUp();
       if (openedByScanLink) _scanClipboard();
     });
   }
@@ -113,12 +120,22 @@ class _RootShellState extends ConsumerState<RootShell> {
 
   void _onResume() {
     ref.read(todayProvider.notifier).refresh();
-    _catchUp();
+    _catchUpThenBackUp();
   }
 
-  /// Adds any fixed monthly expenses that fell due since the last run.
-  void _catchUp() {
-    ref.read(recurringGeneratorProvider).catchUp();
+  /// Adds any fixed monthly expenses that fell due since the last run, then
+  /// uploads a cloud backup if the last good one is old, so it holds them.
+  void _catchUpThenBackUp() {
+    ref
+        .read(recurringGeneratorProvider)
+        .catchUp()
+        .whenComplete(() => _backUp(BackupMoment.opened));
+  }
+
+  Future<void> _backUp(BackupMoment moment) async {
+    if (await ref.read(cloudBackupProvider).maybeUpload(moment) && mounted) {
+      ref.invalidate(cloudBackupStatusProvider);
+    }
   }
 
   @override

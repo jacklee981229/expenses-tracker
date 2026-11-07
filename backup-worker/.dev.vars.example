@@ -1,0 +1,4 @@
+# Copy to .dev.vars (never committed) for `npm run dev`. On Cloudflare it is a Worker secret:
+# npx wrangler secret put BACKUP_TOKEN
+# The token the phone sends: 24 letters and digits, written in groups of four.
+BACKUP_TOKEN=

@@ -49,3 +49,8 @@ app.*.map.json
 
 # Jack's Claude API key for checks on the laptop; the app keeps its own on the phone.
 .env
+
+# The backup Worker's token for local runs, its packages and wrangler's local state.
+/backup-worker/.dev.vars
+/backup-worker/node_modules/
+/backup-worker/.wrangler/
