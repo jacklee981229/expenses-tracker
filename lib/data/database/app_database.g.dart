@@ -2179,306 +2179,6 @@ class AppSettingsCompanion extends UpdateCompanion<AppSettingsData> {
   }
 }
 
-class $ReceiptKindsTable extends ReceiptKinds
-    with TableInfo<$ReceiptKindsTable, ReceiptKindRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ReceiptKindsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _labelsMeta = const VerificationMeta('labels');
-  @override
-  late final GeneratedColumn<String> labels = GeneratedColumn<String>(
-    'labels',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, labels, name, updatedAt];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'receipt_kinds';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<ReceiptKindRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('labels')) {
-      context.handle(
-        _labelsMeta,
-        labels.isAcceptableOrUnknown(data['labels']!, _labelsMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_labelsMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_updatedAtMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ReceiptKindRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ReceiptKindRow(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      labels: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}labels'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}updated_at'],
-      )!,
-    );
-  }
-
-  @override
-  $ReceiptKindsTable createAlias(String alias) {
-    return $ReceiptKindsTable(attachedDatabase, alias);
-  }
-}
-
-class ReceiptKindRow extends DataClass implements Insertable<ReceiptKindRow> {
-  final int id;
-
-  /// The page's labels, one per line (see `parseReceipt`).
-  final String labels;
-  final String name;
-
-  /// Epoch milliseconds of the last save that named it.
-  final int updatedAt;
-  const ReceiptKindRow({
-    required this.id,
-    required this.labels,
-    required this.name,
-    required this.updatedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['labels'] = Variable<String>(labels);
-    map['name'] = Variable<String>(name);
-    map['updated_at'] = Variable<int>(updatedAt);
-    return map;
-  }
-
-  ReceiptKindsCompanion toCompanion(bool nullToAbsent) {
-    return ReceiptKindsCompanion(
-      id: Value(id),
-      labels: Value(labels),
-      name: Value(name),
-      updatedAt: Value(updatedAt),
-    );
-  }
-
-  factory ReceiptKindRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ReceiptKindRow(
-      id: serializer.fromJson<int>(json['id']),
-      labels: serializer.fromJson<String>(json['labels']),
-      name: serializer.fromJson<String>(json['name']),
-      updatedAt: serializer.fromJson<int>(json['updatedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'labels': serializer.toJson<String>(labels),
-      'name': serializer.toJson<String>(name),
-      'updatedAt': serializer.toJson<int>(updatedAt),
-    };
-  }
-
-  ReceiptKindRow copyWith({
-    int? id,
-    String? labels,
-    String? name,
-    int? updatedAt,
-  }) => ReceiptKindRow(
-    id: id ?? this.id,
-    labels: labels ?? this.labels,
-    name: name ?? this.name,
-    updatedAt: updatedAt ?? this.updatedAt,
-  );
-  ReceiptKindRow copyWithCompanion(ReceiptKindsCompanion data) {
-    return ReceiptKindRow(
-      id: data.id.present ? data.id.value : this.id,
-      labels: data.labels.present ? data.labels.value : this.labels,
-      name: data.name.present ? data.name.value : this.name,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ReceiptKindRow(')
-          ..write('id: $id, ')
-          ..write('labels: $labels, ')
-          ..write('name: $name, ')
-          ..write('updatedAt: $updatedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, labels, name, updatedAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ReceiptKindRow &&
-          other.id == this.id &&
-          other.labels == this.labels &&
-          other.name == this.name &&
-          other.updatedAt == this.updatedAt);
-}
-
-class ReceiptKindsCompanion extends UpdateCompanion<ReceiptKindRow> {
-  final Value<int> id;
-  final Value<String> labels;
-  final Value<String> name;
-  final Value<int> updatedAt;
-  const ReceiptKindsCompanion({
-    this.id = const Value.absent(),
-    this.labels = const Value.absent(),
-    this.name = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-  });
-  ReceiptKindsCompanion.insert({
-    this.id = const Value.absent(),
-    required String labels,
-    required String name,
-    required int updatedAt,
-  }) : labels = Value(labels),
-       name = Value(name),
-       updatedAt = Value(updatedAt);
-  static Insertable<ReceiptKindRow> custom({
-    Expression<int>? id,
-    Expression<String>? labels,
-    Expression<String>? name,
-    Expression<int>? updatedAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (labels != null) 'labels': labels,
-      if (name != null) 'name': name,
-      if (updatedAt != null) 'updated_at': updatedAt,
-    });
-  }
-
-  ReceiptKindsCompanion copyWith({
-    Value<int>? id,
-    Value<String>? labels,
-    Value<String>? name,
-    Value<int>? updatedAt,
-  }) {
-    return ReceiptKindsCompanion(
-      id: id ?? this.id,
-      labels: labels ?? this.labels,
-      name: name ?? this.name,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (labels.present) {
-      map['labels'] = Variable<String>(labels.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<int>(updatedAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ReceiptKindsCompanion(')
-          ..write('id: $id, ')
-          ..write('labels: $labels, ')
-          ..write('name: $name, ')
-          ..write('updatedAt: $updatedAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $HiddenNotesTable extends HiddenNotes
     with TableInfo<$HiddenNotesTable, HiddenNoteRow> {
   @override
@@ -2749,6 +2449,325 @@ class HiddenNotesCompanion extends UpdateCompanion<HiddenNoteRow> {
   }
 }
 
+class $LearnedNotesTable extends LearnedNotes
+    with TableInfo<$LearnedNotesTable, LearnedNoteRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LearnedNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _shopMeta = const VerificationMeta('shop');
+  @override
+  late final GeneratedColumn<String> shop = GeneratedColumn<String>(
+    'shop',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [shop, amountMinor, note, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'learned_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LearnedNoteRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('shop')) {
+      context.handle(
+        _shopMeta,
+        shop.isAcceptableOrUnknown(data['shop']!, _shopMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shopMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_noteMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {shop, amountMinor};
+  @override
+  LearnedNoteRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LearnedNoteRow(
+      shop: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shop'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LearnedNotesTable createAlias(String alias) {
+    return $LearnedNotesTable(attachedDatabase, alias);
+  }
+}
+
+class LearnedNoteRow extends DataClass implements Insertable<LearnedNoteRow> {
+  /// The shop as read, in its `shopKey` form.
+  final String shop;
+  final int amountMinor;
+  final String note;
+
+  /// Epoch milliseconds of the save that taught it.
+  final int updatedAt;
+  const LearnedNoteRow({
+    required this.shop,
+    required this.amountMinor,
+    required this.note,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['shop'] = Variable<String>(shop);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['note'] = Variable<String>(note);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  LearnedNotesCompanion toCompanion(bool nullToAbsent) {
+    return LearnedNotesCompanion(
+      shop: Value(shop),
+      amountMinor: Value(amountMinor),
+      note: Value(note),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory LearnedNoteRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LearnedNoteRow(
+      shop: serializer.fromJson<String>(json['shop']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      note: serializer.fromJson<String>(json['note']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'shop': serializer.toJson<String>(shop),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'note': serializer.toJson<String>(note),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  LearnedNoteRow copyWith({
+    String? shop,
+    int? amountMinor,
+    String? note,
+    int? updatedAt,
+  }) => LearnedNoteRow(
+    shop: shop ?? this.shop,
+    amountMinor: amountMinor ?? this.amountMinor,
+    note: note ?? this.note,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  LearnedNoteRow copyWithCompanion(LearnedNotesCompanion data) {
+    return LearnedNoteRow(
+      shop: data.shop.present ? data.shop.value : this.shop,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      note: data.note.present ? data.note.value : this.note,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LearnedNoteRow(')
+          ..write('shop: $shop, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('note: $note, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(shop, amountMinor, note, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LearnedNoteRow &&
+          other.shop == this.shop &&
+          other.amountMinor == this.amountMinor &&
+          other.note == this.note &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LearnedNotesCompanion extends UpdateCompanion<LearnedNoteRow> {
+  final Value<String> shop;
+  final Value<int> amountMinor;
+  final Value<String> note;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const LearnedNotesCompanion({
+    this.shop = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.note = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LearnedNotesCompanion.insert({
+    required String shop,
+    required int amountMinor,
+    required String note,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : shop = Value(shop),
+       amountMinor = Value(amountMinor),
+       note = Value(note),
+       updatedAt = Value(updatedAt);
+  static Insertable<LearnedNoteRow> custom({
+    Expression<String>? shop,
+    Expression<int>? amountMinor,
+    Expression<String>? note,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (shop != null) 'shop': shop,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (note != null) 'note': note,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LearnedNotesCompanion copyWith({
+    Value<String>? shop,
+    Value<int>? amountMinor,
+    Value<String>? note,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return LearnedNotesCompanion(
+      shop: shop ?? this.shop,
+      amountMinor: amountMinor ?? this.amountMinor,
+      note: note ?? this.note,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (shop.present) {
+      map['shop'] = Variable<String>(shop.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LearnedNotesCompanion(')
+          ..write('shop: $shop, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('note: $note, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2756,8 +2775,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $RecurringRulesTable recurringRules = $RecurringRulesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
-  late final $ReceiptKindsTable receiptKinds = $ReceiptKindsTable(this);
   late final $HiddenNotesTable hiddenNotes = $HiddenNotesTable(this);
+  late final $LearnedNotesTable learnedNotes = $LearnedNotesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -2765,10 +2784,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final RecurringDao recurringDao = RecurringDao(this as AppDatabase);
   late final AnalysisDao analysisDao = AnalysisDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
-  late final ReceiptKindDao receiptKindDao = ReceiptKindDao(
+  late final HiddenNoteDao hiddenNoteDao = HiddenNoteDao(this as AppDatabase);
+  late final LearnedNoteDao learnedNoteDao = LearnedNoteDao(
     this as AppDatabase,
   );
-  late final HiddenNoteDao hiddenNoteDao = HiddenNoteDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2778,8 +2797,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     recurringRules,
     transactions,
     appSettings,
-    receiptKinds,
     hiddenNotes,
+    learnedNotes,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4497,181 +4516,6 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSettingsData,
       PrefetchHooks Function()
     >;
-typedef $$ReceiptKindsTableCreateCompanionBuilder =
-    ReceiptKindsCompanion Function({
-      Value<int> id,
-      required String labels,
-      required String name,
-      required int updatedAt,
-    });
-typedef $$ReceiptKindsTableUpdateCompanionBuilder =
-    ReceiptKindsCompanion Function({
-      Value<int> id,
-      Value<String> labels,
-      Value<String> name,
-      Value<int> updatedAt,
-    });
-
-class $$ReceiptKindsTableFilterComposer
-    extends Composer<_$AppDatabase, $ReceiptKindsTable> {
-  $$ReceiptKindsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get labels => $composableBuilder(
-    column: $table.labels,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$ReceiptKindsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ReceiptKindsTable> {
-  $$ReceiptKindsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get labels => $composableBuilder(
-    column: $table.labels,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get updatedAt => $composableBuilder(
-    column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$ReceiptKindsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $ReceiptKindsTable> {
-  $$ReceiptKindsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get labels =>
-      $composableBuilder(column: $table.labels, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<int> get updatedAt =>
-      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-}
-
-class $$ReceiptKindsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $ReceiptKindsTable,
-          ReceiptKindRow,
-          $$ReceiptKindsTableFilterComposer,
-          $$ReceiptKindsTableOrderingComposer,
-          $$ReceiptKindsTableAnnotationComposer,
-          $$ReceiptKindsTableCreateCompanionBuilder,
-          $$ReceiptKindsTableUpdateCompanionBuilder,
-          (
-            ReceiptKindRow,
-            BaseReferences<_$AppDatabase, $ReceiptKindsTable, ReceiptKindRow>,
-          ),
-          ReceiptKindRow,
-          PrefetchHooks Function()
-        > {
-  $$ReceiptKindsTableTableManager(_$AppDatabase db, $ReceiptKindsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$ReceiptKindsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$ReceiptKindsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$ReceiptKindsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> labels = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<int> updatedAt = const Value.absent(),
-              }) => ReceiptKindsCompanion(
-                id: id,
-                labels: labels,
-                name: name,
-                updatedAt: updatedAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String labels,
-                required String name,
-                required int updatedAt,
-              }) => ReceiptKindsCompanion.insert(
-                id: id,
-                labels: labels,
-                name: name,
-                updatedAt: updatedAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$ReceiptKindsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $ReceiptKindsTable,
-      ReceiptKindRow,
-      $$ReceiptKindsTableFilterComposer,
-      $$ReceiptKindsTableOrderingComposer,
-      $$ReceiptKindsTableAnnotationComposer,
-      $$ReceiptKindsTableCreateCompanionBuilder,
-      $$ReceiptKindsTableUpdateCompanionBuilder,
-      (
-        ReceiptKindRow,
-        BaseReferences<_$AppDatabase, $ReceiptKindsTable, ReceiptKindRow>,
-      ),
-      ReceiptKindRow,
-      PrefetchHooks Function()
-    >;
 typedef $$HiddenNotesTableCreateCompanionBuilder =
     HiddenNotesCompanion Function({
       required String categoryId,
@@ -4836,6 +4680,189 @@ typedef $$HiddenNotesTableProcessedTableManager =
       HiddenNoteRow,
       PrefetchHooks Function()
     >;
+typedef $$LearnedNotesTableCreateCompanionBuilder =
+    LearnedNotesCompanion Function({
+      required String shop,
+      required int amountMinor,
+      required String note,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$LearnedNotesTableUpdateCompanionBuilder =
+    LearnedNotesCompanion Function({
+      Value<String> shop,
+      Value<int> amountMinor,
+      Value<String> note,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$LearnedNotesTableFilterComposer
+    extends Composer<_$AppDatabase, $LearnedNotesTable> {
+  $$LearnedNotesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get shop => $composableBuilder(
+    column: $table.shop,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LearnedNotesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LearnedNotesTable> {
+  $$LearnedNotesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get shop => $composableBuilder(
+    column: $table.shop,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LearnedNotesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LearnedNotesTable> {
+  $$LearnedNotesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get shop =>
+      $composableBuilder(column: $table.shop, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$LearnedNotesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LearnedNotesTable,
+          LearnedNoteRow,
+          $$LearnedNotesTableFilterComposer,
+          $$LearnedNotesTableOrderingComposer,
+          $$LearnedNotesTableAnnotationComposer,
+          $$LearnedNotesTableCreateCompanionBuilder,
+          $$LearnedNotesTableUpdateCompanionBuilder,
+          (
+            LearnedNoteRow,
+            BaseReferences<_$AppDatabase, $LearnedNotesTable, LearnedNoteRow>,
+          ),
+          LearnedNoteRow,
+          PrefetchHooks Function()
+        > {
+  $$LearnedNotesTableTableManager(_$AppDatabase db, $LearnedNotesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LearnedNotesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LearnedNotesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LearnedNotesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> shop = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> note = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LearnedNotesCompanion(
+                shop: shop,
+                amountMinor: amountMinor,
+                note: note,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String shop,
+                required int amountMinor,
+                required String note,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => LearnedNotesCompanion.insert(
+                shop: shop,
+                amountMinor: amountMinor,
+                note: note,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LearnedNotesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LearnedNotesTable,
+      LearnedNoteRow,
+      $$LearnedNotesTableFilterComposer,
+      $$LearnedNotesTableOrderingComposer,
+      $$LearnedNotesTableAnnotationComposer,
+      $$LearnedNotesTableCreateCompanionBuilder,
+      $$LearnedNotesTableUpdateCompanionBuilder,
+      (
+        LearnedNoteRow,
+        BaseReferences<_$AppDatabase, $LearnedNotesTable, LearnedNoteRow>,
+      ),
+      LearnedNoteRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4848,8 +4875,8 @@ class $AppDatabaseManager {
       $$TransactionsTableTableManager(_db, _db.transactions);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
-  $$ReceiptKindsTableTableManager get receiptKinds =>
-      $$ReceiptKindsTableTableManager(_db, _db.receiptKinds);
   $$HiddenNotesTableTableManager get hiddenNotes =>
       $$HiddenNotesTableTableManager(_db, _db.hiddenNotes);
+  $$LearnedNotesTableTableManager get learnedNotes =>
+      $$LearnedNotesTableTableManager(_db, _db.learnedNotes);
 }

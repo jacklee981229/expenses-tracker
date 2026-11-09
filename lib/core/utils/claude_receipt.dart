@@ -134,8 +134,7 @@ DateTime? _date(String text) {
 }
 
 /// The phone's [reading] with Claude's figures in place of its own where
-/// Claude found them. The page labels stay the phone's: learned kinds of
-/// page match on them.
+/// Claude found them.
 ReceiptReading mergeReadings(ReceiptReading reading, ClaudeReading? claude) {
   if (claude == null) return reading;
   return (
@@ -143,6 +142,5 @@ ReceiptReading mergeReadings(ReceiptReading reading, ClaudeReading? claude) {
     shop: claude.shop ?? reading.shop,
     date: claude.date ?? reading.date,
     delivery: claude.delivery,
-    labels: reading.labels,
   );
 }

@@ -19,9 +19,7 @@ typedef ReportBrief = ({String text, String fingerprint});
 /// spending per category (null under All). [period] is the sheet's label
 /// (`November 2026`), [word] the period's `week`, `month` or `year` (null
 /// under All). [daysSoFar] of [periodDays] have passed; [running] says the
-/// period is still going. [kindNames] are the named kinds of receipt page:
-/// notes from one kind (`Food App - Kedai Ali`, `Food App - Kedai Abu`)
-/// count as one.
+/// period is still going.
 // shortcut: every expense goes, for any period; fine for the app's first
 // years. Group older months into totals once All passes ~1,000 expenses.
 ReportBrief reportBrief({
@@ -32,7 +30,6 @@ ReportBrief reportBrief({
   required int daysSoFar,
   required int periodDays,
   required bool running,
-  Iterable<String> kindNames = const [],
 }) {
   final before = previous ?? const <CategorySpend>[];
   final totalBefore = before.fold(0, (sum, c) => sum + c.totalMinor);
@@ -79,7 +76,7 @@ ReportBrief reportBrief({
           '-',
         if (e.fixed) 'fixed',
       ].join(' | '),
-    ..._repeated(ordered.map((entry) => entry.$2), kindNames),
+    ..._repeated(ordered.map((entry) => entry.$2)),
     '',
     'Totals this period: ${_totals(_byCategory(expenses))}'
         '; all ${formatWithSymbol(_sum(expenses))} '
@@ -96,17 +93,14 @@ ReportBrief reportBrief({
 final DateFormat _weekday = DateFormat('EEE');
 
 /// The notes seen more than once, as the app counts them: case and spaces
-/// ignored, a kind's pages as one, the first spelling standing for the
-/// rest. Biggest total first. Claude is given the counts because at low
-/// effort it miscounted a shop's orders.
-List<String> _repeated(
-  Iterable<ReportExpense> ordered,
-  Iterable<String> kindNames,
-) {
+/// ignored, the first spelling standing for the rest. Biggest total first.
+/// Claude is given the counts because at low effort it miscounted a shop's
+/// orders.
+List<String> _repeated(Iterable<ReportExpense> ordered) {
   final groups =
       <String, ({String note, int count, int totalMinor, List<String> days})>{};
   for (final e in ordered) {
-    final note = kindOf(tidyNote(e.note), kindNames);
+    final note = tidyNote(e.note);
     if (note.isEmpty) continue;
     final key = note.toLowerCase();
     final seen = groups[key];
@@ -181,20 +175,6 @@ final RegExp _spaces = RegExp(r'\s+');
 
 /// [note] trimmed, its runs of spaces and line breaks made one space.
 String tidyNote(String? note) => (note ?? '').trim().replaceAll(_spaces, ' ');
-
-/// The kind [note] was read from (`Food App` for `Food App - Kedai Ali`),
-/// or the note itself.
-String kindOf(String note, Iterable<String> kindNames) {
-  final lower = note.toLowerCase();
-  for (final name in kindNames) {
-    final kind = tidyNote(name);
-    final key = kind.toLowerCase();
-    if (key.isNotEmpty && (lower == key || lower.startsWith('$key - '))) {
-      return kind;
-    }
-  }
-  return note;
-}
 
 /// One of Claude's points and the category it is mostly about (null for
 /// none, or a name that is not one of the period's).

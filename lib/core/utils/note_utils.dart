@@ -51,3 +51,33 @@ double _hoursApart(DateTime a, DateTime b) {
   final diff = (minutesA - minutesB).abs();
   return math.min(diff, 1440 - diff) / 60;
 }
+
+/// The [notes] with a word starting with what Jack [typed] (`p` keeps
+/// `Panmee`, `i` keeps `Kopi ice`), case ignored, in their order. Nothing
+/// typed keeps them all.
+List<String> notesStartingWith(List<String> notes, String typed) {
+  final query = typed.trim().toLowerCase();
+  if (query.isEmpty) return notes;
+  return [
+    for (final note in notes)
+      if (_startsAWord(note.toLowerCase(), query)) note,
+  ];
+}
+
+// A Chinese character is a word of its own: `肉` keeps `猪肉面`.
+final RegExp _wordChar = RegExp(r'[\p{L}\p{N}]', unicode: true);
+final RegExp _han = RegExp(r'\p{Script=Han}', unicode: true);
+
+/// Whether [query] sits in [note] at the start of a word: at the start, or
+/// after a space, a dash or other mark, or anywhere for Chinese.
+bool _startsAWord(String note, String query) {
+  if (_han.hasMatch(query[0])) return note.contains(query);
+  for (
+    var at = note.indexOf(query);
+    at >= 0;
+    at = note.indexOf(query, at + 1)
+  ) {
+    if (at == 0 || !_wordChar.hasMatch(note[at - 1])) return true;
+  }
+  return false;
+}

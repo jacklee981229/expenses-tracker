@@ -6,7 +6,7 @@ import '../../core/utils/date_utils.dart';
 import '../../core/utils/duplicate_check.dart';
 import '../../core/utils/money.dart';
 import '../../core/utils/note_utils.dart';
-import '../../core/utils/receipt_kinds.dart';
+import '../../core/utils/learned_notes.dart';
 import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
@@ -35,6 +35,7 @@ class AddExpenseState {
     this.replaceOnInput = false,
     this.saving = false,
     this.categoryTapped = false,
+    this.noteTyped = false,
   });
 
   /// Keypad expression, e.g. `12.50+3`.
@@ -54,6 +55,10 @@ class AddExpenseState {
   /// longer switches the category.
   final bool categoryTapped;
 
+  /// Whether the note was last typed by hand, not filled by a chip or a
+  /// screenshot; only then does it narrow the history chips.
+  final bool noteTyped;
+
   bool get isEditing => editing != null;
 
   int? get amountMinor => evaluateAmountExpression(expression);
@@ -72,6 +77,7 @@ class AddExpenseState {
     bool? replaceOnInput,
     bool? saving,
     bool? categoryTapped,
+    bool? noteTyped,
   }) {
     return AddExpenseState(
       expression: expression ?? this.expression,
@@ -82,6 +88,7 @@ class AddExpenseState {
       replaceOnInput: replaceOnInput ?? this.replaceOnInput,
       saving: saving ?? this.saving,
       categoryTapped: categoryTapped ?? this.categoryTapped,
+      noteTyped: noteTyped ?? this.noteTyped,
     );
   }
 }
@@ -103,9 +110,10 @@ final addExpenseControllerProvider = NotifierProvider.autoDispose
 
 class AddExpenseController
     extends AutoDisposeFamilyNotifier<AddExpenseState, AddExpenseArgs> {
-  /// The last screenshot read into this sheet, until it is saved: its page
-  /// labels and shop, so the saved note can name its kind of page.
-  ({Set<String> labels, String? shop})? _scanned;
+  /// The last screenshot read into this sheet, until it is saved: its shop
+  /// and amount, and the note it filled in, so a note Jack changed is
+  /// learned.
+  ({String? shop, int? amountMinor, String filled})? _scanned;
 
   @override
   AddExpenseState build(AddExpenseArgs arg) {
@@ -157,8 +165,11 @@ class AddExpenseController
   void selectCategory(String id, {bool tapped = true}) => state = state
       .copyWith(categoryId: id, categoryTapped: state.categoryTapped || tapped);
 
-  void setNote(String note) {
-    if (note != state.note) state = state.copyWith(note: note);
+  /// A note set by a chip or a screenshot ([typed] false), or typed.
+  void setNote(String note, {bool typed = false}) {
+    if (note != state.note || typed != state.noteTyped) {
+      state = state.copyWith(note: note, noteTyped: typed);
+    }
   }
 
   /// Takes [note] out of the selected category's history chips; its past
@@ -172,8 +183,9 @@ class AddExpenseController
   /// A note typed by hand: when it was used before, switch to the category
   /// it was last used with, unless a category was tapped in this sheet or
   /// an existing expense is being edited.
-  Future<void> typeNote(String note) async {
-    setNote(note);
+  /// A screenshot's note goes the same way, but as not [typed].
+  Future<void> typeNote(String note, {bool typed = true}) async {
+    setNote(note, typed: typed);
     final cleaned = cleanNote(note);
     if (cleaned == null || state.categoryTapped || state.isEditing) return;
     final categoryId = await ref
@@ -220,10 +232,10 @@ class AddExpenseController
   /// Fills the sheet from a read screenshot, replacing what was there: the
   /// amount (the next key typed replaces it), the date (today when none was
   /// found or it is in the future) and the shop as the note; what was not
-  /// found is cleared. A kind of page Jack named before puts its name in
-  /// front (`Food App - Kedai Ali`, or the name alone without a shop). A
-  /// delivery goes to [deliveryCategoryId]; otherwise the note picks its
-  /// category as a typed note does.
+  /// found is cleared. When Jack gave the same shop at the same amount a
+  /// note of his own before, that note goes in instead. A delivery goes to
+  /// [deliveryCategoryId]; otherwise the note picks its category as a typed
+  /// note does.
   Future<void> applyReading(
     ReceiptReading reading, {
     String? deliveryCategoryId,
@@ -237,17 +249,16 @@ class AddExpenseController
       date: date == null || date.isAfter(today) ? today : dateOnly(date),
     );
     final shop = reading.shop;
-    _scanned = (labels: reading.labels, shop: shop);
-    final kinds = await ref.read(receiptKindDaoProvider).getAll();
-    final note = receiptNote(
-      shop: shop,
-      kindName: matchKind(reading.labels, kinds)?.name,
-    );
+    final learned = shop == null || amount == null
+        ? null
+        : await ref.read(learnedNoteDaoProvider).noteFor(shop, amount);
+    final note = learned ?? shop;
+    _scanned = (shop: shop, amountMinor: amount, filled: note ?? '');
     if (reading.delivery && deliveryCategoryId != null) {
       selectCategory(deliveryCategoryId, tapped: false);
       setNote(note ?? '');
     } else if (note != null) {
-      await typeNote(note);
+      await typeNote(note, typed: false);
     } else {
       setNote('');
     }
@@ -281,27 +292,37 @@ class AddExpenseController
           note: state.note,
         );
       }
-      await _rememberKind();
+      await _learnNote();
     } finally {
       state = state.copyWith(saving: false);
     }
-    if (addAnother) state = state.copyWith(expression: '', note: '');
+    if (addAnother) {
+      state = state.copyWith(expression: '', note: '', noteTyped: false);
+    }
     return true;
   }
 
-  /// After saving a read screenshot, names its kind of page from the note,
-  /// so the next screenshot like it fills that name in. A failure only
-  /// loses the name; the expense is already saved.
-  Future<void> _rememberKind() async {
+  /// After saving a read screenshot whose note Jack changed, remembers his
+  /// note for that shop and amount, so the next screenshot like it fills
+  /// his note in. A failure only loses the note; the expense is already
+  /// saved.
+  Future<void> _learnNote() async {
     final scanned = _scanned;
     _scanned = null;
     if (scanned == null) return;
-    final name = learnedKindName(note: state.note, shop: scanned.shop);
-    if (name == null) return;
+    final shop = scanned.shop;
+    final amount = scanned.amountMinor;
+    final note = noteToLearn(
+      shop: shop,
+      amountMinor: amount,
+      filled: scanned.filled,
+      saved: state.note,
+    );
+    if (note == null || shop == null || amount == null) return;
     try {
-      await ref.read(receiptKindDaoProvider).remember(scanned.labels, name);
+      await ref.read(learnedNoteDaoProvider).learn(shop, amount, note);
     } on Exception {
-      // Nothing to tell Jack: the next scan simply is not named.
+      // Nothing to tell Jack: the next scan simply fills the shop.
     }
   }
 

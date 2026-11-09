@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/note_utils.dart';
 import '../../../shared/widgets/entrance.dart';
 import '../../../shared/widgets/pill_chip.dart';
 import '../add_expense_controller.dart';
@@ -19,6 +20,7 @@ class HistoryChipStrip extends ConsumerWidget {
     super.key,
     required this.categoryId,
     required this.note,
+    required this.typed,
     required this.onSelected,
     required this.onHide,
   });
@@ -27,16 +29,21 @@ class HistoryChipStrip extends ConsumerWidget {
 
   /// The current note; the chip with exactly this text shows as selected.
   final String note;
+
+  /// Whether [note] was typed by hand: then only chips with a word starting
+  /// with it show, and the strip folds away when none does.
+  final bool typed;
   final ValueChanged<String> onSelected;
   final ValueChanged<String> onHide;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoryId = this.categoryId;
-    final notes = categoryId == null
+    final history = categoryId == null
         ? const <String>[]
         : ref.watch(noteHistoryProvider(categoryId)).valueOrNull ??
               const <String>[];
+    final notes = typed ? notesStartingWith(history, note) : history;
     final colors = context.colors;
     final onHero = colors.onHero;
 

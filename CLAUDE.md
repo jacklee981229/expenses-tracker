@@ -168,7 +168,8 @@ Unit tests are required for, and only for:
 - `data/services/recurring_generator.dart` — catch-up correctness, idempotency,
   day-of-month clamping
 - `AnalysisDao` aggregation queries against an in-memory database
-- `core/utils/note_utils.dart` — history chip ranking
+- `core/utils/note_utils.dart` — history chip ranking, and narrowing them
+  to a typed note
 - `core/utils/duplicate_check.dart` — the duplicate warning
 - `core/utils/insights.dart` — the Analysis summary line
 - `core/utils/report.dart` — the Analysis report's figures
@@ -179,7 +180,8 @@ Unit tests are required for, and only for:
 - `core/utils/report_brief.dart` — the expenses sent to Claude, its take read
   back, and the fingerprint that decides when to ask again
 - `data/services/report_take_store.dart` — the saved takes
-- `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of receipt page
+- `core/utils/learned_notes.dart` and `LearnedNoteDao` — a screenshot's
+  shop and amount filling the note Jack gave them before
 - `HiddenNoteDao` with `TransactionDao.watchNoteUses` — chips taken away and brought back
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
 - `core/utils/bar_scale.dart` — the spending bars' cap

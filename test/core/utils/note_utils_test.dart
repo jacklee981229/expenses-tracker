@@ -66,4 +66,31 @@ void main() {
       expect(cleanNote(null), isNull);
     });
   });
+
+  group('notesStartingWith', () {
+    const chips = ['Shopeefood', 'Grabfood', 'Panmee', 'Kopi ice', 'Mamak'];
+
+    test('keeps notes with a word starting with what was typed', () {
+      expect(notesStartingWith(chips, 'P'), ['Panmee']);
+      expect(notesStartingWith(chips, 'i'), ['Kopi ice']);
+      expect(notesStartingWith(chips, 'kopi i'), ['Kopi ice']);
+      expect(notesStartingWith(['Food App - Kedai Ali'], 'ked'), [
+        'Food App - Kedai Ali',
+      ]);
+    });
+
+    test('nothing typed keeps every note in order', () {
+      expect(notesStartingWith(chips, ''), chips);
+      expect(notesStartingWith(chips, '  '), chips);
+    });
+
+    test('no match leaves nothing', () {
+      expect(notesStartingWith(chips, 'x'), isEmpty);
+      expect(notesStartingWith(chips, 'food'), isEmpty);
+    });
+
+    test('Chinese matches anywhere in the note', () {
+      expect(notesStartingWith(['猪肉面', '鸡饭'], '肉'), ['猪肉面']);
+    });
+  });
 }

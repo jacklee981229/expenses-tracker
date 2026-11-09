@@ -116,5 +116,4 @@ const ReceiptReading _nothing = (
   shop: null,
   date: null,
   delivery: false,
-  labels: <String>{},
 );

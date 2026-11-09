@@ -211,15 +211,30 @@ void main() {
     expect(reading.amountMinor, 500);
   });
 
-  test('the shop is not one of the page labels', () {
+  test('the shop on the same line as its label', () {
     final reading = parseReceipt([
       at('Receiver', 400, 440, 60),
       at('ALI BIN AHMAD', 400, 440, 700),
       at('Remark', 460, 500, 60),
     ]);
     expect(reading.shop, 'ALI BIN AHMAD');
-    expect(reading.labels, isNot(contains('ali bin ahmad')));
-    expect(reading.labels, containsAll(['receiver', 'remark']));
+  });
+
+  test('an e-wallet transfer: the person under Transfer To', () {
+    final reading = parseReceipt([
+      at('-RM11.00', 260, 340, 40),
+      at('Transaction Type', 420, 450, 40),
+      at('Transfer to Wallet', 420, 450, 620),
+      at('Transfer To', 530, 560, 40),
+      at('CHIN CHIEH HUI', 530, 560, 640),
+      at('Payment Details', 640, 670, 40),
+      at('CHIN CHIEH HUI', 640, 670, 640),
+      at('Date/Time', 860, 890, 40),
+      at('09/11/2026 11:58:40', 860, 890, 580),
+    ]);
+    expect(reading.amountMinor, 1100);
+    expect(reading.shop, 'CHIN CHIEH HUI');
+    expect(reading.date, DateTime(2026, 11, 9));
   });
 
   test('an e-wallet payment: the big amount with its minus, the merchant', () {
@@ -284,7 +299,6 @@ void main() {
     ]);
     expect(reading.amountMinor, 2034);
     expect(reading.shop, 'Kedai Ayam - Puchong');
-    expect(reading.labels, isNot(contains('kedai ayam puchong')));
   });
 
   test('a food order: the shop line without its arrow', () {

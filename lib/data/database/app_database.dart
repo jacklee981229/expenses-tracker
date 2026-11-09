@@ -9,14 +9,14 @@ import '../../core/constants/app_info.dart';
 import 'daos/analysis_dao.dart';
 import 'daos/category_dao.dart';
 import 'daos/hidden_note_dao.dart';
-import 'daos/receipt_kind_dao.dart';
+import 'daos/learned_note_dao.dart';
 import 'daos/recurring_dao.dart';
 import 'daos/settings_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'tables/app_settings_table.dart';
 import 'tables/categories_table.dart';
 import 'tables/hidden_notes_table.dart';
-import 'tables/receipt_kinds_table.dart';
+import 'tables/learned_notes_table.dart';
 import 'tables/recurring_rules_table.dart';
 import 'tables/transactions_table.dart';
 
@@ -28,8 +28,8 @@ part 'app_database.g.dart';
     Transactions,
     RecurringRules,
     AppSettings,
-    ReceiptKinds,
     HiddenNotes,
+    LearnedNotes,
   ],
   daos: [
     CategoryDao,
@@ -37,8 +37,8 @@ part 'app_database.g.dart';
     RecurringDao,
     AnalysisDao,
     SettingsDao,
-    ReceiptKindDao,
     HiddenNoteDao,
+    LearnedNoteDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -58,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Any schema change bumps this and adds a step to [migration].
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -69,12 +69,16 @@ class AppDatabase extends _$AppDatabase {
       }
     },
     onUpgrade: (m, from, to) async {
-      // 2: named kinds of receipt page, for reading screenshots.
-      if (from < 2) await m.createTable(receiptKinds);
+      // 2 added named kinds of receipt page; 5 drops them again.
       // 3: notes taken out of the history chips.
       if (from < 3) await m.createTable(hiddenNotes);
       // 4: the folded total card, remembered.
       if (from < 4) await m.addColumn(appSettings, appSettings.totalCardFolded);
+      // 5: notes learned per shop and amount replace the kinds of page.
+      if (from < 5) {
+        await customStatement('DROP TABLE IF EXISTS receipt_kinds');
+        await m.createTable(learnedNotes);
+      }
     },
     beforeOpen: (details) async {
       // SQLite leaves foreign keys off unless enabled on every connection.

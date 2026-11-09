@@ -249,6 +249,7 @@ class _AddExpenseSheetState extends ConsumerState<AddExpenseSheet> {
           history: HistoryChipStrip(
             categoryId: state.categoryId,
             note: state.note,
+            typed: state.noteTyped,
             onSelected: controller.setNote,
             onHide: (note) => _hideNote(controller, note),
           ),
