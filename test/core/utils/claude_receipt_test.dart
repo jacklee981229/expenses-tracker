@@ -32,6 +32,7 @@ final ReceiptReading onPhone = (
   shop: 'Ayam Goreng Corner - Mid Valley',
   date: DateTime(2026, 11, 5),
   delivery: false,
+  labels: const {'order details', 'take from'},
 );
 
 void main() {
@@ -143,7 +144,7 @@ void main() {
   });
 
   group('mergeReadings', () {
-    test("Claude's figures replace the phone's", () {
+    test("Claude's figures replace the phone's; labels stay", () {
       final merged = mergeReadings(onPhone, (
         amountMinor: 1160,
         shop: 'Ayam Goreng Corner',
@@ -154,6 +155,7 @@ void main() {
       expect(merged.shop, 'Ayam Goreng Corner');
       expect(merged.date, DateTime(2026, 11, 6));
       expect(merged.delivery, isTrue);
+      expect(merged.labels, onPhone.labels);
     });
 
     test("what Claude missed keeps the phone's reading", () {

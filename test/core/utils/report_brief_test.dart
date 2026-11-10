@@ -31,7 +31,7 @@ final List<ReportExpense> november = [
   spend('Food', 650, '2026-11-04', note: ' nasi  lemak '),
   spend('Petrol', 6510, '2026-11-03'),
   spend('Food', 2950, '2026-11-06', note: 'Food App - Kedai Ali'),
-  spend('Food', 3060, '2026-11-06', note: 'food app - Kedai Ali'),
+  spend('Food', 3060, '2026-11-06', note: 'food app - Kedai Abu'),
 ];
 
 final List<CategorySpend> october = [
@@ -53,6 +53,7 @@ ReportBrief brief({
   daysSoFar: daysSoFar,
   periodDays: 30,
   running: running,
+  kindNames: const ['Food App'],
 );
 
 Map<String, dynamic> reply(Object? take, {String stop = 'end_turn'}) => {
@@ -83,10 +84,10 @@ void main() {
         '2026-11-03 | Tue | Petrol | RM65.10 | -\n'
         '2026-11-04 | Wed | Food | RM6.50 | nasi lemak\n'
         '2026-11-06 | Fri | Food | RM29.50 | Food App - Kedai Ali\n'
-        '2026-11-06 | Fri | Food | RM30.60 | food app - Kedai Ali\n'
+        '2026-11-06 | Fri | Food | RM30.60 | food app - Kedai Abu\n'
         '\n'
         'Notes seen more than once (count, total, days):\n'
-        '- Food App - Kedai Ali: 2 times, RM60.10 (Fri 6 Nov)\n'
+        '- Food App: 2 times, RM60.10 (Fri 6 Nov)\n'
         '- Nasi lemak: 2 times, RM13.00 (Mon 2 Nov, Wed 4 Nov)\n'
         '\n'
         'Totals this period: Rent RM880.00; Food RM77.90; Petrol RM65.10; '
@@ -142,6 +143,38 @@ void main() {
       );
       expect(text, endsWith('all RM12.50 (1 expense)'));
       expect(text, isNot(contains('Notes seen')));
+    });
+
+    test('notes of one kind are one group, each kind its own', () {
+      final text = reportBrief(
+        expenses: [
+          spend('Food', 2034, '2026-11-06', note: 'Food App - Kedai Ayam'),
+          spend('Food', 1500, '2026-11-05', note: 'food app - Kedai Ali'),
+          spend('Food', 1200, '2026-11-04', note: 'Food App'),
+          spend('Food', 4000, '2026-11-03', note: 'Food Go - Kedai Abu'),
+          spend('Food', 2000, '2026-11-02', note: 'Food go - Kedai Mala'),
+          // Not a named kind: each note stands on its own.
+          spend('Food', 900, '2026-11-01', note: 'Ride App - home'),
+          spend('Food', 900, '2026-11-01', note: 'Ride App - office'),
+        ],
+        previous: null,
+        period: 'November 2026',
+        word: 'month',
+        daysSoFar: 6,
+        periodDays: 30,
+        running: true,
+        kindNames: const ['Food App', 'Food Go'],
+      ).text;
+      expect(
+        text,
+        contains(
+          'Notes seen more than once (count, total, days):\n'
+          '- Food Go: 2 times, RM60.00 (Mon 2 Nov, Tue 3 Nov)\n'
+          '- Food App: 3 times, RM47.34 (Wed 4 Nov, Thu 5 Nov, Fri 6 Nov)\n'
+          '\n',
+        ),
+      );
+      expect(text, isNot(contains('- Ride App')));
     });
 
     test('a note seen once, or blank, is no group', () {

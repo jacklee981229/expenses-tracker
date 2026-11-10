@@ -211,13 +211,15 @@ void main() {
     expect(reading.amountMinor, 500);
   });
 
-  test('the shop on the same line as its label', () {
+  test('the shop is not one of the page labels', () {
     final reading = parseReceipt([
       at('Receiver', 400, 440, 60),
       at('ALI BIN AHMAD', 400, 440, 700),
       at('Remark', 460, 500, 60),
     ]);
     expect(reading.shop, 'ALI BIN AHMAD');
+    expect(reading.labels, isNot(contains('ali bin ahmad')));
+    expect(reading.labels, containsAll(['receiver', 'remark']));
   });
 
   test('an e-wallet transfer: the person under Transfer To', () {
@@ -299,6 +301,7 @@ void main() {
     ]);
     expect(reading.amountMinor, 2034);
     expect(reading.shop, 'Kedai Ayam - Puchong');
+    expect(reading.labels, isNot(contains('kedai ayam puchong')));
   });
 
   test('a food order: the shop line without its arrow', () {

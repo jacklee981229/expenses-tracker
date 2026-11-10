@@ -5,6 +5,7 @@ import 'database/daos/analysis_dao.dart';
 import 'database/daos/category_dao.dart';
 import 'database/daos/hidden_note_dao.dart';
 import 'database/daos/learned_note_dao.dart';
+import 'database/daos/receipt_kind_dao.dart';
 import 'database/daos/recurring_dao.dart';
 import 'database/daos/settings_dao.dart';
 import 'database/daos/transaction_dao.dart';
@@ -47,6 +48,10 @@ final settingsDaoProvider = Provider<SettingsDao>(
 
 final learnedNoteDaoProvider = Provider<LearnedNoteDao>(
   (ref) => ref.watch(appDatabaseProvider).learnedNoteDao,
+);
+
+final receiptKindDaoProvider = Provider<ReceiptKindDao>(
+  (ref) => ref.watch(appDatabaseProvider).receiptKindDao,
 );
 
 final hiddenNoteDaoProvider = Provider<HiddenNoteDao>(

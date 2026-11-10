@@ -5,11 +5,15 @@ import 'money.dart';
 typedef ReadLine = ({String text, double top, double bottom, double left});
 
 /// What a receipt screenshot gave: any of it may be missing.
+///
+/// [labels] are the page's printed words (`order details`, `item
+/// subtotal`), which tell one kind of receipt page from another.
 typedef ReceiptReading = ({
   int? amountMinor,
   String? shop,
   DateTime? date,
   bool delivery,
+  Set<String> labels,
 });
 
 // `RM14.60`, `RM 1,234.50`, `-RM7.00`; the minus marks a discount.
@@ -97,7 +101,39 @@ ReceiptReading parseReceipt(List<ReadLine> lines) {
     shop: _shop(sorted),
     date: _date(sorted),
     delivery: sorted.any((line) => _delivery.hasMatch(line.text)),
+    labels: _labels(sorted),
   );
+}
+
+/// The page's printed labels, leaving out the shop, which changes from one
+/// receipt to the next.
+Set<String> _labels(List<ReadLine> lines) {
+  final shop = _shop(lines);
+  final shopLabel = shop == null ? null : _label(shop);
+  return {
+    for (final line in lines)
+      if (_label(line.text) case final label? when label != shopLabel) label,
+  };
+}
+
+/// The most words a line can have and still be a label, not a sentence.
+const int _labelMaxWords = 5;
+
+/// [text] as a label (lower case, letters only, brackets dropped since they
+/// hold counts: `Item Subtotal (1 item)` -> `item subtotal`), or null for
+/// amounts, dates and long lines.
+String? _label(String text) {
+  if (_money.hasMatch(text) || _dateIn(text) != null) return null;
+  final words = text
+      .toLowerCase()
+      .replaceAll(RegExp(r'\([^)]*\)'), ' ')
+      .replaceAll(RegExp('[^a-z]+'), ' ')
+      .trim()
+      .split(' ')
+      .where((word) => word.length > 1)
+      .toList();
+  if (words.isEmpty || words.length > _labelMaxWords) return null;
+  return words.join(' ');
 }
 
 int? _amount(List<ReadLine> lines) {

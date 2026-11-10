@@ -182,6 +182,8 @@ Unit tests are required for, and only for:
 - `data/services/report_take_store.dart` — the saved takes
 - `core/utils/learned_notes.dart` and `LearnedNoteDao` — a screenshot's
   shop and amount filling the note Jack gave them before
+- `core/utils/receipt_kinds.dart` and `ReceiptKindDao` — naming kinds of
+  receipt page, so a food app's name goes in front of the shop
 - `HiddenNoteDao` with `TransactionDao.watchNoteUses` — chips taken away and brought back
 - `core/utils/month_palette.dart` — the colour field's blobs and the legend's shares
 - `core/utils/bar_scale.dart` — the spending bars' cap

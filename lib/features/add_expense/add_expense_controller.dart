@@ -7,6 +7,7 @@ import '../../core/utils/duplicate_check.dart';
 import '../../core/utils/money.dart';
 import '../../core/utils/note_utils.dart';
 import '../../core/utils/learned_notes.dart';
+import '../../core/utils/receipt_kinds.dart';
 import '../../core/utils/receipt_parser.dart';
 import '../../data/data_providers.dart';
 import '../../data/database/app_database.dart';
@@ -110,10 +111,11 @@ final addExpenseControllerProvider = NotifierProvider.autoDispose
 
 class AddExpenseController
     extends AutoDisposeFamilyNotifier<AddExpenseState, AddExpenseArgs> {
-  /// The last screenshot read into this sheet, until it is saved: its shop
-  /// and amount, and the note it filled in, so a note Jack changed is
-  /// learned.
-  ({String? shop, int? amountMinor, String filled})? _scanned;
+  /// The last screenshot read into this sheet, until it is saved: its page
+  /// labels, shop and amount, and the note it filled in, so the saved note
+  /// can name its kind of page and a note Jack changed is learned.
+  ({Set<String> labels, String? shop, int? amountMinor, String filled})?
+  _scanned;
 
   @override
   AddExpenseState build(AddExpenseArgs arg) {
@@ -233,7 +235,9 @@ class AddExpenseController
   /// amount (the next key typed replaces it), the date (today when none was
   /// found or it is in the future) and the shop as the note; what was not
   /// found is cleared. When Jack gave the same shop at the same amount a
-  /// note of his own before, that note goes in instead. A delivery goes to
+  /// note of his own before, that note goes in instead; otherwise a kind of
+  /// page he named before puts its name in front (`Food App - Kedai Ali`,
+  /// or the name alone without a shop). A delivery goes to
   /// [deliveryCategoryId]; otherwise the note picks its category as a typed
   /// note does.
   Future<void> applyReading(
@@ -252,8 +256,21 @@ class AddExpenseController
     final learned = shop == null || amount == null
         ? null
         : await ref.read(learnedNoteDaoProvider).noteFor(shop, amount);
-    final note = learned ?? shop;
-    _scanned = (shop: shop, amountMinor: amount, filled: note ?? '');
+    final kinds = learned != null
+        ? const <ReceiptKind>[]
+        : await ref.read(receiptKindDaoProvider).getAll();
+    final note =
+        learned ??
+        receiptNote(
+          shop: shop,
+          kindName: matchKind(reading.labels, kinds)?.name,
+        );
+    _scanned = (
+      labels: reading.labels,
+      shop: shop,
+      amountMinor: amount,
+      filled: note ?? '',
+    );
     if (reading.delivery && deliveryCategoryId != null) {
       selectCategory(deliveryCategoryId, tapped: false);
       setNote(note ?? '');
@@ -302,25 +319,32 @@ class AddExpenseController
     return true;
   }
 
-  /// After saving a read screenshot whose note Jack changed, remembers his
-  /// note for that shop and amount, so the next screenshot like it fills
-  /// his note in. A failure only loses the note; the expense is already
-  /// saved.
+  /// After saving a read screenshot, names its kind of page from the note,
+  /// and when Jack changed the note, remembers it for that shop and amount,
+  /// so the next screenshot like it fills them in. A failure only loses
+  /// what was learned; the expense is already saved.
   Future<void> _learnNote() async {
     final scanned = _scanned;
     _scanned = null;
     if (scanned == null) return;
     final shop = scanned.shop;
     final amount = scanned.amountMinor;
+    final kindName = learnedKindName(note: state.note, shop: shop);
     final note = noteToLearn(
       shop: shop,
       amountMinor: amount,
       filled: scanned.filled,
       saved: state.note,
     );
-    if (note == null || shop == null || amount == null) return;
     try {
-      await ref.read(learnedNoteDaoProvider).learn(shop, amount, note);
+      if (kindName != null) {
+        await ref
+            .read(receiptKindDaoProvider)
+            .remember(scanned.labels, kindName);
+      }
+      if (note != null && shop != null && amount != null) {
+        await ref.read(learnedNoteDaoProvider).learn(shop, amount, note);
+      }
     } on Exception {
       // Nothing to tell Jack: the next scan simply fills the shop.
     }

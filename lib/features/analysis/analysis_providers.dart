@@ -341,6 +341,11 @@ final reportProvider = Provider.autoDispose<Report?>((ref) {
   );
 });
 
+/// The named kinds of receipt page, read each time the report opens.
+final receiptKindsProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(receiptKindDaoProvider).getAll(),
+);
+
 /// What Claude is asked about one report. Two requests are the same while
 /// the period and filter ([key]), the expenses and the period before's
 /// totals ([fingerprint]) and the API key are, so reopening the sheet finds
@@ -381,9 +386,11 @@ final takeRequestProvider = Provider.autoDispose<TakeRequest?>((ref) {
   if (apiKey == null || ref.watch(reportProvider) == null) return null;
   final expenses = ref.watch(_reportExpensesProvider)!;
   final previous = ref.watch(previousCategoryTotalsProvider).value;
+  final kinds = ref.watch(receiptKindsProvider);
   final bounds = ref.watch(periodBoundsProvider);
   // All counts its days from the first expense: wait for it.
-  if (bounds == null && !ref.watch(firstExpenseDateProvider).hasValue) {
+  if (kinds.isLoading ||
+      (bounds == null && !ref.watch(firstExpenseDateProvider).hasValue)) {
     return null;
   }
   final selection = ref.watch(periodSelectionProvider);
@@ -406,6 +413,8 @@ final takeRequestProvider = Provider.autoDispose<TakeRequest?>((ref) {
         bounds == null ||
         (bounds.start.compareTo(today) <= 0 &&
             bounds.end.compareTo(today) >= 0),
+    // A failed read only stops kinds counting as one.
+    kindNames: [for (final kind in kinds.valueOrNull ?? []) kind.name],
   );
   return TakeRequest(
     key: [
