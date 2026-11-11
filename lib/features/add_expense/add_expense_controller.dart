@@ -261,10 +261,7 @@ class AddExpenseController
         : await ref.read(receiptKindDaoProvider).getAll();
     final note =
         learned ??
-        receiptNote(
-          shop: shop,
-          kindName: matchKind(reading.labels, kinds)?.name,
-        );
+        receiptNote(shop: shop, kindName: kindFor(reading.labels, kinds)?.name);
     _scanned = (
       labels: reading.labels,
       shop: shop,
@@ -337,7 +334,7 @@ class AddExpenseController
       saved: state.note,
     );
     try {
-      if (kindName != null) {
+      if (kindName != null && !isBuiltInKind(kindName)) {
         await ref
             .read(receiptKindDaoProvider)
             .remember(scanned.labels, kindName);

@@ -11,6 +11,51 @@ const int kKindMinShared = 4;
 /// scrolled elsewhere, or showing another ad, still matches.
 const double kKindMinOverlap = 0.5;
 
+/// The food apps Jack orders from, known without being named first: their
+/// order pages' fixed labels, read from his own screenshots (Nov 2026).
+/// Promos, statuses and ads are left out, as they change from one order to
+/// the next.
+const List<ReceiptKind> kBuiltInKinds = [
+  (
+    labels: {
+      'order details',
+      'take from',
+      'deliver to',
+      'item details',
+      'item subtotal',
+      'food discount voucher',
+      'delivery fee',
+      'tax included where applicable',
+      'order info',
+      'if item unavailable',
+    },
+    name: 'Shopeefood',
+  ),
+  (
+    labels: {
+      'get help',
+      'saver delivery',
+      'on time',
+      'quickly next time',
+      'paylater',
+      'offers applied',
+      'total',
+      'view order summary',
+    },
+    name: 'Grabfood',
+  ),
+];
+
+/// Whether [name] is one of [kBuiltInKinds], which never need learning.
+bool isBuiltInKind(String name) => kBuiltInKinds.any(
+  (kind) => kind.name.toLowerCase() == name.trim().toLowerCase(),
+);
+
+/// The kind of page [labels] come from: a built-in food app first, else a
+/// kind Jack named.
+ReceiptKind? kindFor(Set<String> labels, Iterable<ReceiptKind> learned) =>
+    matchKind(labels, kBuiltInKinds) ?? matchKind(labels, learned);
+
 /// The named kind [labels] belongs to, best match first; null when none is
 /// close enough.
 ReceiptKind? matchKind(Set<String> labels, Iterable<ReceiptKind> kinds) {

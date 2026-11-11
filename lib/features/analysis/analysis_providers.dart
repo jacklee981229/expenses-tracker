@@ -5,6 +5,7 @@ import '../../core/constants/strings.dart';
 import '../../core/utils/date_utils.dart';
 import '../../core/utils/insights.dart';
 import '../../core/utils/money.dart';
+import '../../core/utils/receipt_kinds.dart';
 import '../../core/utils/report.dart';
 import '../../core/utils/report_brief.dart';
 import '../../data/data_providers.dart';
@@ -413,8 +414,12 @@ final takeRequestProvider = Provider.autoDispose<TakeRequest?>((ref) {
         bounds == null ||
         (bounds.start.compareTo(today) <= 0 &&
             bounds.end.compareTo(today) >= 0),
-    // A failed read only stops kinds counting as one.
-    kindNames: [for (final kind in kinds.valueOrNull ?? []) kind.name],
+    // A failed read only stops learned kinds counting as one; the food
+    // apps always do.
+    kindNames: [
+      for (final kind in kBuiltInKinds) kind.name,
+      for (final kind in kinds.valueOrNull ?? []) kind.name,
+    ],
   );
   return TakeRequest(
     key: [
