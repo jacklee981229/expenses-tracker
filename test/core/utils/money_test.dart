@@ -143,6 +143,15 @@ void main() {
     });
   });
 
+  group('formatBalance', () {
+    test('signs what is owed and owing, never zero', () {
+      expect(formatBalance(21320), '+213.20');
+      expect(formatBalance(-4410), '−44.10');
+      expect(formatBalance(123456), '+1,234.56');
+      expect(formatBalance(0), '0.00');
+    });
+  });
+
   group('averageMinor', () {
     test('divides in sen, rounding half up', () {
       expect(averageMinor(186300, 4), 46575);

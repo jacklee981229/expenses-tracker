@@ -85,6 +85,18 @@ String formatShortWithSymbol(int minor) {
   );
 }
 
+/// A balance in a group, owed or owing, without the currency, as the
+/// small chips show it: `21320` -> `'+213.20'`, `-4410` -> `'−44.10'`,
+/// zero -> `'0.00'`.
+String formatBalance(int minor) {
+  final sign = minor > 0
+      ? AppStrings.keyPlus
+      : minor < 0
+      ? AppStrings.keyMinus
+      : '';
+  return '$sign${formatMinor(minor.abs())}';
+}
+
 /// An expense as lists show it: `1250` -> `'-RM12.50'`.
 String formatExpense(int minor) => '-${formatWithSymbol(minor)}';
 

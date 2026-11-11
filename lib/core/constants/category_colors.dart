@@ -22,5 +22,19 @@ const List<String> kCategoryColorHexes = [
   '9E9EA3', // grey
 ];
 
+/// A group's people's initials sit on these, in the group's order (Jack
+/// first, on the theme's purple), from the same swatches; they repeat
+/// after the last.
+const List<String> kPersonColorHexes = [
+  'A16AEA', // purple
+  '4FB3E8', // sky
+  'E47CC0', // pink
+  'A5C85A', // lime
+  'F6AA55', // amber
+  '3DBEA9', // teal
+  '7B80E8', // indigo
+  'EA967A', // peach
+];
+
 /// `E9695B` -> opaque [Color].
 Color colorFromHex(String hex) => Color(0xFF000000 | int.parse(hex, radix: 16));

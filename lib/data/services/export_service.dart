@@ -50,6 +50,7 @@ class ExportService {
   /// does not claim it was never backed up.
   Future<Map<String, Object?>> buildJson() async {
     final exportedAt = _clock().millisecondsSinceEpoch;
+    final splits = await _db.splitDao.getAll();
     return {
       'version': kBackupFormatVersion,
       'exportedAt': exportedAt,
@@ -68,6 +69,14 @@ class ExportService {
         for (final expense in await _db.transactionDao.getAll())
           expense.toJson(),
       ],
+      // Optional, so files and builds from before groups still read each
+      // other: an older build ignores it, a file without it has no groups.
+      'splits': {
+        'groups': [for (final row in splits.groups) row.toJson()],
+        'people': [for (final row in splits.people) row.toJson()],
+        'entries': [for (final row in splits.entries) row.toJson()],
+        'shares': [for (final row in splits.shares) row.toJson()],
+      },
     };
   }
 
@@ -77,13 +86,17 @@ class ExportService {
   Future<List<int>> buildBackupBytes() async => (await buildBackup()).bytes;
 
   /// The backup's bytes with what the cloud copy is listed by: its export
-  /// time and how many expenses it holds.
-  Future<({List<int> bytes, int exportedAt, int count})> buildBackup() async {
+  /// time and how many expenses it holds; [groups] too, so a phone with
+  /// only groups still has something to back up.
+  Future<({List<int> bytes, int exportedAt, int count, int groups})>
+  buildBackup() async {
     final json = await buildJson();
+    final splits = json['splits']! as Map<String, Object?>;
     return (
       bytes: gzip.encode(utf8.encode(jsonEncode(json))),
       exportedAt: json['exportedAt']! as int,
       count: (json['transactions']! as List).length,
+      groups: (splits['groups']! as List).length,
     );
   }
 

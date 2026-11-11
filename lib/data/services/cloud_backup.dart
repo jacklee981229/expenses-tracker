@@ -83,7 +83,9 @@ class CloudBackup {
   Future<CloudResult<bool>> _send(String token) async {
     final now = _clock();
     final backup = await _exporter.buildBackup();
-    if (backup.count == 0) return const CloudResult.ok(false);
+    if (backup.count == 0 && backup.groups == 0) {
+      return const CloudResult.ok(false);
+    }
     final state = await _states.read();
     await _states.write(
       CloudBackupState(

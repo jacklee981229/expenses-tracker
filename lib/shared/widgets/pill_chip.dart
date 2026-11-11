@@ -15,6 +15,7 @@ class PillChip extends StatelessWidget {
     required this.onTap,
     this.onLongPress,
     this.leading,
+    this.trailing,
     this.color,
     this.labelColor,
     this.selectedColor,
@@ -27,6 +28,9 @@ class PillChip extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final Widget? leading;
+
+  /// A small mark after the label, for what a tap does (add, remove).
+  final Widget? trailing;
 
   /// The unselected fill, when the chip sits on a colour the default fill
   /// would not stand out from.
@@ -42,6 +46,7 @@ class PillChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final leading = this.leading;
+    final trailing = this.trailing;
     return Pressable(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -94,6 +99,10 @@ class PillChip extends StatelessWidget {
                         ),
               ),
             ),
+            if (trailing != null) ...[
+              const SizedBox(width: AppSpacing.xxs),
+              trailing,
+            ],
           ],
         ),
       ),

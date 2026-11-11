@@ -295,10 +295,16 @@ abstract final class AppStrings {
 
   // Backup
   static const String importTitle = 'Import backup';
-  static String importSummary(int categories, int rules, int expenses) =>
+  static String importSummary(
+    int categories,
+    int rules,
+    int expenses,
+    int groups,
+  ) =>
       'This file has ${_count(categories, 'category', 'categories')}, '
-      '${_count(rules, 'fixed monthly expense', 'fixed monthly expenses')} '
-      'and ${_count(expenses, 'expense', 'expenses')}. Merge adds the ones '
+      '${_count(rules, 'fixed monthly expense', 'fixed monthly expenses')}, '
+      '${_count(expenses, 'expense', 'expenses')} '
+      'and ${_count(groups, 'group', 'groups')}. Merge adds the ones '
       'that are not here yet. Replace deletes everything here first.';
   static const String importMerge = 'Merge';
   static const String importReplace = 'Replace';
@@ -336,6 +342,66 @@ abstract final class AppStrings {
   static const String cloudWrongToken = 'Wrong token.';
   static const String cloudNoConnection = 'No connection.';
   static const String cloudNoAnswer = "The cloud didn't answer.";
+
+  // Split groups
+  static const String books = 'Books';
+  static const String myLedger = 'My ledger';
+  static const String myLedgerDetail = 'Every day';
+  static const String newGroup = 'New group';
+  static String groupDetail(int people, String total) =>
+      '${_count(people, 'person', 'people')} · $total';
+  static String groupSpent(String? days, int people, String total) =>
+      '${days == null ? '' : '$days · '}'
+      '${_count(people, 'person', 'people')} · $total spent';
+  static const String groupNamePlaceholder = 'Trip or meal';
+  static const String people = 'People';
+  static const String addName = 'Add a name';
+  static const String fromEarlierGroups = 'From earlier groups';
+  static const String create = 'Create';
+  static const String you = 'You';
+  static const String youInLine = 'you';
+  static String youChip(String name) => '$name (you)';
+
+  /// Jack's name in his first group, until he renames himself.
+  static const String meDefaultName = 'Me';
+  static const String yourName = 'Your name';
+  static const String yourNameMessage = 'Friends see it on the shared picture.';
+  static const String paidBy = 'Paid by';
+  static const String splitBetween = 'Split between';
+  static String shareEach(String amount) => '$amount each';
+  static String shareFor(String amount, String name) => '$amount for $name';
+  static String shareEachBut(String each, String name, String amount) =>
+      '$each each, $name $amount';
+  static String shareRange(String low, String high) => '$low–$high each';
+  static const String pickSomeone = 'Pick someone';
+  static const String settleUp = 'Settle up';
+  static const String allSquare = 'All square';
+  static const String pays = 'pays';
+  static String paysWhom(String name) => 'pays $name';
+  static const String paysYou = 'pays you';
+
+  /// Under `You`: `pay Ali`.
+  static String payWhom(String name) => 'pay $name';
+  static const String everyone = 'everyone';
+  static String entryDetail(String payer, String sharers) =>
+      '$payer paid · $sharers';
+  static String sharerCount(int count) => _count(count, 'person', 'people');
+  static String splitFooter(int expenses) =>
+      'Split equally · ${_count(expenses, 'expense', 'expenses')}';
+  static const String settleFileName = 'settle-up';
+  static const String noGroupExpenses = 'No expenses in this group yet';
+  static const String groupMenu = 'Group menu';
+  static const String renameGroup = 'Rename group';
+  static const String renamePerson = 'Rename';
+  static const String addPerson = 'Add';
+  static const String removePerson = 'Remove';
+  static String cannotRemoveTitle(String name) => '$name stays';
+  static const String cannotRemoveMessage =
+      'They are on an expense in this group.';
+  static String deleteGroupTitle(String name) => 'Delete $name?';
+  static const String deleteGroupMessage =
+      'Its expenses and people go too. This cannot be undone.';
+  static const String deleteGroup = 'Delete group';
 }
 
 String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';

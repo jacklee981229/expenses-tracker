@@ -5,13 +5,14 @@ import '../app_database.dart';
 import '../seed/default_categories.dart';
 import '../tables/categories_table.dart';
 import '../tables/recurring_rules_table.dart';
+import '../tables/split_tables.dart';
 import '../tables/transactions_table.dart';
 
 part 'category_dao.g.dart';
 
 const Uuid _uuid = Uuid();
 
-@DriftAccessor(tables: [Categories, Transactions, RecurringRules])
+@DriftAccessor(tables: [Categories, Transactions, RecurringRules, SplitEntries])
 class CategoryDao extends DatabaseAccessor<AppDatabase>
     with _$CategoryDaoMixin {
   CategoryDao(super.attachedDatabase);
@@ -125,8 +126,9 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  /// Expenses plus fixed monthly rules that reference the category. Only a
-  /// category with no usage may be deleted; otherwise it can only be archived.
+  /// Expenses, fixed monthly rules and group expenses that reference the
+  /// category. Only a category with no usage may be deleted; otherwise it
+  /// can only be archived.
   Future<int> usageCount(String id) async {
     final expenses = transactions.id.count();
     final expenseRow =
@@ -140,7 +142,16 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
               ..addColumns([rules])
               ..where(recurringRules.categoryId.equals(id)))
             .getSingle();
-    return (expenseRow.read(expenses) ?? 0) + (ruleRow.read(rules) ?? 0);
+    final splits = splitEntries.id.count();
+    final splitRow =
+        await (selectOnly(splitEntries)
+              ..addColumns([splits])
+              ..where(splitEntries.categoryId.equals(id)))
+            .getSingle();
+    final int used = expenseRow.read(expenses) ?? 0;
+    final int ruled = ruleRow.read(rules) ?? 0;
+    final int split = splitRow.read(splits) ?? 0;
+    return used + ruled + split;
   }
 
   Future<void> deleteCategory(String id) async {
@@ -162,7 +173,8 @@ class CategoryDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  /// Backup import (replace). Expenses and rules must be deleted first.
+  /// Backup import (replace). Expenses, rules and groups must be deleted
+  /// first.
   Future<void> deleteAll() async {
     await delete(categories).go();
   }

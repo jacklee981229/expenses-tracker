@@ -196,6 +196,18 @@ void main() {
     expect(worker.uploads, isEmpty);
   });
 
+  test('a phone with only groups still uploads', () async {
+    final cloud = cloudOn(db);
+    await cloud.turnOn(token);
+    await db.splitDao.createGroup(
+      name: 'Test trip',
+      meName: 'Jack',
+      others: ['Ali'],
+    );
+    expect((await cloud.uploadNow()).value, isTrue);
+    expect(worker.uploads, hasLength(1));
+  });
+
   test(
     'a failed upload is not a good one, and the last export stays',
     () async {

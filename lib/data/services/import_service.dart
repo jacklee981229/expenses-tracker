@@ -3,6 +3,7 @@ import 'dart:io';
 
 import '../../core/constants/app_info.dart';
 import '../database/app_database.dart';
+import '../database/daos/split_dao.dart';
 
 enum ImportMode {
   /// Insert rows whose id is not already present. A category whose name
@@ -33,12 +34,16 @@ class BackupData {
     required this.categories,
     required this.recurringRules,
     required this.transactions,
+    required this.splits,
   });
 
   final AppSettingsData? settings;
   final List<ExpenseCategory> categories;
   final List<RecurringRule> recurringRules;
   final List<Expense> transactions;
+
+  /// Groups and what is in them; none in a file made before groups.
+  final SplitBackup splits;
 }
 
 class ImportService {
@@ -81,11 +86,24 @@ class ImportService {
           RecurringRule.fromJson,
         ),
         transactions: _rows(decoded['transactions'], Expense.fromJson),
+        splits: _splits(decoded['splits']),
       );
     } on Object {
       // Missing fields or wrong types anywhere in the file.
       throw const InvalidBackupException();
     }
+  }
+
+  /// The optional `splits` key: absent in files made before groups.
+  static SplitBackup _splits(Object? raw) {
+    if (raw == null) return (groups: [], people: [], entries: [], shares: []);
+    final json = raw as Map<String, dynamic>;
+    return (
+      groups: _rows(json['groups'], SplitGroup.fromJson),
+      people: _rows(json['people'], SplitPerson.fromJson),
+      entries: _rows(json['entries'], SplitEntry.fromJson),
+      shares: _rows(json['shares'], SplitShare.fromJson),
+    );
   }
 
   static bool _isGzip(List<int> bytes) =>
@@ -104,6 +122,7 @@ class ImportService {
   Future<void> apply(BackupData data, ImportMode mode) {
     return _db.transaction(() async {
       if (mode == ImportMode.replace) {
+        await _db.splitDao.deleteAll();
         await _db.transactionDao.deleteAll();
         await _db.recurringDao.deleteAll();
         await _db.categoryDao.deleteAll();
@@ -116,6 +135,7 @@ class ImportService {
           data.transactions,
           skipExisting: false,
         );
+        await _db.splitDao.importRows(data.splits, skipExisting: false);
         final settings = data.settings;
         if (settings != null) await _db.settingsDao.replaceWith(settings);
         return;
@@ -131,7 +151,31 @@ class ImportService {
         for (final expense in data.transactions)
           expense.copyWith(categoryId: onPhone(expense.categoryId)),
       ], skipExisting: true);
+      await _mergeSplits(data.splits, onPhone);
     });
+  }
+
+  /// Adds the groups, people and entries the phone doesn't have, each
+  /// entry with the phone's category. Shares come only with a new entry: an
+  /// entry already here keeps its own, or its shares could stop adding up.
+  Future<void> _mergeSplits(
+    SplitBackup backup,
+    String Function(String id) onPhone,
+  ) async {
+    final here = {for (final e in (await _db.splitDao.getAll()).entries) e.id};
+    await _db.splitDao.importRows((
+      groups: backup.groups,
+      people: backup.people,
+      entries: [
+        for (final entry in backup.entries)
+          if (!here.contains(entry.id))
+            entry.copyWith(categoryId: onPhone(entry.categoryId)),
+      ],
+      shares: [
+        for (final share in backup.shares)
+          if (!here.contains(share.entryId)) share,
+      ],
+    ), skipExisting: true);
   }
 
   /// Every install seeds its default categories with new random ids, so

@@ -10,6 +10,7 @@ import '../../../shared/widgets/circle_icon_button.dart';
 import '../../../shared/widgets/large_title.dart';
 import '../../../shared/widgets/pill_chip.dart';
 import '../../../shared/widgets/sheets.dart';
+import '../../split/books_sheet.dart';
 import '../ledger_providers.dart';
 import '../search_screen.dart';
 import 'category_drawer.dart';
@@ -69,6 +70,11 @@ class LedgerHeader extends ConsumerWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              CircleIconButton(
+                icon: Icons.menu_book_rounded,
+                tooltip: AppStrings.books,
+                onPressed: () => showBooksSheet(context),
+              ),
               CircleIconButton(
                 icon: Icons.search_rounded,
                 tooltip: AppStrings.search,

@@ -18,8 +18,8 @@ final archivedCategoriesProvider = StreamProvider<List<ExpenseCategory>>(
   (ref) => ref.watch(categoryDaoProvider).watchArchived(),
 );
 
-/// Expenses plus fixed monthly rules using a category. Zero means it may be
-/// deleted; anything else means archive only.
+/// Expenses, fixed monthly rules and group expenses using a category. Zero
+/// means it may be deleted; anything else means archive only.
 final categoryUsageProvider = FutureProvider.autoDispose.family<int, String>(
   (ref, id) => ref.watch(categoryDaoProvider).usageCount(id),
 );

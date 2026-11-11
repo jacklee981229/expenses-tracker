@@ -3068,6 +3068,1640 @@ class ReceiptKindsCompanion extends UpdateCompanion<ReceiptKindRow> {
   }
 }
 
+class $SplitGroupsTable extends SplitGroups
+    with TableInfo<$SplitGroupsTable, SplitGroup> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitGroupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isArchivedMeta = const VerificationMeta(
+    'isArchived',
+  );
+  @override
+  late final GeneratedColumn<bool> isArchived = GeneratedColumn<bool>(
+    'is_archived',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_archived" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    isArchived,
+    sortOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_groups';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitGroup> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('is_archived')) {
+      context.handle(
+        _isArchivedMeta,
+        isArchived.isAcceptableOrUnknown(data['is_archived']!, _isArchivedMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitGroup map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitGroup(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      isArchived: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_archived'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SplitGroupsTable createAlias(String alias) {
+    return $SplitGroupsTable(attachedDatabase, alias);
+  }
+}
+
+class SplitGroup extends DataClass implements Insertable<SplitGroup> {
+  final String id;
+  final String name;
+  final bool isArchived;
+  final int sortOrder;
+
+  /// Epoch milliseconds.
+  final int createdAt;
+  const SplitGroup({
+    required this.id,
+    required this.name,
+    required this.isArchived,
+    required this.sortOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['is_archived'] = Variable<bool>(isArchived);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  SplitGroupsCompanion toCompanion(bool nullToAbsent) {
+    return SplitGroupsCompanion(
+      id: Value(id),
+      name: Value(name),
+      isArchived: Value(isArchived),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SplitGroup.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitGroup(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      isArchived: serializer.fromJson<bool>(json['isArchived']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'isArchived': serializer.toJson<bool>(isArchived),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  SplitGroup copyWith({
+    String? id,
+    String? name,
+    bool? isArchived,
+    int? sortOrder,
+    int? createdAt,
+  }) => SplitGroup(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    isArchived: isArchived ?? this.isArchived,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SplitGroup copyWithCompanion(SplitGroupsCompanion data) {
+    return SplitGroup(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      isArchived: data.isArchived.present
+          ? data.isArchived.value
+          : this.isArchived,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitGroup(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, isArchived, sortOrder, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitGroup &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.isArchived == this.isArchived &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class SplitGroupsCompanion extends UpdateCompanion<SplitGroup> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<bool> isArchived;
+  final Value<int> sortOrder;
+  final Value<int> createdAt;
+  final Value<int> rowid;
+  const SplitGroupsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.isArchived = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitGroupsCompanion.insert({
+    required String id,
+    required String name,
+    this.isArchived = const Value.absent(),
+    required int sortOrder,
+    required int createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       sortOrder = Value(sortOrder),
+       createdAt = Value(createdAt);
+  static Insertable<SplitGroup> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<bool>? isArchived,
+    Expression<int>? sortOrder,
+    Expression<int>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (isArchived != null) 'is_archived': isArchived,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitGroupsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<bool>? isArchived,
+    Value<int>? sortOrder,
+    Value<int>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SplitGroupsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      isArchived: isArchived ?? this.isArchived,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isArchived.present) {
+      map['is_archived'] = Variable<bool>(isArchived.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitGroupsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('isArchived: $isArchived, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitPeopleTable extends SplitPeople
+    with TableInfo<$SplitPeopleTable, SplitPerson> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitPeopleTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES split_groups (id)',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isMeMeta = const VerificationMeta('isMe');
+  @override
+  late final GeneratedColumn<bool> isMe = GeneratedColumn<bool>(
+    'is_me',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_me" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, groupId, name, isMe, sortOrder];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_people';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitPerson> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('is_me')) {
+      context.handle(
+        _isMeMeta,
+        isMe.isAcceptableOrUnknown(data['is_me']!, _isMeMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitPerson map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitPerson(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      isMe: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_me'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $SplitPeopleTable createAlias(String alias) {
+    return $SplitPeopleTable(attachedDatabase, alias);
+  }
+}
+
+class SplitPerson extends DataClass implements Insertable<SplitPerson> {
+  final String id;
+  final String groupId;
+  final String name;
+
+  /// Jack himself: first in every group and never removed.
+  final bool isMe;
+
+  /// The group's order: the leftover sen and ties in who pays whom go by
+  /// it.
+  final int sortOrder;
+  const SplitPerson({
+    required this.id,
+    required this.groupId,
+    required this.name,
+    required this.isMe,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['group_id'] = Variable<String>(groupId);
+    map['name'] = Variable<String>(name);
+    map['is_me'] = Variable<bool>(isMe);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  SplitPeopleCompanion toCompanion(bool nullToAbsent) {
+    return SplitPeopleCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      name: Value(name),
+      isMe: Value(isMe),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory SplitPerson.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitPerson(
+      id: serializer.fromJson<String>(json['id']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      name: serializer.fromJson<String>(json['name']),
+      isMe: serializer.fromJson<bool>(json['isMe']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'groupId': serializer.toJson<String>(groupId),
+      'name': serializer.toJson<String>(name),
+      'isMe': serializer.toJson<bool>(isMe),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  SplitPerson copyWith({
+    String? id,
+    String? groupId,
+    String? name,
+    bool? isMe,
+    int? sortOrder,
+  }) => SplitPerson(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    name: name ?? this.name,
+    isMe: isMe ?? this.isMe,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  SplitPerson copyWithCompanion(SplitPeopleCompanion data) {
+    return SplitPerson(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      name: data.name.present ? data.name.value : this.name,
+      isMe: data.isMe.present ? data.isMe.value : this.isMe,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitPerson(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('name: $name, ')
+          ..write('isMe: $isMe, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, groupId, name, isMe, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitPerson &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.name == this.name &&
+          other.isMe == this.isMe &&
+          other.sortOrder == this.sortOrder);
+}
+
+class SplitPeopleCompanion extends UpdateCompanion<SplitPerson> {
+  final Value<String> id;
+  final Value<String> groupId;
+  final Value<String> name;
+  final Value<bool> isMe;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const SplitPeopleCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.isMe = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitPeopleCompanion.insert({
+    required String id,
+    required String groupId,
+    required String name,
+    this.isMe = const Value.absent(),
+    required int sortOrder,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       groupId = Value(groupId),
+       name = Value(name),
+       sortOrder = Value(sortOrder);
+  static Insertable<SplitPerson> custom({
+    Expression<String>? id,
+    Expression<String>? groupId,
+    Expression<String>? name,
+    Expression<bool>? isMe,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (name != null) 'name': name,
+      if (isMe != null) 'is_me': isMe,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitPeopleCompanion copyWith({
+    Value<String>? id,
+    Value<String>? groupId,
+    Value<String>? name,
+    Value<bool>? isMe,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return SplitPeopleCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      name: name ?? this.name,
+      isMe: isMe ?? this.isMe,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (isMe.present) {
+      map['is_me'] = Variable<bool>(isMe.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitPeopleCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('name: $name, ')
+          ..write('isMe: $isMe, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitEntriesTable extends SplitEntries
+    with TableInfo<$SplitEntriesTable, SplitEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES split_groups (id)',
+    ),
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<String> categoryId = GeneratedColumn<String>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES categories (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
+  @override
+  late final GeneratedColumn<int> occurredAt = GeneratedColumn<int>(
+    'occurred_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _localDateMeta = const VerificationMeta(
+    'localDate',
+  );
+  @override
+  late final GeneratedColumn<String> localDate = GeneratedColumn<String>(
+    'local_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payerIdMeta = const VerificationMeta(
+    'payerId',
+  );
+  @override
+  late final GeneratedColumn<String> payerId = GeneratedColumn<String>(
+    'payer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES split_people (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    groupId,
+    amountMinor,
+    categoryId,
+    note,
+    occurredAt,
+    localDate,
+    payerId,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+        _occurredAtMeta,
+        occurredAt.isAcceptableOrUnknown(data['occurred_at']!, _occurredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('local_date')) {
+      context.handle(
+        _localDateMeta,
+        localDate.isAcceptableOrUnknown(data['local_date']!, _localDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_localDateMeta);
+    }
+    if (data.containsKey('payer_id')) {
+      context.handle(
+        _payerIdMeta,
+        payerId.isAcceptableOrUnknown(data['payer_id']!, _payerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payerIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category_id'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      occurredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}occurred_at'],
+      )!,
+      localDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_date'],
+      )!,
+      payerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payer_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SplitEntriesTable createAlias(String alias) {
+    return $SplitEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class SplitEntry extends DataClass implements Insertable<SplitEntry> {
+  final String id;
+  final String groupId;
+
+  /// Sen. Never a double.
+  final int amountMinor;
+  final String categoryId;
+  final String? note;
+
+  /// Epoch milliseconds.
+  final int occurredAt;
+
+  /// `YYYY-MM-DD` in device local time, written from [occurredAt].
+  final String localDate;
+  final String payerId;
+  final int createdAt;
+  final int updatedAt;
+  const SplitEntry({
+    required this.id,
+    required this.groupId,
+    required this.amountMinor,
+    required this.categoryId,
+    this.note,
+    required this.occurredAt,
+    required this.localDate,
+    required this.payerId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['group_id'] = Variable<String>(groupId);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['category_id'] = Variable<String>(categoryId);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['occurred_at'] = Variable<int>(occurredAt);
+    map['local_date'] = Variable<String>(localDate);
+    map['payer_id'] = Variable<String>(payerId);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  SplitEntriesCompanion toCompanion(bool nullToAbsent) {
+    return SplitEntriesCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      amountMinor: Value(amountMinor),
+      categoryId: Value(categoryId),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      occurredAt: Value(occurredAt),
+      localDate: Value(localDate),
+      payerId: Value(payerId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SplitEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitEntry(
+      id: serializer.fromJson<String>(json['id']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      categoryId: serializer.fromJson<String>(json['categoryId']),
+      note: serializer.fromJson<String?>(json['note']),
+      occurredAt: serializer.fromJson<int>(json['occurredAt']),
+      localDate: serializer.fromJson<String>(json['localDate']),
+      payerId: serializer.fromJson<String>(json['payerId']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'groupId': serializer.toJson<String>(groupId),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'categoryId': serializer.toJson<String>(categoryId),
+      'note': serializer.toJson<String?>(note),
+      'occurredAt': serializer.toJson<int>(occurredAt),
+      'localDate': serializer.toJson<String>(localDate),
+      'payerId': serializer.toJson<String>(payerId),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  SplitEntry copyWith({
+    String? id,
+    String? groupId,
+    int? amountMinor,
+    String? categoryId,
+    Value<String?> note = const Value.absent(),
+    int? occurredAt,
+    String? localDate,
+    String? payerId,
+    int? createdAt,
+    int? updatedAt,
+  }) => SplitEntry(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    amountMinor: amountMinor ?? this.amountMinor,
+    categoryId: categoryId ?? this.categoryId,
+    note: note.present ? note.value : this.note,
+    occurredAt: occurredAt ?? this.occurredAt,
+    localDate: localDate ?? this.localDate,
+    payerId: payerId ?? this.payerId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SplitEntry copyWithCompanion(SplitEntriesCompanion data) {
+    return SplitEntry(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      note: data.note.present ? data.note.value : this.note,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
+      localDate: data.localDate.present ? data.localDate.value : this.localDate,
+      payerId: data.payerId.present ? data.payerId.value : this.payerId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitEntry(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('note: $note, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('localDate: $localDate, ')
+          ..write('payerId: $payerId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    groupId,
+    amountMinor,
+    categoryId,
+    note,
+    occurredAt,
+    localDate,
+    payerId,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitEntry &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.amountMinor == this.amountMinor &&
+          other.categoryId == this.categoryId &&
+          other.note == this.note &&
+          other.occurredAt == this.occurredAt &&
+          other.localDate == this.localDate &&
+          other.payerId == this.payerId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SplitEntriesCompanion extends UpdateCompanion<SplitEntry> {
+  final Value<String> id;
+  final Value<String> groupId;
+  final Value<int> amountMinor;
+  final Value<String> categoryId;
+  final Value<String?> note;
+  final Value<int> occurredAt;
+  final Value<String> localDate;
+  final Value<String> payerId;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const SplitEntriesCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.note = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.localDate = const Value.absent(),
+    this.payerId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitEntriesCompanion.insert({
+    required String id,
+    required String groupId,
+    required int amountMinor,
+    required String categoryId,
+    this.note = const Value.absent(),
+    required int occurredAt,
+    required String localDate,
+    required String payerId,
+    required int createdAt,
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       groupId = Value(groupId),
+       amountMinor = Value(amountMinor),
+       categoryId = Value(categoryId),
+       occurredAt = Value(occurredAt),
+       localDate = Value(localDate),
+       payerId = Value(payerId),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<SplitEntry> custom({
+    Expression<String>? id,
+    Expression<String>? groupId,
+    Expression<int>? amountMinor,
+    Expression<String>? categoryId,
+    Expression<String>? note,
+    Expression<int>? occurredAt,
+    Expression<String>? localDate,
+    Expression<String>? payerId,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (categoryId != null) 'category_id': categoryId,
+      if (note != null) 'note': note,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (localDate != null) 'local_date': localDate,
+      if (payerId != null) 'payer_id': payerId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? groupId,
+    Value<int>? amountMinor,
+    Value<String>? categoryId,
+    Value<String?>? note,
+    Value<int>? occurredAt,
+    Value<String>? localDate,
+    Value<String>? payerId,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SplitEntriesCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      amountMinor: amountMinor ?? this.amountMinor,
+      categoryId: categoryId ?? this.categoryId,
+      note: note ?? this.note,
+      occurredAt: occurredAt ?? this.occurredAt,
+      localDate: localDate ?? this.localDate,
+      payerId: payerId ?? this.payerId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<String>(categoryId.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<int>(occurredAt.value);
+    }
+    if (localDate.present) {
+      map['local_date'] = Variable<String>(localDate.value);
+    }
+    if (payerId.present) {
+      map['payer_id'] = Variable<String>(payerId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('note: $note, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('localDate: $localDate, ')
+          ..write('payerId: $payerId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitSharesTable extends SplitShares
+    with TableInfo<$SplitSharesTable, SplitShare> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitSharesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entryIdMeta = const VerificationMeta(
+    'entryId',
+  );
+  @override
+  late final GeneratedColumn<String> entryId = GeneratedColumn<String>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES split_entries (id)',
+    ),
+  );
+  static const VerificationMeta _personIdMeta = const VerificationMeta(
+    'personId',
+  );
+  @override
+  late final GeneratedColumn<String> personId = GeneratedColumn<String>(
+    'person_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES split_people (id)',
+    ),
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [entryId, personId, amountMinor];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_shares';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitShare> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entry_id')) {
+      context.handle(
+        _entryIdMeta,
+        entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('person_id')) {
+      context.handle(
+        _personIdMeta,
+        personId.isAcceptableOrUnknown(data['person_id']!, _personIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_personIdMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entryId, personId};
+  @override
+  SplitShare map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitShare(
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      personId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person_id'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+    );
+  }
+
+  @override
+  $SplitSharesTable createAlias(String alias) {
+    return $SplitSharesTable(attachedDatabase, alias);
+  }
+}
+
+class SplitShare extends DataClass implements Insertable<SplitShare> {
+  final String entryId;
+  final String personId;
+
+  /// Sen. An entry's shares add up to its amount.
+  final int amountMinor;
+  const SplitShare({
+    required this.entryId,
+    required this.personId,
+    required this.amountMinor,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entry_id'] = Variable<String>(entryId);
+    map['person_id'] = Variable<String>(personId);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    return map;
+  }
+
+  SplitSharesCompanion toCompanion(bool nullToAbsent) {
+    return SplitSharesCompanion(
+      entryId: Value(entryId),
+      personId: Value(personId),
+      amountMinor: Value(amountMinor),
+    );
+  }
+
+  factory SplitShare.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitShare(
+      entryId: serializer.fromJson<String>(json['entryId']),
+      personId: serializer.fromJson<String>(json['personId']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entryId': serializer.toJson<String>(entryId),
+      'personId': serializer.toJson<String>(personId),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+    };
+  }
+
+  SplitShare copyWith({String? entryId, String? personId, int? amountMinor}) =>
+      SplitShare(
+        entryId: entryId ?? this.entryId,
+        personId: personId ?? this.personId,
+        amountMinor: amountMinor ?? this.amountMinor,
+      );
+  SplitShare copyWithCompanion(SplitSharesCompanion data) {
+    return SplitShare(
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      personId: data.personId.present ? data.personId.value : this.personId,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitShare(')
+          ..write('entryId: $entryId, ')
+          ..write('personId: $personId, ')
+          ..write('amountMinor: $amountMinor')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(entryId, personId, amountMinor);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitShare &&
+          other.entryId == this.entryId &&
+          other.personId == this.personId &&
+          other.amountMinor == this.amountMinor);
+}
+
+class SplitSharesCompanion extends UpdateCompanion<SplitShare> {
+  final Value<String> entryId;
+  final Value<String> personId;
+  final Value<int> amountMinor;
+  final Value<int> rowid;
+  const SplitSharesCompanion({
+    this.entryId = const Value.absent(),
+    this.personId = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitSharesCompanion.insert({
+    required String entryId,
+    required String personId,
+    required int amountMinor,
+    this.rowid = const Value.absent(),
+  }) : entryId = Value(entryId),
+       personId = Value(personId),
+       amountMinor = Value(amountMinor);
+  static Insertable<SplitShare> custom({
+    Expression<String>? entryId,
+    Expression<String>? personId,
+    Expression<int>? amountMinor,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entryId != null) 'entry_id': entryId,
+      if (personId != null) 'person_id': personId,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitSharesCompanion copyWith({
+    Value<String>? entryId,
+    Value<String>? personId,
+    Value<int>? amountMinor,
+    Value<int>? rowid,
+  }) {
+    return SplitSharesCompanion(
+      entryId: entryId ?? this.entryId,
+      personId: personId ?? this.personId,
+      amountMinor: amountMinor ?? this.amountMinor,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entryId.present) {
+      map['entry_id'] = Variable<String>(entryId.value);
+    }
+    if (personId.present) {
+      map['person_id'] = Variable<String>(personId.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitSharesCompanion(')
+          ..write('entryId: $entryId, ')
+          ..write('personId: $personId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3078,6 +4712,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HiddenNotesTable hiddenNotes = $HiddenNotesTable(this);
   late final $LearnedNotesTable learnedNotes = $LearnedNotesTable(this);
   late final $ReceiptKindsTable receiptKinds = $ReceiptKindsTable(this);
+  late final $SplitGroupsTable splitGroups = $SplitGroupsTable(this);
+  late final $SplitPeopleTable splitPeople = $SplitPeopleTable(this);
+  late final $SplitEntriesTable splitEntries = $SplitEntriesTable(this);
+  late final $SplitSharesTable splitShares = $SplitSharesTable(this);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao = TransactionDao(
     this as AppDatabase,
@@ -3092,6 +4730,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ReceiptKindDao receiptKindDao = ReceiptKindDao(
     this as AppDatabase,
   );
+  late final SplitDao splitDao = SplitDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3104,6 +4743,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     hiddenNotes,
     learnedNotes,
     receiptKinds,
+    splitGroups,
+    splitPeople,
+    splitEntries,
+    splitShares,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3183,6 +4826,27 @@ final class $$CategoriesTableReferences
     ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_transactionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SplitEntriesTable, List<SplitEntry>>
+  _splitEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitEntries,
+    aliasName: $_aliasNameGenerator(
+      db.categories.id,
+      db.splitEntries.categoryId,
+    ),
+  );
+
+  $$SplitEntriesTableProcessedTableManager get splitEntriesRefs {
+    final manager = $$SplitEntriesTableTableManager(
+      $_db,
+      $_db.splitEntries,
+    ).filter((f) => f.categoryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitEntriesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3279,6 +4943,31 @@ class $$CategoriesTableFilterComposer
           }) => $$TransactionsTableFilterComposer(
             $db: $db,
             $table: $db.transactions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> splitEntriesRefs(
+    Expression<bool> Function($$SplitEntriesTableFilterComposer f) f,
+  ) {
+    final $$SplitEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3423,6 +5112,31 @@ class $$CategoriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> splitEntriesRefs<T extends Object>(
+    Expression<T> Function($$SplitEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$SplitEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.categoryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager
@@ -3441,6 +5155,7 @@ class $$CategoriesTableTableManager
           PrefetchHooks Function({
             bool recurringRulesRefs,
             bool transactionsRefs,
+            bool splitEntriesRefs,
           })
         > {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
@@ -3507,12 +5222,17 @@ class $$CategoriesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({recurringRulesRefs = false, transactionsRefs = false}) {
+              ({
+                recurringRulesRefs = false,
+                transactionsRefs = false,
+                splitEntriesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (recurringRulesRefs) db.recurringRules,
                     if (transactionsRefs) db.transactions,
+                    if (splitEntriesRefs) db.splitEntries,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3559,6 +5279,27 @@ class $$CategoriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (splitEntriesRefs)
+                        await $_getPrefetchedData<
+                          ExpenseCategory,
+                          $CategoriesTable,
+                          SplitEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CategoriesTableReferences
+                              ._splitEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CategoriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.categoryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3579,7 +5320,11 @@ typedef $$CategoriesTableProcessedTableManager =
       $$CategoriesTableUpdateCompanionBuilder,
       (ExpenseCategory, $$CategoriesTableReferences),
       ExpenseCategory,
-      PrefetchHooks Function({bool recurringRulesRefs, bool transactionsRefs})
+      PrefetchHooks Function({
+        bool recurringRulesRefs,
+        bool transactionsRefs,
+        bool splitEntriesRefs,
+      })
     >;
 typedef $$RecurringRulesTableCreateCompanionBuilder =
     RecurringRulesCompanion Function({
@@ -5343,6 +7088,1999 @@ typedef $$ReceiptKindsTableProcessedTableManager =
       ReceiptKindRow,
       PrefetchHooks Function()
     >;
+typedef $$SplitGroupsTableCreateCompanionBuilder =
+    SplitGroupsCompanion Function({
+      required String id,
+      required String name,
+      Value<bool> isArchived,
+      required int sortOrder,
+      required int createdAt,
+      Value<int> rowid,
+    });
+typedef $$SplitGroupsTableUpdateCompanionBuilder =
+    SplitGroupsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<bool> isArchived,
+      Value<int> sortOrder,
+      Value<int> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$SplitGroupsTableReferences
+    extends BaseReferences<_$AppDatabase, $SplitGroupsTable, SplitGroup> {
+  $$SplitGroupsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$SplitPeopleTable, List<SplitPerson>>
+  _splitPeopleRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitPeople,
+    aliasName: $_aliasNameGenerator(db.splitGroups.id, db.splitPeople.groupId),
+  );
+
+  $$SplitPeopleTableProcessedTableManager get splitPeopleRefs {
+    final manager = $$SplitPeopleTableTableManager(
+      $_db,
+      $_db.splitPeople,
+    ).filter((f) => f.groupId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitPeopleRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SplitEntriesTable, List<SplitEntry>>
+  _splitEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitEntries,
+    aliasName: $_aliasNameGenerator(db.splitGroups.id, db.splitEntries.groupId),
+  );
+
+  $$SplitEntriesTableProcessedTableManager get splitEntriesRefs {
+    final manager = $$SplitEntriesTableTableManager(
+      $_db,
+      $_db.splitEntries,
+    ).filter((f) => f.groupId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitEntriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SplitGroupsTableFilterComposer
+    extends Composer<_$AppDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> splitPeopleRefs(
+    Expression<bool> Function($$SplitPeopleTableFilterComposer f) f,
+  ) {
+    final $$SplitPeopleTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableFilterComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> splitEntriesRefs(
+    Expression<bool> Function($$SplitEntriesTableFilterComposer f) f,
+  ) {
+    final $$SplitEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitGroupsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitGroupsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isArchived => $composableBuilder(
+    column: $table.isArchived,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> splitPeopleRefs<T extends Object>(
+    Expression<T> Function($$SplitPeopleTableAnnotationComposer a) f,
+  ) {
+    final $$SplitPeopleTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> splitEntriesRefs<T extends Object>(
+    Expression<T> Function($$SplitEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$SplitEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitGroupsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SplitGroupsTable,
+          SplitGroup,
+          $$SplitGroupsTableFilterComposer,
+          $$SplitGroupsTableOrderingComposer,
+          $$SplitGroupsTableAnnotationComposer,
+          $$SplitGroupsTableCreateCompanionBuilder,
+          $$SplitGroupsTableUpdateCompanionBuilder,
+          (SplitGroup, $$SplitGroupsTableReferences),
+          SplitGroup,
+          PrefetchHooks Function({bool splitPeopleRefs, bool splitEntriesRefs})
+        > {
+  $$SplitGroupsTableTableManager(_$AppDatabase db, $SplitGroupsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitGroupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitGroupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitGroupsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<bool> isArchived = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitGroupsCompanion(
+                id: id,
+                name: name,
+                isArchived: isArchived,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<bool> isArchived = const Value.absent(),
+                required int sortOrder,
+                required int createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SplitGroupsCompanion.insert(
+                id: id,
+                name: name,
+                isArchived: isArchived,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SplitGroupsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({splitPeopleRefs = false, splitEntriesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (splitPeopleRefs) db.splitPeople,
+                    if (splitEntriesRefs) db.splitEntries,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (splitPeopleRefs)
+                        await $_getPrefetchedData<
+                          SplitGroup,
+                          $SplitGroupsTable,
+                          SplitPerson
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SplitGroupsTableReferences
+                              ._splitPeopleRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SplitGroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitPeopleRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.groupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (splitEntriesRefs)
+                        await $_getPrefetchedData<
+                          SplitGroup,
+                          $SplitGroupsTable,
+                          SplitEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SplitGroupsTableReferences
+                              ._splitEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SplitGroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.groupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SplitGroupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SplitGroupsTable,
+      SplitGroup,
+      $$SplitGroupsTableFilterComposer,
+      $$SplitGroupsTableOrderingComposer,
+      $$SplitGroupsTableAnnotationComposer,
+      $$SplitGroupsTableCreateCompanionBuilder,
+      $$SplitGroupsTableUpdateCompanionBuilder,
+      (SplitGroup, $$SplitGroupsTableReferences),
+      SplitGroup,
+      PrefetchHooks Function({bool splitPeopleRefs, bool splitEntriesRefs})
+    >;
+typedef $$SplitPeopleTableCreateCompanionBuilder =
+    SplitPeopleCompanion Function({
+      required String id,
+      required String groupId,
+      required String name,
+      Value<bool> isMe,
+      required int sortOrder,
+      Value<int> rowid,
+    });
+typedef $$SplitPeopleTableUpdateCompanionBuilder =
+    SplitPeopleCompanion Function({
+      Value<String> id,
+      Value<String> groupId,
+      Value<String> name,
+      Value<bool> isMe,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+final class $$SplitPeopleTableReferences
+    extends BaseReferences<_$AppDatabase, $SplitPeopleTable, SplitPerson> {
+  $$SplitPeopleTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SplitGroupsTable _groupIdTable(_$AppDatabase db) =>
+      db.splitGroups.createAlias(
+        $_aliasNameGenerator(db.splitPeople.groupId, db.splitGroups.id),
+      );
+
+  $$SplitGroupsTableProcessedTableManager get groupId {
+    final $_column = $_itemColumn<String>('group_id')!;
+
+    final manager = $$SplitGroupsTableTableManager(
+      $_db,
+      $_db.splitGroups,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_groupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$SplitEntriesTable, List<SplitEntry>>
+  _splitEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitEntries,
+    aliasName: $_aliasNameGenerator(db.splitPeople.id, db.splitEntries.payerId),
+  );
+
+  $$SplitEntriesTableProcessedTableManager get splitEntriesRefs {
+    final manager = $$SplitEntriesTableTableManager(
+      $_db,
+      $_db.splitEntries,
+    ).filter((f) => f.payerId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitEntriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$SplitSharesTable, List<SplitShare>>
+  _splitSharesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitShares,
+    aliasName: $_aliasNameGenerator(db.splitPeople.id, db.splitShares.personId),
+  );
+
+  $$SplitSharesTableProcessedTableManager get splitSharesRefs {
+    final manager = $$SplitSharesTableTableManager(
+      $_db,
+      $_db.splitShares,
+    ).filter((f) => f.personId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitSharesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SplitPeopleTableFilterComposer
+    extends Composer<_$AppDatabase, $SplitPeopleTable> {
+  $$SplitPeopleTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isMe => $composableBuilder(
+    column: $table.isMe,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SplitGroupsTableFilterComposer get groupId {
+    final $$SplitGroupsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> splitEntriesRefs(
+    Expression<bool> Function($$SplitEntriesTableFilterComposer f) f,
+  ) {
+    final $$SplitEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.payerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> splitSharesRefs(
+    Expression<bool> Function($$SplitSharesTableFilterComposer f) f,
+  ) {
+    final $$SplitSharesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitShares,
+      getReferencedColumn: (t) => t.personId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitSharesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitShares,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitPeopleTableOrderingComposer
+    extends Composer<_$AppDatabase, $SplitPeopleTable> {
+  $$SplitPeopleTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isMe => $composableBuilder(
+    column: $table.isMe,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SplitGroupsTableOrderingComposer get groupId {
+    final $$SplitGroupsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SplitPeopleTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SplitPeopleTable> {
+  $$SplitPeopleTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<bool> get isMe =>
+      $composableBuilder(column: $table.isMe, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  $$SplitGroupsTableAnnotationComposer get groupId {
+    final $$SplitGroupsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> splitEntriesRefs<T extends Object>(
+    Expression<T> Function($$SplitEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$SplitEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.payerId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> splitSharesRefs<T extends Object>(
+    Expression<T> Function($$SplitSharesTableAnnotationComposer a) f,
+  ) {
+    final $$SplitSharesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitShares,
+      getReferencedColumn: (t) => t.personId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitSharesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitShares,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitPeopleTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SplitPeopleTable,
+          SplitPerson,
+          $$SplitPeopleTableFilterComposer,
+          $$SplitPeopleTableOrderingComposer,
+          $$SplitPeopleTableAnnotationComposer,
+          $$SplitPeopleTableCreateCompanionBuilder,
+          $$SplitPeopleTableUpdateCompanionBuilder,
+          (SplitPerson, $$SplitPeopleTableReferences),
+          SplitPerson,
+          PrefetchHooks Function({
+            bool groupId,
+            bool splitEntriesRefs,
+            bool splitSharesRefs,
+          })
+        > {
+  $$SplitPeopleTableTableManager(_$AppDatabase db, $SplitPeopleTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitPeopleTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitPeopleTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitPeopleTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<bool> isMe = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitPeopleCompanion(
+                id: id,
+                groupId: groupId,
+                name: name,
+                isMe: isMe,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String groupId,
+                required String name,
+                Value<bool> isMe = const Value.absent(),
+                required int sortOrder,
+                Value<int> rowid = const Value.absent(),
+              }) => SplitPeopleCompanion.insert(
+                id: id,
+                groupId: groupId,
+                name: name,
+                isMe: isMe,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SplitPeopleTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                groupId = false,
+                splitEntriesRefs = false,
+                splitSharesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (splitEntriesRefs) db.splitEntries,
+                    if (splitSharesRefs) db.splitShares,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (groupId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.groupId,
+                                    referencedTable:
+                                        $$SplitPeopleTableReferences
+                                            ._groupIdTable(db),
+                                    referencedColumn:
+                                        $$SplitPeopleTableReferences
+                                            ._groupIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (splitEntriesRefs)
+                        await $_getPrefetchedData<
+                          SplitPerson,
+                          $SplitPeopleTable,
+                          SplitEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SplitPeopleTableReferences
+                              ._splitEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SplitPeopleTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.payerId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (splitSharesRefs)
+                        await $_getPrefetchedData<
+                          SplitPerson,
+                          $SplitPeopleTable,
+                          SplitShare
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SplitPeopleTableReferences
+                              ._splitSharesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SplitPeopleTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitSharesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.personId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SplitPeopleTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SplitPeopleTable,
+      SplitPerson,
+      $$SplitPeopleTableFilterComposer,
+      $$SplitPeopleTableOrderingComposer,
+      $$SplitPeopleTableAnnotationComposer,
+      $$SplitPeopleTableCreateCompanionBuilder,
+      $$SplitPeopleTableUpdateCompanionBuilder,
+      (SplitPerson, $$SplitPeopleTableReferences),
+      SplitPerson,
+      PrefetchHooks Function({
+        bool groupId,
+        bool splitEntriesRefs,
+        bool splitSharesRefs,
+      })
+    >;
+typedef $$SplitEntriesTableCreateCompanionBuilder =
+    SplitEntriesCompanion Function({
+      required String id,
+      required String groupId,
+      required int amountMinor,
+      required String categoryId,
+      Value<String?> note,
+      required int occurredAt,
+      required String localDate,
+      required String payerId,
+      required int createdAt,
+      required int updatedAt,
+      Value<int> rowid,
+    });
+typedef $$SplitEntriesTableUpdateCompanionBuilder =
+    SplitEntriesCompanion Function({
+      Value<String> id,
+      Value<String> groupId,
+      Value<int> amountMinor,
+      Value<String> categoryId,
+      Value<String?> note,
+      Value<int> occurredAt,
+      Value<String> localDate,
+      Value<String> payerId,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$SplitEntriesTableReferences
+    extends BaseReferences<_$AppDatabase, $SplitEntriesTable, SplitEntry> {
+  $$SplitEntriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SplitGroupsTable _groupIdTable(_$AppDatabase db) =>
+      db.splitGroups.createAlias(
+        $_aliasNameGenerator(db.splitEntries.groupId, db.splitGroups.id),
+      );
+
+  $$SplitGroupsTableProcessedTableManager get groupId {
+    final $_column = $_itemColumn<String>('group_id')!;
+
+    final manager = $$SplitGroupsTableTableManager(
+      $_db,
+      $_db.splitGroups,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_groupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias(
+        $_aliasNameGenerator(db.splitEntries.categoryId, db.categories.id),
+      );
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<String>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager(
+      $_db,
+      $_db.categories,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SplitPeopleTable _payerIdTable(_$AppDatabase db) =>
+      db.splitPeople.createAlias(
+        $_aliasNameGenerator(db.splitEntries.payerId, db.splitPeople.id),
+      );
+
+  $$SplitPeopleTableProcessedTableManager get payerId {
+    final $_column = $_itemColumn<String>('payer_id')!;
+
+    final manager = $$SplitPeopleTableTableManager(
+      $_db,
+      $_db.splitPeople,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_payerIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$SplitSharesTable, List<SplitShare>>
+  _splitSharesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.splitShares,
+    aliasName: $_aliasNameGenerator(db.splitEntries.id, db.splitShares.entryId),
+  );
+
+  $$SplitSharesTableProcessedTableManager get splitSharesRefs {
+    final manager = $$SplitSharesTableTableManager(
+      $_db,
+      $_db.splitShares,
+    ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_splitSharesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$SplitEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $SplitEntriesTable> {
+  $$SplitEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localDate => $composableBuilder(
+    column: $table.localDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SplitGroupsTableFilterComposer get groupId {
+    final $$SplitGroupsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableFilterComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableFilterComposer get payerId {
+    final $$SplitPeopleTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payerId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableFilterComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> splitSharesRefs(
+    Expression<bool> Function($$SplitSharesTableFilterComposer f) f,
+  ) {
+    final $$SplitSharesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitShares,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitSharesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitShares,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SplitEntriesTable> {
+  $$SplitEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localDate => $composableBuilder(
+    column: $table.localDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SplitGroupsTableOrderingComposer get groupId {
+    final $$SplitGroupsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableOrderingComposer get payerId {
+    final $$SplitPeopleTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payerId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableOrderingComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SplitEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SplitEntriesTable> {
+  $$SplitEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localDate =>
+      $composableBuilder(column: $table.localDate, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$SplitGroupsTableAnnotationComposer get groupId {
+    final $$SplitGroupsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.splitGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitGroupsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.categoryId,
+      referencedTable: $db.categories,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CategoriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.categories,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableAnnotationComposer get payerId {
+    final $$SplitPeopleTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.payerId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> splitSharesRefs<T extends Object>(
+    Expression<T> Function($$SplitSharesTableAnnotationComposer a) f,
+  ) {
+    final $$SplitSharesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.splitShares,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitSharesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitShares,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$SplitEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SplitEntriesTable,
+          SplitEntry,
+          $$SplitEntriesTableFilterComposer,
+          $$SplitEntriesTableOrderingComposer,
+          $$SplitEntriesTableAnnotationComposer,
+          $$SplitEntriesTableCreateCompanionBuilder,
+          $$SplitEntriesTableUpdateCompanionBuilder,
+          (SplitEntry, $$SplitEntriesTableReferences),
+          SplitEntry,
+          PrefetchHooks Function({
+            bool groupId,
+            bool categoryId,
+            bool payerId,
+            bool splitSharesRefs,
+          })
+        > {
+  $$SplitEntriesTableTableManager(_$AppDatabase db, $SplitEntriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> categoryId = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> occurredAt = const Value.absent(),
+                Value<String> localDate = const Value.absent(),
+                Value<String> payerId = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitEntriesCompanion(
+                id: id,
+                groupId: groupId,
+                amountMinor: amountMinor,
+                categoryId: categoryId,
+                note: note,
+                occurredAt: occurredAt,
+                localDate: localDate,
+                payerId: payerId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String groupId,
+                required int amountMinor,
+                required String categoryId,
+                Value<String?> note = const Value.absent(),
+                required int occurredAt,
+                required String localDate,
+                required String payerId,
+                required int createdAt,
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SplitEntriesCompanion.insert(
+                id: id,
+                groupId: groupId,
+                amountMinor: amountMinor,
+                categoryId: categoryId,
+                note: note,
+                occurredAt: occurredAt,
+                localDate: localDate,
+                payerId: payerId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SplitEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                groupId = false,
+                categoryId = false,
+                payerId = false,
+                splitSharesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (splitSharesRefs) db.splitShares,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (groupId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.groupId,
+                                    referencedTable:
+                                        $$SplitEntriesTableReferences
+                                            ._groupIdTable(db),
+                                    referencedColumn:
+                                        $$SplitEntriesTableReferences
+                                            ._groupIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (categoryId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.categoryId,
+                                    referencedTable:
+                                        $$SplitEntriesTableReferences
+                                            ._categoryIdTable(db),
+                                    referencedColumn:
+                                        $$SplitEntriesTableReferences
+                                            ._categoryIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (payerId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.payerId,
+                                    referencedTable:
+                                        $$SplitEntriesTableReferences
+                                            ._payerIdTable(db),
+                                    referencedColumn:
+                                        $$SplitEntriesTableReferences
+                                            ._payerIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (splitSharesRefs)
+                        await $_getPrefetchedData<
+                          SplitEntry,
+                          $SplitEntriesTable,
+                          SplitShare
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SplitEntriesTableReferences
+                              ._splitSharesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$SplitEntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).splitSharesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.entryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SplitEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SplitEntriesTable,
+      SplitEntry,
+      $$SplitEntriesTableFilterComposer,
+      $$SplitEntriesTableOrderingComposer,
+      $$SplitEntriesTableAnnotationComposer,
+      $$SplitEntriesTableCreateCompanionBuilder,
+      $$SplitEntriesTableUpdateCompanionBuilder,
+      (SplitEntry, $$SplitEntriesTableReferences),
+      SplitEntry,
+      PrefetchHooks Function({
+        bool groupId,
+        bool categoryId,
+        bool payerId,
+        bool splitSharesRefs,
+      })
+    >;
+typedef $$SplitSharesTableCreateCompanionBuilder =
+    SplitSharesCompanion Function({
+      required String entryId,
+      required String personId,
+      required int amountMinor,
+      Value<int> rowid,
+    });
+typedef $$SplitSharesTableUpdateCompanionBuilder =
+    SplitSharesCompanion Function({
+      Value<String> entryId,
+      Value<String> personId,
+      Value<int> amountMinor,
+      Value<int> rowid,
+    });
+
+final class $$SplitSharesTableReferences
+    extends BaseReferences<_$AppDatabase, $SplitSharesTable, SplitShare> {
+  $$SplitSharesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SplitEntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.splitEntries.createAlias(
+        $_aliasNameGenerator(db.splitShares.entryId, db.splitEntries.id),
+      );
+
+  $$SplitEntriesTableProcessedTableManager get entryId {
+    final $_column = $_itemColumn<String>('entry_id')!;
+
+    final manager = $$SplitEntriesTableTableManager(
+      $_db,
+      $_db.splitEntries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_entryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SplitPeopleTable _personIdTable(_$AppDatabase db) =>
+      db.splitPeople.createAlias(
+        $_aliasNameGenerator(db.splitShares.personId, db.splitPeople.id),
+      );
+
+  $$SplitPeopleTableProcessedTableManager get personId {
+    final $_column = $_itemColumn<String>('person_id')!;
+
+    final manager = $$SplitPeopleTableTableManager(
+      $_db,
+      $_db.splitPeople,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_personIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SplitSharesTableFilterComposer
+    extends Composer<_$AppDatabase, $SplitSharesTable> {
+  $$SplitSharesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$SplitEntriesTableFilterComposer get entryId {
+    final $$SplitEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableFilterComposer get personId {
+    final $$SplitPeopleTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.personId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableFilterComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SplitSharesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SplitSharesTable> {
+  $$SplitSharesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$SplitEntriesTableOrderingComposer get entryId {
+    final $$SplitEntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableOrderingComposer get personId {
+    final $$SplitPeopleTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.personId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableOrderingComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SplitSharesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SplitSharesTable> {
+  $$SplitSharesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  $$SplitEntriesTableAnnotationComposer get entryId {
+    final $$SplitEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.splitEntries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SplitPeopleTableAnnotationComposer get personId {
+    final $$SplitPeopleTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.personId,
+      referencedTable: $db.splitPeople,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SplitPeopleTableAnnotationComposer(
+            $db: $db,
+            $table: $db.splitPeople,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SplitSharesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SplitSharesTable,
+          SplitShare,
+          $$SplitSharesTableFilterComposer,
+          $$SplitSharesTableOrderingComposer,
+          $$SplitSharesTableAnnotationComposer,
+          $$SplitSharesTableCreateCompanionBuilder,
+          $$SplitSharesTableUpdateCompanionBuilder,
+          (SplitShare, $$SplitSharesTableReferences),
+          SplitShare,
+          PrefetchHooks Function({bool entryId, bool personId})
+        > {
+  $$SplitSharesTableTableManager(_$AppDatabase db, $SplitSharesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitSharesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitSharesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitSharesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> entryId = const Value.absent(),
+                Value<String> personId = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitSharesCompanion(
+                entryId: entryId,
+                personId: personId,
+                amountMinor: amountMinor,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String entryId,
+                required String personId,
+                required int amountMinor,
+                Value<int> rowid = const Value.absent(),
+              }) => SplitSharesCompanion.insert(
+                entryId: entryId,
+                personId: personId,
+                amountMinor: amountMinor,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SplitSharesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({entryId = false, personId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (entryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.entryId,
+                                referencedTable: $$SplitSharesTableReferences
+                                    ._entryIdTable(db),
+                                referencedColumn: $$SplitSharesTableReferences
+                                    ._entryIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (personId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.personId,
+                                referencedTable: $$SplitSharesTableReferences
+                                    ._personIdTable(db),
+                                referencedColumn: $$SplitSharesTableReferences
+                                    ._personIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SplitSharesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SplitSharesTable,
+      SplitShare,
+      $$SplitSharesTableFilterComposer,
+      $$SplitSharesTableOrderingComposer,
+      $$SplitSharesTableAnnotationComposer,
+      $$SplitSharesTableCreateCompanionBuilder,
+      $$SplitSharesTableUpdateCompanionBuilder,
+      (SplitShare, $$SplitSharesTableReferences),
+      SplitShare,
+      PrefetchHooks Function({bool entryId, bool personId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5361,4 +9099,12 @@ class $AppDatabaseManager {
       $$LearnedNotesTableTableManager(_db, _db.learnedNotes);
   $$ReceiptKindsTableTableManager get receiptKinds =>
       $$ReceiptKindsTableTableManager(_db, _db.receiptKinds);
+  $$SplitGroupsTableTableManager get splitGroups =>
+      $$SplitGroupsTableTableManager(_db, _db.splitGroups);
+  $$SplitPeopleTableTableManager get splitPeople =>
+      $$SplitPeopleTableTableManager(_db, _db.splitPeople);
+  $$SplitEntriesTableTableManager get splitEntries =>
+      $$SplitEntriesTableTableManager(_db, _db.splitEntries);
+  $$SplitSharesTableTableManager get splitShares =>
+      $$SplitSharesTableTableManager(_db, _db.splitShares);
 }

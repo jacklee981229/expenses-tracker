@@ -250,4 +250,100 @@ void main() {
       expect(await phone.transactionDao.getAll(), hasLength(1));
     });
   });
+
+  group('groups', () {
+    /// A test trip on [db]: Jack, Ali and Mei; Ali paid RM100 for all three.
+    Future<String> trip(AppDatabase db, {String category = 'Food'}) async {
+      final group = await db.splitDao.createGroup(
+        name: 'Test trip',
+        meName: 'Jack',
+        others: ['Ali', 'Mei'],
+      );
+      final people = await db.splitDao.watchPeople(group).first;
+      await db.splitDao.saveEntry(
+        groupId: group,
+        amountMinor: 10000,
+        categoryId: (await named(db, category)).id,
+        occurredAt: DateTime(2026, 11, 8, 20),
+        payerId: people[1].id,
+        shares: {people[0].id: 3333, people[1].id: 3334, people[2].id: 3333},
+      );
+      return group;
+    }
+
+    test('groups come back whole on replace', () async {
+      await trip(backupPhone);
+      await importInto(
+        phone,
+        await exportFrom(backupPhone),
+        ImportMode.replace,
+      );
+      final before = await backupPhone.splitDao.getAll();
+      final after = await phone.splitDao.getAll();
+      expect(after.groups, before.groups);
+      expect(after.people, before.people);
+      expect(after.entries, before.entries);
+      expect(after.shares, before.shares);
+    });
+
+    test("replace takes the phone's groups away too", () async {
+      await trip(phone);
+      await importInto(
+        phone,
+        await exportFrom(backupPhone),
+        ImportMode.replace,
+      );
+      expect((await phone.splitDao.getAll()).groups, isEmpty);
+    });
+
+    test('a file from before groups has none, and still imports', () async {
+      await spend(backupPhone, 'Food');
+      final json = await ExportService(backupPhone).buildJson()
+        ..remove('splits');
+      final data = ImportService(phone).parse(utf8.encode(jsonEncode(json)));
+      expect(data.splits.groups, isEmpty);
+      await ImportService(phone).apply(data, ImportMode.merge);
+      expect(await phone.transactionDao.getAll(), hasLength(1));
+    });
+
+    test(
+      'merge from another install moves entries to its categories',
+      () async {
+        await trip(backupPhone);
+        await importInto(
+          phone,
+          await exportFrom(backupPhone),
+          ImportMode.merge,
+        );
+        final entry = (await phone.splitDao.getAll()).entries.single;
+        expect(entry.categoryId, (await named(phone, 'Food')).id);
+        expect((await phone.splitDao.getAll()).shares, hasLength(3));
+      },
+    );
+
+    test('merge leaves an entry already here with its own shares', () async {
+      await trip(backupPhone);
+      final bytes = await exportFrom(backupPhone);
+      await importInto(phone, bytes, ImportMode.merge);
+      // The phone then splits it between Jack and Ali only.
+      final saved = (await phone.splitDao.getAll());
+      final entry = saved.entries.single;
+      final people = saved.people;
+      await phone.splitDao.saveEntry(
+        id: entry.id,
+        groupId: entry.groupId,
+        amountMinor: 10000,
+        categoryId: entry.categoryId,
+        occurredAt: DateTime(2026, 11, 8, 20),
+        payerId: entry.payerId,
+        shares: {people[0].id: 5000, people[1].id: 5000},
+      );
+
+      await importInto(phone, bytes, ImportMode.merge);
+
+      final shares = (await phone.splitDao.getAll()).shares;
+      expect(shares, hasLength(2));
+      expect(shares.fold(0, (sum, s) => sum + s.amountMinor), 10000);
+    });
+  });
 }

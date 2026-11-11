@@ -25,6 +25,7 @@ class AmountKeypad extends StatelessWidget {
     required this.onBackspace,
     required this.onSaveAndAdd,
     required this.onSave,
+    this.showScan = true,
   });
 
   final ValueChanged<String> onDigit;
@@ -40,6 +41,10 @@ class AmountKeypad extends StatelessWidget {
 
   /// Null while there is nothing valid to save.
   final VoidCallback? onSave;
+
+  /// Whether the scan key is there; a group's entry sheet has no scan, and
+  /// leaves its place empty so the other keys stay put.
+  final bool showScan;
 
   @override
   Widget build(BuildContext context) {
@@ -91,15 +96,18 @@ class AmountKeypad extends StatelessWidget {
               digit(4),
               digit(5),
               digit(6),
-              _Key(
-                onTap: onScan,
-                tinted: true,
-                child: Icon(
-                  Icons.document_scanner_rounded,
-                  color: colors.accent,
-                  semanticLabel: AppStrings.scanScreenshot,
-                ),
-              ),
+              if (showScan)
+                _Key(
+                  onTap: onScan,
+                  tinted: true,
+                  child: Icon(
+                    Icons.document_scanner_rounded,
+                    color: colors.accent,
+                    semanticLabel: AppStrings.scanScreenshot,
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
             ]),
             row([
               digit(7),
@@ -197,7 +205,14 @@ class _KeyState extends State<_Key> {
             duration: _down ? AppMotion.instant : AppMotion.normal,
             curve: _down ? Curves.easeOut : AppMotion.pop,
             height: AppSizes.keypadKeyHeight,
-            margin: EdgeInsets.only(top: _down ? AppSizes.keyTravel : 0),
+            // A translate, not a margin: the release spring overshoots
+            // past zero, and a negative margin fails Container's assert
+            // (a red error box in debug builds).
+            transform: Matrix4.translationValues(
+              0,
+              _down ? AppSizes.keyTravel : 0,
+              0,
+            ),
             decoration: BoxDecoration(
               color: widget.accent
                   ? colors.primary

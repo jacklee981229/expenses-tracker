@@ -48,6 +48,8 @@ or follows the phone).
   exceptions are a capped spending bar, which turns the theme's red, and
   the change stickers (up red, down green, new violet; `changeUp` and
   friends, deeper or paler than `heroUp` so they read over their tint).
+  In a group, each person's initial sits on a swatch mixed as the amount
+  box is, and a balance chip's figure is green when owed, red when owing.
 - Type: Bricolage Grotesque; the month's total is the one hero.
 - Shapes and material: glass, meaning a translucent tint, a 1px edge and a
   lighter top. The total card's glass is thinner than the glass under
@@ -90,7 +92,8 @@ These are correctness issues, not style preferences.
    `occurredAt`.
 3. Category icons come from the static `kIconRegistry` map of bundled image
    paths only. Never build an asset path from a stored icon key.
-4. Categories with transactions are archived, never deleted.
+4. Categories with transactions, personal or in a group, are archived,
+   never deleted.
 5. Recurring generation updates `lastGeneratedMonth` inside the same DB
    transaction as the insert.
 6. The history chip strip shows note text only. It never displays or fills an
@@ -144,6 +147,10 @@ These are correctness issues, not style preferences.
   puts them in Photos; there is no save-to-album package. iOS needs
   `NSPhotoLibraryAddUsageDescription` in `Info.plist`, or Save Image crashes
   the app.
+- Group expenses (Books › a group) stay out of the personal ledger,
+  Analysis, the report, the colour field and the CSV export; they go into
+  the Export Backup file (and so the cloud) under the optional `splits`
+  key, so the backup stays format 1 and older files still import.
 - The app is still called `Expenses`: Jack hasn't picked a name (shortlist:
   Monthglass, Bulan, 月色).
 
@@ -194,6 +201,8 @@ Unit tests are required for, and only for:
   Worker's replies and failures, and that a phone not set up never uploads
 - `backup-worker/backup.js` (`node --test`) — the token, the day keys and
   their expiry
+- `core/utils/split_settle.dart` and `SplitDao` — equal shares in sen,
+  balances, who pays whom, and a group's rows
 - the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.

@@ -13,6 +13,7 @@ import 'daos/learned_note_dao.dart';
 import 'daos/receipt_kind_dao.dart';
 import 'daos/recurring_dao.dart';
 import 'daos/settings_dao.dart';
+import 'daos/split_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'tables/app_settings_table.dart';
 import 'tables/categories_table.dart';
@@ -20,6 +21,7 @@ import 'tables/hidden_notes_table.dart';
 import 'tables/learned_notes_table.dart';
 import 'tables/receipt_kinds_table.dart';
 import 'tables/recurring_rules_table.dart';
+import 'tables/split_tables.dart';
 import 'tables/transactions_table.dart';
 
 part 'app_database.g.dart';
@@ -33,6 +35,10 @@ part 'app_database.g.dart';
     HiddenNotes,
     LearnedNotes,
     ReceiptKinds,
+    SplitGroups,
+    SplitPeople,
+    SplitEntries,
+    SplitShares,
   ],
   daos: [
     CategoryDao,
@@ -43,6 +49,7 @@ part 'app_database.g.dart';
     HiddenNoteDao,
     LearnedNoteDao,
     ReceiptKindDao,
+    SplitDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -62,13 +69,13 @@ class AppDatabase extends _$AppDatabase {
 
   /// Any schema change bumps this and adds a step to [migration].
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
-      for (final statement in _indexes) {
+      for (final statement in [..._indexes, ..._splitIndexes]) {
         await customStatement(statement);
       }
     },
@@ -86,6 +93,16 @@ class AppDatabase extends _$AppDatabase {
       }
       // 6: named kinds of receipt page again.
       if (from < 6) await m.createTable(receiptKinds);
+      // 7: groups that split expenses.
+      if (from < 7) {
+        await m.createTable(splitGroups);
+        await m.createTable(splitPeople);
+        await m.createTable(splitEntries);
+        await m.createTable(splitShares);
+        for (final statement in _splitIndexes) {
+          await customStatement(statement);
+        }
+      }
     },
     beforeOpen: (details) async {
       // SQLite leaves foreign keys off unless enabled on every connection.
@@ -105,4 +122,10 @@ const List<String> _indexes = [
   // Backs the history chip strip.
   'CREATE INDEX idx_tx_cat_occurred '
       'ON transactions(category_id, occurred_at DESC)',
+];
+
+/// Made on a fresh install and in the step to schema 7.
+const List<String> _splitIndexes = [
+  'CREATE INDEX idx_split_entries_group ON split_entries(group_id)',
+  'CREATE INDEX idx_split_shares_person ON split_shares(person_id)',
 ];

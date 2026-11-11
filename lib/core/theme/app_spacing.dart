@@ -363,6 +363,18 @@ abstract final class AppSizes {
   /// glow and all, scaled down to fit this square.
   static const double posterDonut = 112;
 
+  /// A group's person: their initial on a round tint, smaller inside a
+  /// chip; the initial's size against the circle.
+  static const double personAvatar = 30;
+  static const double personChipAvatar = 22;
+  static const double personInitialFactor = 0.45;
+
+  /// The group page's Settle up bar.
+  static const double settleButton = 52;
+
+  /// The shared settle-up picture's width, a phone screen's.
+  static const double settleCardWidth = 360;
+
   static const double disabledOpacity = 0.35;
   static const double dimOpacity = 0.4;
   static const double pausedOpacity = 0.45;

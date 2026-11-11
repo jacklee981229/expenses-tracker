@@ -7,6 +7,9 @@ mixin _$CategoryDaoMixin on DatabaseAccessor<AppDatabase> {
   $CategoriesTable get categories => attachedDatabase.categories;
   $RecurringRulesTable get recurringRules => attachedDatabase.recurringRules;
   $TransactionsTable get transactions => attachedDatabase.transactions;
+  $SplitGroupsTable get splitGroups => attachedDatabase.splitGroups;
+  $SplitPeopleTable get splitPeople => attachedDatabase.splitPeople;
+  $SplitEntriesTable get splitEntries => attachedDatabase.splitEntries;
   CategoryDaoManager get managers => CategoryDaoManager(this);
 }
 
@@ -22,4 +25,10 @@ class CategoryDaoManager {
       );
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db.attachedDatabase, _db.transactions);
+  $$SplitGroupsTableTableManager get splitGroups =>
+      $$SplitGroupsTableTableManager(_db.attachedDatabase, _db.splitGroups);
+  $$SplitPeopleTableTableManager get splitPeople =>
+      $$SplitPeopleTableTableManager(_db.attachedDatabase, _db.splitPeople);
+  $$SplitEntriesTableTableManager get splitEntries =>
+      $$SplitEntriesTableTableManager(_db.attachedDatabase, _db.splitEntries);
 }

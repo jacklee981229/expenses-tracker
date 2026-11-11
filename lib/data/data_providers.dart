@@ -8,6 +8,7 @@ import 'database/daos/learned_note_dao.dart';
 import 'database/daos/receipt_kind_dao.dart';
 import 'database/daos/recurring_dao.dart';
 import 'database/daos/settings_dao.dart';
+import 'database/daos/split_dao.dart';
 import 'database/daos/transaction_dao.dart';
 import 'services/claude_api.dart';
 import 'services/claude_key_store.dart';
@@ -56,6 +57,10 @@ final receiptKindDaoProvider = Provider<ReceiptKindDao>(
 
 final hiddenNoteDaoProvider = Provider<HiddenNoteDao>(
   (ref) => ref.watch(appDatabaseProvider).hiddenNoteDao,
+);
+
+final splitDaoProvider = Provider<SplitDao>(
+  (ref) => ref.watch(appDatabaseProvider).splitDao,
 );
 
 final recurringGeneratorProvider = Provider<RecurringGenerator>(

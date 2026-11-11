@@ -306,6 +306,7 @@ class SettingsScreen extends ConsumerWidget {
         data.categories.length,
         data.recurringRules.length,
         data.transactions.length,
+        data.splits.groups.length,
       ),
       options: const [
         SheetOption(AppStrings.importMerge, ImportMode.merge),
