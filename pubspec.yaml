@@ -3,7 +3,8 @@ description: "Personal expense tracker. Single-user, RM only; the database stays
 publish_to: 'none'
 
 # Keep in sync with lib/core/constants/app_info.dart (shown in Settings > About).
-version: 1.0.0+1
+# CHANGELOG.md says what each version changed.
+version: 0.1.1+2
 
 environment:
   sdk: ^3.8.0

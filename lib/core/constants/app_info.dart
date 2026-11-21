@@ -1,6 +1,7 @@
-/// Shown in Settings > About. Keep in sync with `version:` in pubspec.yaml.
-const String kAppVersion = '1.0.0';
-const String kAppBuildNumber = '1';
+/// Shown in Settings > About. Keep in sync with `version:` in pubspec.yaml
+/// (test/app_version_test.dart checks it).
+const String kAppVersion = '0.1.1';
+const String kAppBuildNumber = '2';
 
 /// The SQLite file in the app documents directory (included in iOS backups).
 const String kDatabaseFileName = 'expenses.sqlite';

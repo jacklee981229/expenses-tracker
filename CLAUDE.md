@@ -10,6 +10,11 @@ covers the machine setup. This file covers how to work, not what to build.
   for how a feature works now.
 - **Ask before adding a package.** Add it with `flutter pub add <name>` so the
   resolver picks a version for Dart 3.8; never hand-pin from memory.
+- Each push that changes the app bumps the version: the last part for a fix
+  or small change (0.1.1 → 0.1.2), the middle one for a new feature (0.1 →
+  0.2), and the build number after `+` every time. Change it in
+  `pubspec.yaml` and `core/constants/app_info.dart`, and add a line to
+  `CHANGELOG.md`; `test/app_version_test.dart` checks they agree.
 - Ask before any change that requires a Drift `schemaVersion` bump. Any table
   change needs that bump plus a step in `MigrationStrategy`.
 
@@ -204,6 +209,7 @@ Unit tests are required for, and only for:
 - `core/utils/split_settle.dart` and `SplitDao` — equal shares in sen,
   balances, who pays whom, and a group's rows
 - the theme's text contrast over every category colour (`test/theme_contrast_test.dart`)
+- the version in Settings matching `pubspec.yaml` and `CHANGELOG.md` (`test/app_version_test.dart`)
 
 Widget tests are not required. Do not write them unless asked.
 

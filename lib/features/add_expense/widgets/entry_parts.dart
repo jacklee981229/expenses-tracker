@@ -177,7 +177,7 @@ class _Blurred extends StatelessWidget {
 }
 
 /// The note field on the amount box.
-class EntryNoteField extends StatelessWidget {
+class EntryNoteField extends StatefulWidget {
   const EntryNoteField({
     super.key,
     required this.controller,
@@ -190,13 +190,56 @@ class EntryNoteField extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
+  State<EntryNoteField> createState() => _EntryNoteFieldState();
+}
+
+class _EntryNoteFieldState extends State<EntryNoteField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_selectAllOnFocus);
+  }
+
+  @override
+  void didUpdateWidget(EntryNoteField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode.removeListener(_selectAllOnFocus);
+      widget.focusNode.addListener(_selectAllOnFocus);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_selectAllOnFocus);
+    super.dispose();
+  }
+
+  // A one-line field scrolls sideways, and on iOS dragging a selection
+  // handle past its edge barely scrolls, so a long note could not be
+  // selected whole. Selecting it all on entry lets one keystroke replace it.
+  void _selectAllOnFocus() {
+    if (!widget.focusNode.hasFocus) return;
+    // The focusing tap may still place the caret, so select after it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.focusNode.hasFocus) return;
+      final controller = widget.controller;
+      controller.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: controller.text.length,
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final onHero = colors.onHero;
+    final focusNode = widget.focusNode;
     return TextField(
-      controller: controller,
+      controller: widget.controller,
       focusNode: focusNode,
-      onChanged: onChanged,
+      onChanged: widget.onChanged,
       onTapOutside: (_) => focusNode.unfocus(),
       maxLines: 1,
       textInputAction: TextInputAction.done,
