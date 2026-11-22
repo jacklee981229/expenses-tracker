@@ -402,6 +402,63 @@ abstract final class AppStrings {
   static const String deleteGroupMessage =
       'Its expenses and people go too. This cannot be undone.';
   static const String deleteGroup = 'Delete group';
+
+  // Double-tap setup guide
+  static const String guideAskTitle = 'Log with a double-tap';
+  static const String guideAskMessage =
+      'Double-tap the back of your iPhone on a receipt or order screen and '
+      'the app fills in the expense. See how to set it up?';
+  static const String guideNotNow = 'Not now';
+  static const String guideShowMe = 'Show me';
+  static const String guideLaterTitle = "It's in Settings";
+  static const String guideLaterMessage =
+      'Find the setup guide any time in Settings › Double-tap setup.';
+  static const String guideSettingsRow = 'Double-tap setup';
+  static const String guideBack = 'Back';
+  static const String guideCopy = 'Copy';
+  static const String guideCopied = 'Copied';
+  static const String guideNewTitle = 'New shortcut';
+  // The guide's lines mark the names to look for on the phone **like
+  // this**; the page sets them in bold.
+  static const String guideNewBody =
+      'Open the **Shortcuts** app and tap **+** to make a new shortcut.';
+  static const String guideActionsTitle = 'Add three actions';
+
+  /// Page 2's numbered steps; the link to copy sits under the second.
+  static const List<String> guideActionsSteps = [
+    'Add **Take Screenshot**, **Copy to Clipboard** and **Open URLs**, in '
+        'that order.',
+    'Paste this link into **Open URLs**:',
+    'Name the shortcut **Scan expense** and tap **Done**.',
+  ];
+  static const String guideBackTapTitle = 'Find Back Tap';
+  static const String guideBackTapBody =
+      'In Settings, go to **Accessibility › Touch › Back Tap**.';
+  static const String guideDoubleTitle = 'Pick Double Tap';
+  static const String guideDoubleBody =
+      'Tap **Double Tap**, the quickest, and choose **Scan expense**.';
+  static const String guideTryTitle = 'Allow paste, then try it';
+  static const String guideTryBody =
+      'In **Settings › Expenses**, set **Paste from Other Apps** to '
+      "**Allow**, so it doesn't ask each time. Then double-tap the back of "
+      'your phone on a receipt or order screen.';
+
+  /// Words inside the guide's drawn phone screens: the iPhone's own names
+  /// for the screens, rows and actions, so they match what Jack's reader
+  /// sees on the phone.
+  static const String guideShotShortcuts = 'Shortcuts';
+  static const String guideShotName = 'Scan expense';
+  static const String guideShotScreenshot = 'Take Screenshot';
+  static const String guideShotClipboard = 'Copy to Clipboard';
+  static const String guideShotOpenUrls = 'Open URLs';
+  static const String guideShotAccessibility = 'Accessibility';
+  static const String guideShotTouch = 'Touch';
+  static const String guideShotBackTap = 'Back Tap';
+  static const String guideShotDouble = 'Double Tap';
+  static const String guideShotTriple = 'Triple Tap';
+  static const String guideShotRecommended = 'Recommended';
+  static const String guideShotPaste = 'Paste from Other Apps';
+  static const String guideShotAllow = 'Allow';
 }
 
 String _count(int n, String one, String many) => '$n ${n == 1 ? one : many}';

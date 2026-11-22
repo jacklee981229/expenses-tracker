@@ -159,6 +159,53 @@ Future<void> showAlert(
   );
 }
 
+/// A two-button alert: Cupertino on iOS, Material elsewhere. Returns true
+/// for [confirmLabel], false for [cancelLabel] or Android's back. Tapping
+/// outside doesn't close it.
+Future<bool> showChoiceAlert(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String cancelLabel,
+  required String confirmLabel,
+}) async {
+  final chosen = await showAdaptiveDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      void pick(bool value) => Navigator.of(context).pop(value);
+      final isApple = _isApple(context);
+      return AlertDialog.adaptive(
+        title: Text(title),
+        content: Text(message),
+        actions: isApple
+            ? [
+                CupertinoDialogAction(
+                  onPressed: () => pick(false),
+                  child: Text(cancelLabel),
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => pick(true),
+                  child: Text(confirmLabel),
+                ),
+              ]
+            : [
+                TextButton(
+                  onPressed: () => pick(false),
+                  child: Text(cancelLabel),
+                ),
+                TextButton(
+                  onPressed: () => pick(true),
+                  child: Text(confirmLabel),
+                ),
+              ],
+      );
+    },
+  );
+  return chosen ?? false;
+}
+
 /// A dialog with one text field, Cancel and Save: Cupertino on iOS,
 /// Material elsewhere. Returns the trimmed text, or null when cancelled or
 /// left empty.

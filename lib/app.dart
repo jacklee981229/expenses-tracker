@@ -11,6 +11,7 @@ import 'data/data_providers.dart';
 import 'features/add_expense/add_expense_sheet.dart';
 import 'features/analysis/analysis_providers.dart';
 import 'features/analysis/analysis_screen.dart';
+import 'features/guide/guide_dialog.dart';
 import 'features/ledger/ledger_providers.dart';
 import 'features/ledger/ledger_screen.dart';
 import 'features/settings/settings_providers.dart';
@@ -96,7 +97,11 @@ class _RootShellState extends ConsumerState<RootShell> {
     scanLinkTicks.addListener(_scanClipboard);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _catchUpThenBackUp();
-      if (openedByScanLink) _scanClipboard();
+      if (openedByScanLink) {
+        _scanClipboard();
+      } else {
+        askAboutGuide(context, ref.read(guideStoreProvider));
+      }
     });
   }
 

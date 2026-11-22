@@ -17,6 +17,7 @@ import '../../shared/widgets/inset_row.dart';
 import '../../shared/widgets/sheets.dart';
 import '../../shared/widgets/large_title.dart';
 import '../categories/manage_categories_screen.dart';
+import '../guide/guide_dialog.dart';
 import '../ledger/ledger_providers.dart';
 import '../recurring/recurring_list_screen.dart';
 import 'settings_providers.dart';
@@ -132,14 +133,19 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          const InsetGroup(
+          InsetGroup(
             header: AppStrings.sectionAbout,
             children: [
               InsetRow(
+                title: AppStrings.guideSettingsRow,
+                showChevron: true,
+                onTap: () => showGuide(context),
+              ),
+              const InsetRow(
                 title: AppStrings.version,
                 trailing: _Value(kAppVersion),
               ),
-              InsetRow(
+              const InsetRow(
                 title: AppStrings.build,
                 trailing: _Value(kAppBuildNumber),
               ),

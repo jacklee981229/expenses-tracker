@@ -77,6 +77,18 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      // Material alerts (Android) on the sheets' solid colour: by default
+      // they take the scheme's surface, the translucent glass, and the page
+      // shows through the words.
+      dialogTheme: DialogThemeData(
+        backgroundColor: c.sheetBackground,
+        surfaceTintColor: Colors.transparent,
+        barrierColor: c.shadow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sheet),
+          side: BorderSide(color: c.glassEdge),
+        ),
+      ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: c.accent,

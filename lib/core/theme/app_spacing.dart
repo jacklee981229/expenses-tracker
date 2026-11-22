@@ -375,6 +375,48 @@ abstract final class AppSizes {
   /// The shared settle-up picture's width, a phone screen's.
   static const double settleCardWidth = 360;
 
+  /// The double-tap guide's card: at most [guideMaxWidth] wide; each page
+  /// [guidePageHeight] tall, its picture [guidePictureHeight] of that, with
+  /// a drawn phone [guidePhoneWidth] wide rising from the picture's bottom
+  /// edge, its screen's corners [guidePhoneRadius].
+  static const double guideMaxWidth = 380;
+  static const double guidePageHeight = 524;
+  static const double guidePictureHeight = 250;
+  static const double guidePhoneWidth = 190;
+  static const double guidePhoneRadius = 30;
+  static const double guidePhoneIslandWidth = 52;
+  static const double guidePhoneIslandHeight = 14;
+
+  /// The pulsing ring on the thing to tap: as big as a finger, growing to
+  /// [guideRingGrow] times its size as it fades.
+  static const double guideRing = 40;
+  static const double guideRingGrow = 1.6;
+  static const double guideRingStill = 1.25;
+  static const double guideRingWidth = 2;
+
+  /// A row and a tile in the drawn screens.
+  static const double guideShotRow = 34;
+  static const double guideShotTile = 62;
+  static const double guideShotIcon = 20;
+  static const double guideTouchIcon = 28;
+  static const double guideShotRadius = 6;
+
+  /// How far a row from a screen one deeper steps in.
+  static const double guideLevelStep = 10;
+
+  /// A shortcut tile's round glyph and the bar standing for its name.
+  static const double guideShotGlyph = 14;
+  static const double guideNameBar = 6;
+
+  /// The page dots: the current one stretches into a pill.
+  static const double guideDot = 6;
+  static const double guideDotActive = 18;
+  static const double guideDotGap = 2;
+
+  /// The round number before each of page 2's steps, as tall as a line of
+  /// body text.
+  static const double guideStepNumber = 22;
+
   static const double disabledOpacity = 0.35;
   static const double dimOpacity = 0.4;
   static const double pausedOpacity = 0.45;

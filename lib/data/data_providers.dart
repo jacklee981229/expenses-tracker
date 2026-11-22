@@ -16,6 +16,7 @@ import 'services/cloud_backup.dart';
 import 'services/cloud_backup_api.dart';
 import 'services/cloud_backup_store.dart';
 import 'services/export_service.dart';
+import 'services/guide_store.dart';
 import 'services/import_service.dart';
 import 'services/receipt_reader.dart';
 import 'services/recurring_generator.dart';
@@ -107,6 +108,8 @@ final cloudBackupProvider = Provider<CloudBackup>(
 final cloudBackupStatusProvider = FutureProvider<CloudBackupStatus>(
   (ref) => ref.watch(cloudBackupProvider).status(),
 );
+
+final guideStoreProvider = Provider<GuideStore>((ref) => GuideStore());
 
 final receiptReaderProvider = Provider<ReceiptReader>(
   (ref) => ReceiptReader(

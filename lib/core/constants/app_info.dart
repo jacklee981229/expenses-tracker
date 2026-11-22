@@ -1,7 +1,7 @@
 /// Shown in Settings > About. Keep in sync with `version:` in pubspec.yaml
 /// (test/app_version_test.dart checks it).
-const String kAppVersion = '0.1.1';
-const String kAppBuildNumber = '2';
+const String kAppVersion = '0.2.0';
+const String kAppBuildNumber = '3';
 
 /// The SQLite file in the app documents directory (included in iOS backups).
 const String kDatabaseFileName = 'expenses.sqlite';
@@ -37,6 +37,11 @@ const Duration kScanNoticeDuration = Duration(seconds: 3);
 
 /// The path of the `expenses://app/scan` link the Back Tap shortcut opens.
 const String kScanLinkPath = '/scan';
+
+/// The whole scan link, as the setup guide shows it to paste into the
+/// shortcut. Its `expenses` scheme is registered in the Android manifest and
+/// `Info.plist`; change all three together.
+const String kScanLink = 'expenses://app$kScanLinkPath';
 
 /// A delivery receipt goes to the category with this icon (Food, unless
 /// Jack renamed it).

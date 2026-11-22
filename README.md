@@ -27,5 +27,8 @@ Back Tap logging on the iPhone (set up once):
    opens with the amount, shop and date filled in. Check them and tap Save.
    The first time, allow the app to paste from Shortcuts.
 
+The app shows these steps itself as a picture guide: on the first launch,
+and any time from Settings › Double-tap setup.
+
 Checks before calling a change done: `flutter analyze`, `flutter test`, and
 `flutter build apk --debug` after any package change.
