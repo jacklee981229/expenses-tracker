@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pasteboard/pasteboard.dart';
@@ -34,9 +36,24 @@ class ReceiptReader {
   /// Starts reading the picture on the clipboard (the Back Tap shortcut puts
   /// a screenshot there); null when the clipboard holds no picture.
   Future<Future<ReceiptReading>?> clipboard() async {
+    await _untilInFront();
     final bytes = await Pasteboard.image;
     if (bytes == null || bytes.isEmpty) return null;
     return _readBytes(bytes);
+  }
+
+  // iOS gives the clipboard only to the app in front, without even asking
+  // to paste. The scan link reaches an app in the background before it
+  // is in front, so reading straight away found no picture on every scan
+  // until the app was closed and launched cold.
+  static Future<void> _untilInFront() async {
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      return;
+    }
+    final inFront = Completer<void>();
+    final listener = AppLifecycleListener(onResume: inFront.complete);
+    await inFront.future;
+    listener.dispose();
   }
 
   // Text recognition reads files, so clipboard bytes pass through a
